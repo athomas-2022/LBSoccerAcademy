@@ -1,0 +1,10 @@
+# OS / editor junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local tooling / editor + preview config (not needed for hosting)
+.claude/
+
+# Logs / temp
+*.log
