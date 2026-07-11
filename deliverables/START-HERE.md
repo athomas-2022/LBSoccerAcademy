@@ -6,7 +6,7 @@ the project root — links below.
 
 ---
 
-## 🌐 Live websites (hosted on GitHub Pages)
+## Live websites (hosted on GitHub Pages)
 
 | What | Link |
 |------|------|
@@ -18,7 +18,7 @@ then `git push` and the live site updates in ~1 minute.*
 
 ---
 
-## 🖨️ Flyers  → `flyers/`
+## Flyers  → `flyers/`
 
 Print-ready, one page each (8.5×11"), fully self-contained. Open the **.pdf** to print
 or email; the **.html** is the editable source. Each has a **QR code** to the site.
@@ -38,7 +38,7 @@ events and hand-outs. Files: `*-half.pdf` / `.html`.
 
 ---
 
-## 📱 Social media graphics  → `social/`
+## Social media graphics  → `social/`
 
 Square **1080×1080 PNG**s ready to post to Instagram/Facebook (with the `.html` source
 if you want to tweak). Each has a QR code where relevant.
@@ -52,14 +52,14 @@ if you want to tweak). Each has a QR code where relevant.
 
 ---
 
-## 📱 Parent-alerts guide  → `guides/`
+## Parent-alerts guide  → `guides/`
 
 How families join alerts via **Remind** (class `@6ee4bkk`) and how you message everyone.
 `parent-alerts-setup-guide.pdf` (print/share) and `.html` (has a Save-as-PDF button).
 
 ---
 
-## ⚙️ Backend script  → `backend/`
+## Backend script  → `backend/`
 
 `google-apps-script.gs` — optional Google Apps Script that auto-collects sign-ups into a
 Google Sheet. Not required (the site emails sign-ups to the office by default). Never put
@@ -67,7 +67,7 @@ real Twilio keys in this file if the repo is public.
 
 ---
 
-## 📄 Strategy & design  → `strategy/`
+## Strategy & design  → `strategy/`
 
 `PRODUCT.md` (strategy), `DESIGN.md` (visual system), `README.md` (repo overview).
 

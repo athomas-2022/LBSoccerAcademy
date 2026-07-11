@@ -92,7 +92,7 @@ function notifyOffice_(d) {
 // ================================================================
 function onOpen() {
   SpreadsheetApp.getUi()
-    .createMenu("📣 LB Academy")
+    .createMenu("LB Academy")
     .addItem("Send message to all families", "sendMessage")
     .addItem("Send URGENT message to all families", "sendUrgent")
     .addSeparator()
@@ -115,10 +115,10 @@ function broadcast_(urgent) {
   var texting = CONFIG.TWILIO_SID && CONFIG.TWILIO_TOKEN && CONFIG.TWILIO_FROM;
   var ask = "Send this to " + recips.emails.length + " emails" +
     (texting ? " and " + recips.phones.length + " texts" : "") +
-    (urgent ? "\n\n🚨 It will be marked URGENT." : "") + "\n\nGo?";
+    (urgent ? "\n\nIt will be marked URGENT." : "") + "\n\nGo?";
   if (ui.alert(subject, ask, ui.ButtonSet.OK_CANCEL) !== ui.Button.OK) return;
 
-  var subj = urgent ? "🚨 URGENT — " + subject : subject;
+  var subj = urgent ? "URGENT — " + subject : subject;
   var body = (urgent ? "URGENT NOTICE\n\n" : "") + message + "\n\n— " + CONFIG.PROGRAM_NAME;
 
   if (recips.emails.length) {
@@ -187,7 +187,7 @@ function setup() {
   m.clear();
   m.getRange("A1").setValue("Subject:").setFontWeight("bold");
   m.getRange("A2").setValue("Message:").setFontWeight("bold");
-  m.getRange("A4").setValue("Then use the 📣 LB Academy menu → Send message to all families.");
+  m.getRange("A4").setValue("Then use the LB Academy menu → Send message to all families.");
   m.getRange("B2").setWrap(true);
   m.setColumnWidth(2, 520);
   SpreadsheetApp.getUi().alert("Ready.", "Sheets are set up. Deploy as a Web app next.", SpreadsheetApp.getUi().ButtonSet.OK);

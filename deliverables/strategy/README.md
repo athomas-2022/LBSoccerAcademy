@@ -21,7 +21,7 @@ Both open by double-click locally and host as-is on **GitHub Pages**.
 - **Signup delivery:** `public/app.js` → `FORM_ENDPOINT` (empty = opens an email
   draft to the office; set it to a Google Apps Script URL to auto-collect).
 
-## ⚠️ Before making the repo public
+## Before making the repo public
 
 - **`assets/fonts/OctinSportsRg.*` is a commercial font.** Only publish it if your
   license permits web embedding; otherwise remove it (the wordmark falls back to
