@@ -28,6 +28,22 @@ or email; the **.html** is the editable source. Each has a **QR code** to the si
 | **Every Kid Plays** | Recruiting / sign-ups | `every-kid-plays-flyer.pdf` / `.html` |
 | **Donate Gear** | Asking the community for gear | `gear-donation-flyer.pdf` / `.html` |
 | **Free Gear Closet** | Telling families gear is free | `gear-closet-flyer.pdf` / `.html` |
+| **Back the Program** | Recruiting business sponsors | `sponsor-flyer.pdf` / `.html` |
+| **Coaches & Volunteers Wanted** | Recruiting coaches/helpers | `coaches-wanted-flyer.pdf` / `.html` |
+
+---
+
+## 📱 Social media graphics  → `social/`
+
+Square **1080×1080 PNG**s ready to post to Instagram/Facebook (with the `.html` source
+if you want to tweak). Each has a QR code where relevant.
+
+| Post | Files |
+|------|-------|
+| **Every Kid Plays** (announcement) | `social-every-kid-plays.png` |
+| **Sign Up — It's Free** (QR) | `social-sign-up.png` |
+| **Back the Program** (sponsors, red) | `social-back-the-program.png` |
+| **Gear Drive** (donations, green) | `social-gear-drive.png` |
 
 ---
 
