@@ -31,6 +31,11 @@ or email; the **.html** is the editable source. Each has a **QR code** to the si
 | **Back the Program** | Recruiting business sponsors | `sponsor-flyer.pdf` / `.html` |
 | **Coaches & Volunteers Wanted** | Recruiting coaches/helpers | `coaches-wanted-flyer.pdf` / `.html` |
 
+### Half-sheet versions  → `flyers/half-sheet/`
+Compact **5.5×8.5"** version of all five flyers, laid out **two per page** with a cut
+line — print one page, slice down the middle, and you get two handouts. Cheaper for
+events and hand-outs. Files: `*-half.pdf` / `.html`.
+
 ---
 
 ## 📱 Social media graphics  → `social/`
