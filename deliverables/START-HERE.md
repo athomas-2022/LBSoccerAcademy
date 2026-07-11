@@ -18,33 +18,32 @@ then `git push` and the live site updates in ~1 minute.*
 
 ---
 
+Everything here is a **PNG image** — ready to print, post, or email. No PDFs or HTML.
+
 ## Flyers  → `flyers/`
 
-Print-ready, one page each (8.5×11"), fully self-contained. Open the **.pdf** to print
-or email; the **.html** is the editable source. Each has a **QR code** to the site.
+Full-page (8.5×11") print flyers at 2× resolution (1632×2112). Each has a **QR code** to the site.
 
-| Flyer | Use it for | Files |
-|-------|-----------|-------|
-| **Every Kid Plays** | Recruiting / sign-ups | `every-kid-plays-flyer.pdf` / `.html` |
-| **Donate Gear** | Asking the community for gear | `gear-donation-flyer.pdf` / `.html` |
-| **Free Gear Closet** | Telling families gear is free | `gear-closet-flyer.pdf` / `.html` |
-| **Back the Program** | Recruiting business sponsors | `sponsor-flyer.pdf` / `.html` |
-| **Coaches & Volunteers Wanted** | Recruiting coaches/helpers | `coaches-wanted-flyer.pdf` / `.html` |
+| Flyer | Use it for | File |
+|-------|-----------|------|
+| **Every Kid Plays** | Recruiting / sign-ups | `every-kid-plays-flyer.png` |
+| **Donate Gear** | Asking the community for gear | `gear-donation-flyer.png` |
+| **Free Gear Closet** | Telling families gear is free | `gear-closet-flyer.png` |
+| **Back the Program** | Recruiting business sponsors | `sponsor-flyer.png` |
+| **Coaches & Volunteers Wanted** | Recruiting coaches/helpers | `coaches-wanted-flyer.png` |
 
 ### Half-sheet versions  → `flyers/half-sheet/`
-Compact **5.5×8.5"** version of all five flyers, laid out **two per page** with a cut
-line — print one page, slice down the middle, and you get two handouts. Cheaper for
-events and hand-outs. Files: `*-half.pdf` / `.html`.
+Compact **5.5×8.5"** version of all five flyers, **two per page** with a cut line — print
+one page, slice down the middle, get two handouts. Files: `*-half.png` (landscape 2112×1632).
 
 ---
 
 ## Social media graphics  → `social/`
 
-Square **1080×1080 PNG**s ready to post to Instagram/Facebook (with the `.html` source
-if you want to tweak). Each has a QR code where relevant.
+Square **1080×1080** images ready to post to Instagram/Facebook. Each has a QR code where relevant.
 
-| Post | Files |
-|------|-------|
+| Post | File |
+|------|------|
 | **Every Kid Plays** (announcement) | `social-every-kid-plays.png` |
 | **Sign Up — It's Free** (QR) | `social-sign-up.png` |
 | **Back the Program** (sponsors, red) | `social-back-the-program.png` |
@@ -55,7 +54,7 @@ if you want to tweak). Each has a QR code where relevant.
 ## Parent-alerts guide  → `guides/`
 
 How families join alerts via **Remind** (class `@6ee4bkk`) and how you message everyone.
-`parent-alerts-setup-guide.pdf` (print/share) and `.html` (has a Save-as-PDF button).
+`parent-alerts-setup-guide.png` (one tall image).
 
 ---
 
