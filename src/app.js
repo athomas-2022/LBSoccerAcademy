@@ -13,7 +13,7 @@
   // Connect website sign-ups to this dashboard: paste your Google Apps Script
   // web-app URL (the same /exec URL used for the sign-up form). "Sync sign-ups"
   // then pulls new sign-ups straight into Athletes. Leave "" to disable.
-  var SIGNUPS_URL = "";
+  var SIGNUPS_URL = "https://script.google.com/macros/s/AKfycby68vlCB8FhoyOk03A5Yam4f1Vhwumm8rqSPz8bAw26Tk2UUH1mLwwy0MvnLl7-YQD5/exec";
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (m) {

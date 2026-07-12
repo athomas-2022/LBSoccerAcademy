@@ -10,7 +10,7 @@
   // every signup straight into your Google Sheet — auto-logged, auto-welcomed,
   // ready for one-click messaging. See integrations/google-apps-script.gs.
   // Leave "" to fall back to a pre-filled email to the office (zero backend).
-  var FORM_ENDPOINT = "";
+  var FORM_ENDPOINT = "https://script.google.com/macros/s/AKfycby68vlCB8FhoyOk03A5Yam4f1Vhwumm8rqSPz8bAw26Tk2UUH1mLwwy0MvnLl7-YQD5/exec";
   var CONTACT_EMAIL = "athomas@Liberty-Benton.org";
 
   // ---- Shared season calendar --------------------------------------
