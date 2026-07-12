@@ -213,6 +213,7 @@
         childName: form.childName.value.trim(),
         gradClass: form.gradClass.value,
         program: program.value,
+        sports: form.sports.value.trim(),
         note: form.note.value.trim()
       };
 
@@ -268,6 +269,7 @@
          d.note ? "Note: " + d.note : "", "", "Thanks!"]
       : ["Hi — I'd like to sign my child up for the LB Soccer Academy.", "",
          "Child: " + d.childName, "Graduation class: " + d.gradClass, "Program: " + d.program,
+         d.sports ? "Other sports/activities: " + d.sports : "",
          "Parent/guardian: " + d.parentName, "Email: " + d.email,
          "Mobile: " + d.phone, "Add us to text + email alerts: yes",
          d.note ? "Notes: " + d.note : "", "", "Thank you!"];
