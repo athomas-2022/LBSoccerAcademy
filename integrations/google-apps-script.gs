@@ -8,6 +8,8 @@
  *   2. Auto-emails a welcome to the parent and notifies your office.
  *   3. Adds an "LB Academy" menu so you can message ALL families — email
  *      (free) and, if you turn on Twilio, text — in one click.
+ *   4. Serves the sign-up list (doGet) so the Coach Dashboard can pull new
+ *      sign-ups straight into the athlete tracker.
  *
  * ONE-TIME SETUP (see the visual guide):
  *   1. Make a Google Sheet → Extensions → Apps Script.
@@ -16,7 +18,9 @@
  *   4. Run "setup" once (menu Run ▸ setup) and grant permissions.
  *   5. Deploy ▸ New deployment ▸ Web app.
  *        Execute as: Me    Who has access: Anyone
- *      Copy the /exec URL — paste it into public/app.js (FORM_ENDPOINT).
+ *      Copy the /exec URL — paste it into BOTH:
+ *        • public/app.js  -> FORM_ENDPOINT   (site writes sign-ups here)
+ *        • src/app.js     -> SIGNUPS_URL     (dashboard reads sign-ups here)
  * ------------------------------------------------------------------
  */
 
@@ -37,7 +41,7 @@ var CONFIG = {
 var SHEET_SIGNUPS = "Signups";
 var SHEET_SEND    = "Send a message";
 var HEADERS = ["When", "Child", "Graduation class", "Program",
-               "Parent", "Email", "Mobile", "Alerts", "Note"];
+               "Parent", "Email", "Mobile", "Alerts", "Note", "Other sports"];
 
 // ================================================================
 //  1) INTAKE — website form  ->  this spreadsheet (automatic)
@@ -49,7 +53,7 @@ function doPost(e) {
     sh.appendRow([
       new Date(), d.childName || "", d.gradClass || "", d.program || "",
       d.parentName || "", d.email || "", d.phone || "",
-      d.alerts ? "yes" : "no", d.note || ""
+      d.alerts ? "yes" : "no", d.note || "", d.sports || ""
     ]);
     if (d.email) sendWelcome_(d);
     notifyOffice_(d);
@@ -57,6 +61,25 @@ function doPost(e) {
   } catch (err) {
     return json_({ ok: false, error: String(err) });
   }
+}
+
+// ================================================================
+//  READ — lets the Coach Dashboard pull the sign-up list.
+//  The dashboard fetches this web-app URL (GET) and imports new
+//  sign-ups as athletes.
+// ================================================================
+function doGet(e) {
+  var sh = sheetOf_(SHEET_SIGNUPS);
+  var rows = sh.getDataRange().getValues();
+  var out = [];
+  for (var r = 1; r < rows.length; r++) {
+    out.push({
+      when: String(rows[r][0]), child: rows[r][1], gradClass: rows[r][2],
+      program: rows[r][3], parent: rows[r][4], email: rows[r][5],
+      phone: rows[r][6], alerts: rows[r][7], note: rows[r][8], sports: rows[r][9] || ""
+    });
+  }
+  return json_({ ok: true, signups: out });
 }
 
 function sendWelcome_(d) {
@@ -77,6 +100,7 @@ function notifyOffice_(d) {
     "Child: " + (d.childName || ""),
     "Graduation class: " + (d.gradClass || ""),
     "Program: " + (d.program || ""),
+    d.sports ? "Other sports: " + d.sports : "",
     "Parent: " + (d.parentName || ""),
     "Email: " + (d.email || ""),
     "Mobile: " + (d.phone || ""),

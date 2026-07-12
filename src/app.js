@@ -10,6 +10,10 @@
   // Remind is the primary channel. Paste your Remind class link here (the page
   // where you compose/send) so "Message families" opens straight to it.
   var REMIND_URL = "https://www.remind.com/";
+  // Connect website sign-ups to this dashboard: paste your Google Apps Script
+  // web-app URL (the same /exec URL used for the sign-up form). "Sync sign-ups"
+  // then pulls new sign-ups straight into Athletes. Leave "" to disable.
+  var SIGNUPS_URL = "";
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (m) {
@@ -81,7 +85,8 @@
       slot.innerHTML = '<button class="btn btn--ghost" data-action="settings">Edit numbers</button>' +
         '<button class="btn btn--primary" data-action="add-athlete"><svg class="ic"><use href="#ic-plus"/></svg>Add athlete</button>';
     } else if (ui.view === "athletes") {
-      slot.innerHTML = '<button class="btn btn--ghost" data-action="broadcast"><svg class="ic"><use href="#ic-phone"/></svg>Message families</button>' +
+      slot.innerHTML = '<button class="btn btn--ghost" data-action="sync-signups">Sync sign-ups</button>' +
+        '<button class="btn btn--ghost" data-action="broadcast"><svg class="ic"><use href="#ic-phone"/></svg>Message families</button>' +
         '<button class="btn btn--primary" data-action="add-athlete"><svg class="ic"><use href="#ic-plus"/></svg>Add athlete</button>';
     } else if (ui.view === "sponsors") {
       slot.innerHTML = '<button class="btn btn--primary" data-action="add-sponsor"><svg class="ic"><use href="#ic-plus"/></svg>Add sponsor</button>';
@@ -500,6 +505,68 @@
   }
 
   // ================================================================
+  //  SYNC SIGN-UPS  (website -> Athletes)
+  // ================================================================
+  var GRADE_MAP = { "Pre-K": 0, "Kindergarten": 0, "1st grade": 1, "2nd grade": 2,
+    "3rd grade": 3, "4th grade": 4, "5th grade": 5, "6th grade": 6, "7th grade": 7,
+    "8th grade": 8, "9th grade": 8, "10th grade": 8, "11th grade": 8, "12th grade": 8 };
+
+  function parseSignup(s) {
+    var name = String(s.child || "").trim();
+    var sp = name.indexOf(" ");
+    var first = sp > 0 ? name.slice(0, sp) : name;
+    var last = sp > 0 ? name.slice(sp + 1).trim() : "";
+    var gc = String(s.gradClass || "");
+    var ym = gc.match(/Class of\s*(\d{4})/);
+    var lm = gc.match(/\(([^)]+)\)/);
+    var grade = lm ? GRADE_MAP[lm[1]] : undefined;
+    if (grade == null) grade = 0;
+    var gradYear = ym ? parseInt(ym[1], 10) : LB.gradYearFor(grade);
+    var sports = String(s.sports || "").split(",").map(function (x) { return x.trim(); }).filter(Boolean);
+    return { id: uid("a"), first: first, last: last, grade: grade, gradYear: gradYear,
+      program: (s.program === "Girls" ? "Girls" : "Boys"), status: "active",
+      sports: sports, email: String(s.email || ""), phone: String(s.phone || ""),
+      note: String(s.note || ""), updated: today() };
+  }
+
+  function syncSignups(quiet) {
+    if (!SIGNUPS_URL) { if (!quiet) openSyncHelp(); return; }
+    if (!quiet) toast("Checking for new sign-ups…");
+    fetch(SIGNUPS_URL, { method: "GET" })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data || !data.signups) { if (!quiet) toast("No sign-ups found."); return; }
+        state.importedSignups = state.importedSignups || [];
+        var seen = {}; state.importedSignups.forEach(function (k) { seen[k] = 1; });
+        var added = 0;
+        data.signups.forEach(function (s) {
+          if (!s.child) return;
+          if (String(s.program || "").indexOf("Sponsor") > -1) return;  // sponsors aren't athletes
+          var key = String(s.when) + "|" + s.child + "|" + (s.email || "");
+          if (seen[key]) return;
+          seen[key] = 1; state.importedSignups.push(key);
+          var a = parseSignup(s);
+          var dupe = state.athletes.some(function (x) {
+            return x.first === a.first && x.last === a.last && x.gradYear === a.gradYear; });
+          if (dupe) return;
+          state.athletes.push(a); added++;
+        });
+        save();
+        if (added) { renderView(); toast("Imported " + added + " new sign-up" + (added === 1 ? "" : "s") + " into Athletes."); }
+        else if (!quiet) toast("You're all caught up — no new sign-ups.");
+      })
+      .catch(function () { if (!quiet) toast("Couldn't reach the sign-up sheet. Check SIGNUPS_URL."); });
+  }
+
+  function openSyncHelp() {
+    showDrawer("Connect sign-ups", '<div class="cast-primary">' +
+      '<p class="cast-note">Website sign-ups flow into your <b>Google Sheet</b>, and this button pulls new ones straight into <b>Athletes</b> — no retyping.</p>' +
+      '<p class="cast-note">To turn it on, deploy the Apps Script (see the parent-alerts guide), then paste your web-app <code>/exec</code> URL into <code>SIGNUPS_URL</code> at the top of <code>src/app.js</code>.</p>' +
+      '<p class="cast-hint">It maps each sign-up to an athlete (name, graduation class, Boys/Girls, other sports), marks them Active, skips sponsors, and never imports the same kid twice.</p>' +
+      '</div><div class="drawer__foot"><button type="button" class="btn btn--primary" data-action="close-drawer">Got it</button></div>');
+  }
+
+  // ================================================================
   //  STATUS POPOVER
   // ================================================================
   function openStatusPop(btn, id) {
@@ -562,6 +629,8 @@
       case "delete-sponsor": state.sponsors = state.sponsors.filter(function (x) { return x.id !== id; }); save(); hideDrawer(); renderView(); toast("Sponsor removed."); break;
       case "settings": openSettings(); break;
       case "broadcast": openBroadcast(); break;
+      case "sync-signups": syncSignups(false); break;
+      case "close-drawer": hideDrawer(); break;
       case "load-sample": loadSample(); break;
       case "clear": clearAll(); break;
     }
@@ -592,4 +661,5 @@
   // ---- boot --------------------------------------------------------
   renderTopbar();
   renderView();
+  if (SIGNUPS_URL) syncSignups(true);   // quietly pull any new sign-ups on load
 })();
