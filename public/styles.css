@@ -486,7 +486,7 @@ p{text-wrap:pretty}
 
 .reg-form{background:#fff;color:var(--ink);border-radius:var(--r-lg);padding:clamp(1.5rem,3.5vw,2.3rem);
   box-shadow:var(--shadow-lg);display:grid;gap:1.1rem}
-.reg-form__row{display:grid;gap:1.1rem;grid-template-columns:1fr}
+.reg-form__row{display:grid;gap:1.1rem;grid-template-columns:1fr;align-items:start}
 .field{display:grid;gap:.4rem;min-width:0}
 .field label,.field legend{font-weight:700;font-size:.92rem;color:var(--ink)}
 .field__opt{font-weight:500;color:var(--ink-soft)}
