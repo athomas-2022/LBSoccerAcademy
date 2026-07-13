@@ -24,13 +24,13 @@
   var SPONSOR_GOAL = 3000;
 
   // ---- state -------------------------------------------------------
-  var state, ui = { view: "overview", prog: "all", search: "", status: "all", grad: "all" };
+  var state, ui = { view: "overview", prog: "all", search: "", status: "all", grad: "all", attDate: "", present: {} };
 
-  function blank() { return { athletes: [], sponsors: [], phasesDone: [], settings: Object.assign({}, SETTINGS_DEFAULT), seeded: false }; }
+  function blank() { return { athletes: [], sponsors: [], phasesDone: [], sessions: [], settings: Object.assign({}, SETTINGS_DEFAULT), seeded: false }; }
   function load() {
     try { var raw = localStorage.getItem(KEY); if (raw) { var d = JSON.parse(raw);
       d.settings = Object.assign({}, SETTINGS_DEFAULT, d.settings || {}); d.athletes = d.athletes || [];
-      d.sponsors = d.sponsors || []; d.phasesDone = d.phasesDone || []; return d; } }
+      d.sponsors = d.sponsors || []; d.phasesDone = d.phasesDone || []; d.sessions = d.sessions || []; return d; } }
     catch (e) {}
     return blank();
   }
@@ -74,6 +74,7 @@
   var VIEW_META = {
     overview: { title: "Overview", sub: "The whole pipeline at a glance." },
     athletes: { title: "Athletes", sub: "Every athletic kid, K–8, by graduation year." },
+    attendance: { title: "Attendance", sub: "Tap kids in for today's session — it flows into the tracker." },
     plan: { title: "The 360-Day Plan", sub: "Twelve phases from first conversation to year two." },
     sponsors: { title: "Sponsors", sub: "Who funds “Every Kid Plays.”" }
   };
@@ -88,6 +89,8 @@
       slot.innerHTML = '<button class="btn btn--ghost" data-action="sync-signups">Sync sign-ups</button>' +
         '<button class="btn btn--ghost" data-action="broadcast"><svg class="ic"><use href="#ic-phone"/></svg>Message families</button>' +
         '<button class="btn btn--primary" data-action="add-athlete"><svg class="ic"><use href="#ic-plus"/></svg>Add athlete</button>';
+    } else if (ui.view === "attendance") {
+      slot.innerHTML = '<button class="btn btn--primary" data-action="save-session"><svg class="ic"><use href="#ic-check"/></svg>Save session</button>';
     } else if (ui.view === "sponsors") {
       slot.innerHTML = '<button class="btn btn--primary" data-action="add-sponsor"><svg class="ic"><use href="#ic-plus"/></svg>Add sponsor</button>';
     }
@@ -105,6 +108,7 @@
   function renderView() {
     if (ui.view === "overview") renderOverview();
     else if (ui.view === "athletes") renderAthletes();
+    else if (ui.view === "attendance") renderAttendance();
     else if (ui.view === "plan") renderPlan();
     else if (ui.view === "sponsors") renderSponsors();
     renderNavBadge(); renderDataNote();
@@ -245,7 +249,7 @@
       return '<tr data-action="edit" data-id="' + a.id + '"' + (a.status === "atrisk" ? ' class="is-risk"' : "") + '>' +
         '<td><div class="who"><span class="avatar ' + (a.program === "Girls" ? "g" : "") + '">' + esc(initials(a)) + '</span>' +
           '<span><button type="button" class="who__name" data-action="edit" data-id="' + a.id + '">' + esc(a.first + " " + a.last) + '</button>' +
-          (a.sports && a.sports.length ? '<span class="who__sports">' + esc(a.sports.join(", ")) + '</span>' : "") + '</span></div></td>' +
+          (a.sports && a.sports.length ? '<span class="who__sports">' + esc(a.sports.join(", ")) + '</span>' : "") + seenChip(a.id) + '</span></div></td>' +
         '<td class="tnum">' + LB.GRADE_LABELS[a.grade] + '</td>' +
         '<td class="tnum">' + a.gradYear + '</td>' +
         '<td><span class="prog-tag ' + (a.program === "Girls" ? "g" : "b") + '">' + esc(a.program) + '</span></td>' +
@@ -263,6 +267,114 @@
     var s = $("#athSearch");
     if (s) s.addEventListener("input", function () { ui.search = this.value; var pos = this.selectionStart;
       renderAthletes(); var s2 = $("#athSearch"); if (s2) { s2.focus(); try { s2.setSelectionRange(pos, pos); } catch (e) {} } });
+  }
+
+  // ================================================================
+  //  ATTENDANCE  (tap kids in each session -> drives retention)
+  // ================================================================
+  var ATT_MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  function fmtDate(d) { var x = new Date(d + "T00:00:00"); return isNaN(x) ? d : ATT_MON[x.getMonth()] + " " + x.getDate(); }
+  function daysAgo(d) { var a = new Date(d + "T00:00:00"), b = new Date(today() + "T00:00:00");
+    return Math.round((b - a) / 86400000); }
+  function sessionsSorted() { return state.sessions.slice().sort(function (a, b) { return a.date < b.date ? 1 : (a.date > b.date ? -1 : 0); }); }
+  function sessionForDate(d) { for (var i = 0; i < state.sessions.length; i++) if (state.sessions[i].date === d) return state.sessions[i]; return null; }
+  function lastSeenOf(id) { var best = null; state.sessions.forEach(function (s) {
+    if (s.present.indexOf(id) > -1 && (!best || s.date > best)) best = s.date; }); return best; }
+  function attendedCount(id) { var n = 0; state.sessions.forEach(function (s) { if (s.present.indexOf(id) > -1) n++; }); return n; }
+  function seenLabel(id) { var d = lastSeenOf(id); if (!d) return ""; var n = daysAgo(d);
+    return n <= 0 ? "today" : (n === 1 ? "yesterday" : n + "d ago"); }
+  function seenChip(id) {
+    if (!state.sessions.length) return "";
+    var d = lastSeenOf(id);
+    if (!d) return '<span class="who__seen who__seen--none">not yet at a session</span>';
+    return '<span class="who__seen">Last seen ' + seenLabel(id) + ' · ' + attendedCount(id) + ' session' + (attendedCount(id) === 1 ? "" : "s") + '</span>';
+  }
+
+  function loadPresent(date) { var s = sessionForDate(date); ui.present = {};
+    if (s) s.present.forEach(function (id) { ui.present[id] = 1; }); ui.presentDate = date; }
+
+  function renderAttendance() {
+    var host = $("#view-attendance");
+    if (!state.athletes.length) {
+      host.innerHTML = '<div class="empty"><img src="assets/logos/Eagle Head.png" alt="" />' +
+        '<h3>No roster yet.</h3><p>Add athletes or sync sign-ups first, then tap kids in here each session.</p>' +
+        '<div class="empty__actions"><button class="btn btn--primary" data-action="add-athlete"><svg class="ic"><use href="#ic-plus"/></svg>Add an athlete</button>' +
+        '<button class="btn btn--ghost" data-action="load-sample">Load sample roster</button></div></div>';
+      return;
+    }
+    if (!ui.attDate) ui.attDate = today();
+    if (ui.presentDate !== ui.attDate) loadPresent(ui.attDate);
+
+    var list = pool().slice().sort(function (a, b) { return a.grade - b.grade || a.last.localeCompare(b.last); });
+    var presentCount = list.filter(function (a) { return ui.present[a.id]; }).length;
+
+    var head = '<div class="att-head">' +
+      '<div class="att-date"><label for="attDate">Session date</label>' +
+        '<input type="date" id="attDate" value="' + ui.attDate + '"></div>' +
+      '<div class="att-count"><span><b class="tnum">' + presentCount + '</b> of ' + list.length + ' present</span>' +
+        '<div class="att-quick"><button class="chip" data-action="att-all">All present</button>' +
+          '<button class="chip" data-action="att-none">Clear</button></div></div>' +
+    '</div>';
+
+    var rows = list.map(function (a) {
+      var on = !!ui.present[a.id];
+      var seen = seenLabel(a.id);
+      return '<button class="att-row' + (on ? " is-on" : "") + '" data-action="att-toggle" data-id="' + a.id + '" aria-pressed="' + on + '">' +
+        '<span class="att-check"><svg class="ic"><use href="#ic-check"/></svg></span>' +
+        '<span class="avatar ' + (a.program === "Girls" ? "g" : "") + '">' + esc(initials(a)) + '</span>' +
+        '<span class="att-who"><span class="att-name">' + esc(a.first + " " + a.last) + '</span>' +
+          '<span class="att-meta">' + LB.GRADE_LABELS[a.grade] + " · " + esc(a.program) +
+            (seen ? " · last " + seen : " · new") + '</span></span>' +
+      '</button>';
+    }).join("");
+
+    var recent = sessionsSorted().slice(0, 8);
+    var history = recent.length ? '<div class="att-history"><h3>Recent sessions</h3><div class="att-hlist">' +
+      recent.map(function (s) {
+        return '<button class="att-hitem' + (s.date === ui.attDate ? " is-cur" : "") + '" data-action="att-load" data-date="' + s.date + '">' +
+          '<span class="att-hdate">' + fmtDate(s.date) + '</span><span class="att-hn tnum">' + s.present.length + ' present</span></button>';
+      }).join("") + '</div></div>' : "";
+
+    host.innerHTML = head + '<div class="att-list">' + rows + '</div>' + history;
+    var di = $("#attDate");
+    if (di) di.addEventListener("change", function () { ui.attDate = this.value || today(); loadPresent(ui.attDate); renderAttendance(); });
+  }
+
+  function updateAttCount() {
+    var el = $(".att-count b"); if (!el) return;
+    el.textContent = pool().filter(function (a) { return ui.present[a.id]; }).length;
+  }
+
+  function saveSession() {
+    if (ui.view !== "attendance" || !state.athletes.length) return;
+    var date = ui.attDate || today();
+    var present = Object.keys(ui.present);
+    var s = sessionForDate(date);
+    if (s) s.present = present; else state.sessions.push({ id: uid("ses"), date: date, present: present });
+    ui.presentDate = date;
+    var r = reconcileAttendance();
+    save(); renderView();
+    var msg = present.length + " present saved for " + fmtDate(date) + ".";
+    if (r.flagged) msg += " " + r.flagged + " now at-risk (missed 2).";
+    else if (r.back) msg += " " + r.back + " back to active.";
+    toast(msg);
+  }
+
+  // A kid who attended before but missed the last 2 sessions -> at-risk.
+  // A flagged kid who shows up again -> back to active.
+  function reconcileAttendance() {
+    var sorted = sessionsSorted(), flagged = 0, back = 0;
+    if (sorted.length >= 2) {
+      var newest = sorted[0], last2 = [sorted[0], sorted[1]];
+      state.athletes.forEach(function (a) {
+        if (!state.sessions.some(function (s) { return s.present.indexOf(a.id) > -1; })) return; // never came yet
+        var inNewest = newest.present.indexOf(a.id) > -1;
+        var missedBoth = last2.every(function (s) { return s.present.indexOf(a.id) === -1; });
+        if (a.status === "active" && missedBoth) { a.status = "atrisk"; a.updated = today(); flagged++; }
+        else if (a.status === "atrisk" && inNewest) { a.status = "active"; a.updated = today(); back++; }
+      });
+    }
+    return { flagged: flagged, back: back };
   }
 
   // ================================================================
@@ -657,6 +769,14 @@
       case "settings": openSettings(); break;
       case "broadcast": openBroadcast(); break;
       case "sync-signups": syncSignups(false); break;
+      case "att-toggle":
+        if (ui.present[id]) delete ui.present[id]; else ui.present[id] = 1;
+        act.classList.toggle("is-on"); act.setAttribute("aria-pressed", String(!!ui.present[id]));
+        updateAttCount(); break;
+      case "att-all": pool().forEach(function (x) { ui.present[x.id] = 1; }); renderAttendance(); break;
+      case "att-none": ui.present = {}; ui.presentDate = ui.attDate; renderAttendance(); break;
+      case "att-load": ui.attDate = act.dataset.date; loadPresent(ui.attDate); renderAttendance(); break;
+      case "save-session": saveSession(); break;
       case "close-drawer": hideDrawer(); break;
       case "load-sample": loadSample(); break;
       case "clear": clearAll(); break;
@@ -668,7 +788,9 @@
     save(); renderPlan();
   }
   function loadSample() {
-    state = JSON.parse(JSON.stringify(LB.SAMPLE)); state.seeded = true; save(); renderView();
+    state = JSON.parse(JSON.stringify(LB.SAMPLE)); state.seeded = true;
+    state.sessions = state.sessions || []; state.phasesDone = state.phasesDone || [];
+    save(); renderView();
     toast("Sample roster loaded.");
   }
   function clearAll() {

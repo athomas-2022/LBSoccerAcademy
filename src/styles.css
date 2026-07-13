@@ -219,6 +219,45 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
 .who__name:hover{color:var(--accent);text-decoration:underline}
 .who__name:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:3px}
 .who__sports{font-size:var(--fs-xs);color:var(--ink-3);font-weight:600}
+.who__seen{display:block;font-size:var(--fs-xs);color:var(--ink-3);font-weight:600;margin-top:.05rem}
+.who__seen--none{color:var(--danger);opacity:.85}
+
+/* ---- Attendance ---- */
+.att-head{position:sticky;top:0;z-index:5;display:flex;flex-wrap:wrap;gap:.8rem 1.2rem;align-items:flex-end;
+  justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:.9rem 1.1rem;margin-bottom:1rem;box-shadow:0 6px 18px -14px rgba(20,40,80,.4)}
+.att-date{display:flex;flex-direction:column;gap:.25rem}
+.att-date label{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:700}
+.att-date input{border:1px solid var(--line-2);border-radius:var(--r-md);padding:.45rem .6rem;font:inherit;font-weight:700;color:var(--ink);background:var(--surface)}
+.att-count{display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;font-size:var(--fs-sm);color:var(--ink-2);font-weight:600}
+.att-count b{font-size:1.5rem;color:var(--accent);font-weight:900;margin-right:.15rem}
+.att-quick{display:flex;gap:.4rem}
+
+.att-list{display:grid;gap:.5rem;grid-template-columns:1fr}
+@media (min-width:44rem){.att-list{grid-template-columns:1fr 1fr}}
+.att-row{display:flex;align-items:center;gap:.7rem;width:100%;text-align:left;cursor:pointer;
+  background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r-md);padding:.7rem .8rem;
+  font:inherit;transition:background .12s,border-color .12s}
+.att-row:hover{border-color:var(--ink-3)}
+.att-check{flex:0 0 auto;width:26px;height:26px;border-radius:50%;border:2px solid var(--line-2);
+  display:grid;place-items:center;color:transparent}
+.att-check .ic{width:15px;height:15px}
+.att-row.is-on{background:var(--accent-weak);border-color:var(--accent)}
+.att-row.is-on .att-check{background:var(--accent);border-color:var(--accent);color:#fff}
+.att-who{min-width:0}
+.att-name{display:block;font-weight:700;color:var(--ink);line-height:1.2}
+.att-meta{display:block;font-size:var(--fs-xs);color:var(--ink-3);font-weight:600;margin-top:.05rem}
+@media (pointer:coarse){.att-row{padding:.9rem .85rem}.att-check{width:30px;height:30px}}
+
+.att-history{margin-top:1.6rem}
+.att-history h3{font-size:var(--fs-sm);text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:800;margin-bottom:.6rem}
+.att-hlist{display:flex;flex-wrap:wrap;gap:.5rem}
+.att-hitem{display:flex;flex-direction:column;gap:.1rem;background:var(--surface);border:1px solid var(--line-2);
+  border-radius:var(--r-md);padding:.5rem .8rem;cursor:pointer;font:inherit}
+.att-hitem:hover{border-color:var(--ink-3)}
+.att-hitem.is-cur{border-color:var(--accent);background:var(--accent-weak-2)}
+.att-hdate{font-weight:800;color:var(--ink);font-size:var(--fs-sm)}
+.att-hn{font-size:var(--fs-xs);color:var(--ink-2);font-weight:600}
 .prog-tag{font-size:var(--fs-xs);font-weight:700;padding:.15rem .5rem;border-radius:var(--r-pill);border:1px solid var(--line-2);color:var(--ink-2)}
 .prog-tag.b{color:var(--lb-blue);border-color:var(--blue-200);background:var(--blue-50)}
 .prog-tag.g{color:oklch(0.46 .16 300);border-color:oklch(0.46 .16 300 / .3);background:oklch(0.46 .16 300 / .07)}
