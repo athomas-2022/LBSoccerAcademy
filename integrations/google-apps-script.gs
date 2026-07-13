@@ -30,6 +30,11 @@ var CONFIG = {
   PROGRAM_NAME: "LB Soccer Academy",
   REPLY_TO:     "athomas@Liberty-Benton.org", // families reply here
 
+  // --- Remind auto-invite: every signup's welcome email invites them to join ---
+  // Your class code (no @) and join link. Leave REMIND_CODE blank to skip.
+  REMIND_CODE:     "6ee4bkk",
+  REMIND_JOIN_URL: "https://www.remind.com/join/6ee4bkk",
+
   // --- OPTIONAL: automated TEXT messages via Twilio ---
   // Leave all three blank to skip texting (email still works fully).
   // Get these free-trial/paid values from twilio.com (Console).
@@ -84,11 +89,17 @@ function doGet(e) {
 
 function sendWelcome_(d) {
   var subject = "You're in — " + CONFIG.PROGRAM_NAME;
+  var join = CONFIG.REMIND_CODE
+    ? ("ONE QUICK STEP — turn on alerts (10 seconds):\n" +
+       "   Text  @" + CONFIG.REMIND_CODE + "  to  81010\n" +
+       (CONFIG.REMIND_JOIN_URL ? "   or open  " + CONFIG.REMIND_JOIN_URL + "\n" : "") +
+       "\nThat's how you'll get session reminders and urgent weather/cancellation " +
+       "alerts on your phone. Do it once and you're set.\n\n")
+    : "";
   var body =
     "Hi " + (d.parentName || "there") + ",\n\n" +
     (d.childName || "Your child") + " is signed up for the " + CONFIG.PROGRAM_NAME + ".\n\n" +
-    "You're all set for alerts — we'll send session reminders and any urgent weather " +
-    "or cancellation notices by text and email. Nothing else to join.\n\n" +
+    join +
     "Questions? Just reply to this email.\n\n— " + CONFIG.PROGRAM_NAME;
   MailApp.sendEmail({ to: d.email, subject: subject, body: body,
     replyTo: CONFIG.REPLY_TO, name: CONFIG.PROGRAM_NAME });
