@@ -51,10 +51,10 @@ Square **1080×1080** images ready to post to Instagram/Facebook. Each has a QR 
 
 ---
 
-## Parent-alerts guide  → `guides/`
+## Guides  → `guides/`
 
-How families join alerts via **Remind** (class `@6ee4bkk`) and how you message everyone.
-`parent-alerts-setup-guide.png` (one tall image).
+- **`parent-alerts-setup-guide.png`** — how families join alerts via **Remind** (class `@6ee4bkk`) and how you message everyone.
+- **`bulk-add-to-remind-guide.png`** — the one-paste way to add sign-ups' phone numbers into Remind (Sync sign-ups → Copy → paste into Remind ▸ Add people).
 
 ---
 
