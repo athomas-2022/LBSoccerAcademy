@@ -232,6 +232,8 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
 .att-count{display:flex;align-items:center;gap:.9rem;flex-wrap:wrap;font-size:var(--fs-sm);color:var(--ink-2);font-weight:600}
 .att-count b{font-size:1.5rem;color:var(--accent);font-weight:900;margin-right:.15rem}
 .att-quick{display:flex;gap:.4rem}
+.att-sync{display:block;font-size:var(--fs-xs);color:var(--accent);font-weight:700;margin:-.5rem 0 .9rem}
+.att-sync--off{color:var(--ink-3)}
 
 .att-list{display:grid;gap:.5rem;grid-template-columns:1fr}
 @media (min-width:44rem){.att-list{grid-template-columns:1fr 1fr}}

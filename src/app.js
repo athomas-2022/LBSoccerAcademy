@@ -101,7 +101,9 @@
     $$(".view").forEach(function (s) { s.classList.remove("is-active"); });
     $("#view-" + v).classList.add("is-active");
     closeSidebar();
+    if (v === "attendance") ui.presentDate = null;   // reload latest saved present for the date
     renderTopbar(); renderView();
+    if (v === "attendance") syncAttendance(true);     // pull other devices' latest
     $("#view-" + v).focus({ preventScroll: true });
     window.scrollTo(0, 0);
   }
@@ -249,7 +251,7 @@
       return '<tr data-action="edit" data-id="' + a.id + '"' + (a.status === "atrisk" ? ' class="is-risk"' : "") + '>' +
         '<td><div class="who"><span class="avatar ' + (a.program === "Girls" ? "g" : "") + '">' + esc(initials(a)) + '</span>' +
           '<span><button type="button" class="who__name" data-action="edit" data-id="' + a.id + '">' + esc(a.first + " " + a.last) + '</button>' +
-          (a.sports && a.sports.length ? '<span class="who__sports">' + esc(a.sports.join(", ")) + '</span>' : "") + seenChip(a.id) + '</span></div></td>' +
+          (a.sports && a.sports.length ? '<span class="who__sports">' + esc(a.sports.join(", ")) + '</span>' : "") + seenChip(a) + '</span></div></td>' +
         '<td class="tnum">' + LB.GRADE_LABELS[a.grade] + '</td>' +
         '<td class="tnum">' + a.gradYear + '</td>' +
         '<td><span class="prog-tag ' + (a.program === "Girls" ? "g" : "b") + '">' + esc(a.program) + '</span></td>' +
@@ -271,27 +273,31 @@
 
   // ================================================================
   //  ATTENDANCE  (tap kids in each session -> drives retention)
+  //  Synced through the Google Sheet so phone + laptop match.
+  //  Sessions store PRESENT as device-stable keys (name|gradYear),
+  //  not local ids, so they map across devices.
   // ================================================================
   var ATT_MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  function athKey(a) { return (a.first + " " + a.last).trim().toLowerCase() + "|" + a.gradYear; }
+  function athleteByKey(k) { for (var i = 0; i < state.athletes.length; i++) if (athKey(state.athletes[i]) === k) return state.athletes[i]; return null; }
   function fmtDate(d) { var x = new Date(d + "T00:00:00"); return isNaN(x) ? d : ATT_MON[x.getMonth()] + " " + x.getDate(); }
-  function daysAgo(d) { var a = new Date(d + "T00:00:00"), b = new Date(today() + "T00:00:00");
-    return Math.round((b - a) / 86400000); }
+  function daysAgo(d) { var a = new Date(d + "T00:00:00"), b = new Date(today() + "T00:00:00"); return Math.round((b - a) / 86400000); }
   function sessionsSorted() { return state.sessions.slice().sort(function (a, b) { return a.date < b.date ? 1 : (a.date > b.date ? -1 : 0); }); }
   function sessionForDate(d) { for (var i = 0; i < state.sessions.length; i++) if (state.sessions[i].date === d) return state.sessions[i]; return null; }
-  function lastSeenOf(id) { var best = null; state.sessions.forEach(function (s) {
-    if (s.present.indexOf(id) > -1 && (!best || s.date > best)) best = s.date; }); return best; }
-  function attendedCount(id) { var n = 0; state.sessions.forEach(function (s) { if (s.present.indexOf(id) > -1) n++; }); return n; }
-  function seenLabel(id) { var d = lastSeenOf(id); if (!d) return ""; var n = daysAgo(d);
+  function lastSeenOf(k) { var best = null; state.sessions.forEach(function (s) {
+    if (s.present.indexOf(k) > -1 && (!best || s.date > best)) best = s.date; }); return best; }
+  function attendedCount(k) { var n = 0; state.sessions.forEach(function (s) { if (s.present.indexOf(k) > -1) n++; }); return n; }
+  function seenLabel(k) { var d = lastSeenOf(k); if (!d) return ""; var n = daysAgo(d);
     return n <= 0 ? "today" : (n === 1 ? "yesterday" : n + "d ago"); }
-  function seenChip(id) {
+  function seenChip(a) {
     if (!state.sessions.length) return "";
-    var d = lastSeenOf(id);
+    var k = athKey(a), d = lastSeenOf(k);
     if (!d) return '<span class="who__seen who__seen--none">not yet at a session</span>';
-    return '<span class="who__seen">Last seen ' + seenLabel(id) + ' · ' + attendedCount(id) + ' session' + (attendedCount(id) === 1 ? "" : "s") + '</span>';
+    return '<span class="who__seen">Last seen ' + seenLabel(k) + ' · ' + attendedCount(k) + ' session' + (attendedCount(k) === 1 ? "" : "s") + '</span>';
   }
 
   function loadPresent(date) { var s = sessionForDate(date); ui.present = {};
-    if (s) s.present.forEach(function (id) { ui.present[id] = 1; }); ui.presentDate = date; }
+    if (s) s.present.forEach(function (k) { ui.present[k] = 1; }); ui.presentDate = date; ui.attDirty = false; }
 
   function renderAttendance() {
     var host = $("#view-attendance");
@@ -306,7 +312,8 @@
     if (ui.presentDate !== ui.attDate) loadPresent(ui.attDate);
 
     var list = pool().slice().sort(function (a, b) { return a.grade - b.grade || a.last.localeCompare(b.last); });
-    var presentCount = list.filter(function (a) { return ui.present[a.id]; }).length;
+    var presentCount = list.filter(function (a) { return ui.present[athKey(a)]; }).length;
+    var syncNote = SIGNUPS_URL ? '<span class="att-sync">Syncs to all your devices</span>' : '<span class="att-sync att-sync--off">This device only — connect the Sheet to sync</span>';
 
     var head = '<div class="att-head">' +
       '<div class="att-date"><label for="attDate">Session date</label>' +
@@ -314,12 +321,11 @@
       '<div class="att-count"><span><b class="tnum">' + presentCount + '</b> of ' + list.length + ' present</span>' +
         '<div class="att-quick"><button class="chip" data-action="att-all">All present</button>' +
           '<button class="chip" data-action="att-none">Clear</button></div></div>' +
-    '</div>';
+    '</div>' + syncNote;
 
     var rows = list.map(function (a) {
-      var on = !!ui.present[a.id];
-      var seen = seenLabel(a.id);
-      return '<button class="att-row' + (on ? " is-on" : "") + '" data-action="att-toggle" data-id="' + a.id + '" aria-pressed="' + on + '">' +
+      var k = athKey(a), on = !!ui.present[k], seen = seenLabel(k);
+      return '<button class="att-row' + (on ? " is-on" : "") + '" data-action="att-toggle" data-key="' + esc(k) + '" aria-pressed="' + on + '">' +
         '<span class="att-check"><svg class="ic"><use href="#ic-check"/></svg></span>' +
         '<span class="avatar ' + (a.program === "Girls" ? "g" : "") + '">' + esc(initials(a)) + '</span>' +
         '<span class="att-who"><span class="att-name">' + esc(a.first + " " + a.last) + '</span>' +
@@ -342,7 +348,7 @@
 
   function updateAttCount() {
     var el = $(".att-count b"); if (!el) return;
-    el.textContent = pool().filter(function (a) { return ui.present[a.id]; }).length;
+    el.textContent = pool().filter(function (a) { return ui.present[athKey(a)]; }).length;
   }
 
   function saveSession() {
@@ -350,13 +356,15 @@
     var date = ui.attDate || today();
     var present = Object.keys(ui.present);
     var s = sessionForDate(date);
-    if (s) s.present = present; else state.sessions.push({ id: uid("ses"), date: date, present: present });
-    ui.presentDate = date;
+    if (s) { s.present = present; } else { s = { id: uid("ses"), date: date, present: present }; state.sessions.push(s); }
+    s.updated = new Date().toISOString(); s.unsynced = true;
+    ui.presentDate = date; ui.attDirty = false;
     var r = reconcileAttendance();
-    save(); renderView();
+    save(); pushSession(s); renderView();
     var msg = present.length + " present saved for " + fmtDate(date) + ".";
     if (r.flagged) msg += " " + r.flagged + " now at-risk (missed 2).";
     else if (r.back) msg += " " + r.back + " back to active.";
+    if (SIGNUPS_URL) msg += " Syncing…";
     toast(msg);
   }
 
@@ -367,14 +375,54 @@
     if (sorted.length >= 2) {
       var newest = sorted[0], last2 = [sorted[0], sorted[1]];
       state.athletes.forEach(function (a) {
-        if (!state.sessions.some(function (s) { return s.present.indexOf(a.id) > -1; })) return; // never came yet
-        var inNewest = newest.present.indexOf(a.id) > -1;
-        var missedBoth = last2.every(function (s) { return s.present.indexOf(a.id) === -1; });
+        var k = athKey(a);
+        if (!state.sessions.some(function (s) { return s.present.indexOf(k) > -1; })) return; // never came yet
+        var inNewest = newest.present.indexOf(k) > -1;
+        var missedBoth = last2.every(function (s) { return s.present.indexOf(k) === -1; });
         if (a.status === "active" && missedBoth) { a.status = "atrisk"; a.updated = today(); flagged++; }
         else if (a.status === "atrisk" && inNewest) { a.status = "active"; a.updated = today(); back++; }
       });
     }
     return { flagged: flagged, back: back };
+  }
+
+  // ---- cross-device sync via the Google Sheet ----
+  function pushSession(s) {
+    if (!SIGNUPS_URL) return;
+    var present = s.present.map(function (k) {
+      var a = athleteByKey(k);
+      if (a) return { name: a.first + " " + a.last, gradYear: a.gradYear, program: a.program };
+      var parts = k.split("|"); return { name: parts[0], gradYear: parts[1] || "", program: "" };
+    });
+    fetch(SIGNUPS_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ type: "attendance", date: s.date, updated: s.updated, present: present }) })
+      .then(function () { delete s.unsynced; save(); }).catch(function () {});
+  }
+
+  function syncAttendance(quiet) {
+    if (!SIGNUPS_URL) return;
+    state.sessions.forEach(function (s) { if (s.unsynced) pushSession(s); });   // push local pending first
+    fetch(SIGNUPS_URL, { method: "GET" }).then(function (r) { return r.json(); }).then(function (data) {
+      if (!data || !data.attendance) return;
+      var byDate = {};
+      state.sessions.forEach(function (s) { byDate[s.date] = s; });             // local base
+      var sheetByDate = {};
+      data.attendance.forEach(function (row) {
+        var k = (String(row.name) + "|" + row.gradYear).trim().toLowerCase();
+        var d = row.date;
+        if (!sheetByDate[d]) sheetByDate[d] = { id: "ses-" + d, date: d, present: [], updated: String(row.updated || "") };
+        if (sheetByDate[d].present.indexOf(k) === -1) sheetByDate[d].present.push(k);
+        if (String(row.updated) > sheetByDate[d].updated) sheetByDate[d].updated = String(row.updated);
+      });
+      Object.keys(sheetByDate).forEach(function (d) {                            // adopt sheet if newer / local missing
+        var local = byDate[d];
+        if (!local || String(sheetByDate[d].updated) >= String(local.updated || "")) byDate[d] = sheetByDate[d];
+      });
+      state.sessions = Object.keys(byDate).map(function (d) { return byDate[d]; });
+      reconcileAttendance(); save();
+      if (ui.view === "attendance" && !ui.attDirty) { loadPresent(ui.attDate); }
+      renderView();
+    }).catch(function () {});
   }
 
   // ================================================================
@@ -670,6 +718,7 @@
           toast("Imported " + added + " new sign-up" + (added === 1 ? "" : "s") + " into Athletes.");
           if (!quiet) openRemindAdd(fresh);        // offer their numbers for Remind
         } else if (!quiet) toast("You're all caught up — no new sign-ups.");
+        syncAttendance(true);   // roster is current — pull attendance too
       })
       .catch(function () { if (!quiet) toast("Couldn't reach the sign-up sheet. Check SIGNUPS_URL."); });
   }
@@ -770,11 +819,13 @@
       case "broadcast": openBroadcast(); break;
       case "sync-signups": syncSignups(false); break;
       case "att-toggle":
-        if (ui.present[id]) delete ui.present[id]; else ui.present[id] = 1;
-        act.classList.toggle("is-on"); act.setAttribute("aria-pressed", String(!!ui.present[id]));
+        var k = act.dataset.key;
+        if (ui.present[k]) delete ui.present[k]; else ui.present[k] = 1;
+        ui.attDirty = true;
+        act.classList.toggle("is-on"); act.setAttribute("aria-pressed", String(!!ui.present[k]));
         updateAttCount(); break;
-      case "att-all": pool().forEach(function (x) { ui.present[x.id] = 1; }); renderAttendance(); break;
-      case "att-none": ui.present = {}; ui.presentDate = ui.attDate; renderAttendance(); break;
+      case "att-all": pool().forEach(function (x) { ui.present[athKey(x)] = 1; }); ui.attDirty = true; renderAttendance(); break;
+      case "att-none": ui.present = {}; ui.presentDate = ui.attDate; ui.attDirty = true; renderAttendance(); break;
       case "att-load": ui.attDate = act.dataset.date; loadPresent(ui.attDate); renderAttendance(); break;
       case "save-session": saveSession(); break;
       case "close-drawer": hideDrawer(); break;
@@ -810,5 +861,5 @@
   // ---- boot --------------------------------------------------------
   renderTopbar();
   renderView();
-  if (SIGNUPS_URL) syncSignups(true);   // quietly pull any new sign-ups on load
+  if (SIGNUPS_URL) syncSignups(true);   // quietly pull any new sign-ups + attendance on load
 })();

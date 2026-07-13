@@ -45,8 +45,10 @@ var CONFIG = {
 
 var SHEET_SIGNUPS = "Signups";
 var SHEET_SEND    = "Send a message";
+var SHEET_ATT     = "Attendance";
 var HEADERS = ["When", "Child", "Graduation class", "Program",
                "Parent", "Email", "Mobile", "Alerts", "Note", "Other sports"];
+var ATT_HEADERS = ["Date", "Child", "Grad year", "Program", "Updated"];
 
 // ================================================================
 //  1) INTAKE — website form  ->  this spreadsheet (automatic)
@@ -54,6 +56,7 @@ var HEADERS = ["When", "Child", "Graduation class", "Program",
 function doPost(e) {
   try {
     var d = JSON.parse(e.postData.contents);
+    if (d.type === "attendance") return saveAttendance_(d);   // dashboard attendance sync
     var sh = sheetOf_(SHEET_SIGNUPS);
     sh.appendRow([
       new Date(), d.childName || "", d.gradClass || "", d.program || "",
@@ -68,6 +71,20 @@ function doPost(e) {
   }
 }
 
+// Save one session's attendance: overwrite the rows for that date.
+function saveAttendance_(d) {
+  var sh = sheetOf_(SHEET_ATT);
+  if (sh.getLastRow() === 0) sh.appendRow(ATT_HEADERS);
+  var date = String(d.date || "");
+  var vals = sh.getDataRange().getValues();
+  for (var r = vals.length - 1; r >= 1; r--) { if (String(vals[r][0]) === date) sh.deleteRow(r + 1); }
+  var updated = d.updated || new Date().toISOString();
+  (d.present || []).forEach(function (p) {
+    sh.appendRow([date, p.name || "", p.gradYear || "", p.program || "", updated]);
+  });
+  return json_({ ok: true, saved: (d.present || []).length });
+}
+
 // ================================================================
 //  READ — lets the Coach Dashboard pull the sign-up list.
 //  The dashboard fetches this web-app URL (GET) and imports new
@@ -76,15 +93,22 @@ function doPost(e) {
 function doGet(e) {
   var sh = sheetOf_(SHEET_SIGNUPS);
   var rows = sh.getDataRange().getValues();
-  var out = [];
+  var signups = [];
   for (var r = 1; r < rows.length; r++) {
-    out.push({
+    signups.push({
       when: String(rows[r][0]), child: rows[r][1], gradClass: rows[r][2],
       program: rows[r][3], parent: rows[r][4], email: rows[r][5],
       phone: rows[r][6], alerts: rows[r][7], note: rows[r][8], sports: rows[r][9] || ""
     });
   }
-  return json_({ ok: true, signups: out });
+  var att = sheetOf_(SHEET_ATT).getDataRange().getValues();
+  var attendance = [];
+  for (var a = 1; a < att.length; a++) {
+    if (!att[a][0]) continue;
+    attendance.push({ date: String(att[a][0]), name: att[a][1], gradYear: att[a][2],
+      program: att[a][3], updated: String(att[a][4]) });
+  }
+  return json_({ ok: true, signups: signups, attendance: attendance });
 }
 
 function sendWelcome_(d) {
@@ -225,13 +249,21 @@ function setup() {
   m.getRange("A4").setValue("Then use the LB Academy menu → Send message to all families.");
   m.getRange("B2").setWrap(true);
   m.setColumnWidth(2, 520);
+
+  var att = ss.getSheetByName(SHEET_ATT) || ss.insertSheet(SHEET_ATT);
+  if (att.getLastRow() === 0) att.appendRow(ATT_HEADERS);
+  att.getRange(1, 1, 1, ATT_HEADERS.length).setFontWeight("bold");
+  att.setFrozenRows(1);
+
   SpreadsheetApp.getUi().alert("Ready.", "Sheets are set up. Deploy as a Web app next.", SpreadsheetApp.getUi().ButtonSet.OK);
 }
 
 function sheetOf_(name) {
   var ss = SpreadsheetApp.getActive();
   var s = ss.getSheetByName(name);
-  if (!s) { s = ss.insertSheet(name); if (name === SHEET_SIGNUPS) s.appendRow(HEADERS); }
+  if (!s) { s = ss.insertSheet(name);
+    if (name === SHEET_SIGNUPS) s.appendRow(HEADERS);
+    else if (name === SHEET_ATT) s.appendRow(ATT_HEADERS); }
   return s;
 }
 
