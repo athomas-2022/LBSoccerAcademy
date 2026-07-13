@@ -538,7 +538,7 @@
         if (!data || !data.signups) { if (!quiet) toast("No sign-ups found."); return; }
         state.importedSignups = state.importedSignups || [];
         var seen = {}; state.importedSignups.forEach(function (k) { seen[k] = 1; });
-        var added = 0;
+        var fresh = [];
         data.signups.forEach(function (s) {
           if (!s.child) return;
           if (String(s.program || "").indexOf("Sponsor") > -1) return;  // sponsors aren't athletes
@@ -549,13 +549,40 @@
           var dupe = state.athletes.some(function (x) {
             return x.first === a.first && x.last === a.last && x.gradYear === a.gradYear; });
           if (dupe) return;
-          state.athletes.push(a); added++;
+          state.athletes.push(a); fresh.push(a);
         });
         save();
-        if (added) { renderView(); toast("Imported " + added + " new sign-up" + (added === 1 ? "" : "s") + " into Athletes."); }
-        else if (!quiet) toast("You're all caught up — no new sign-ups.");
+        var added = fresh.length;
+        if (added) {
+          renderView();
+          toast("Imported " + added + " new sign-up" + (added === 1 ? "" : "s") + " into Athletes.");
+          if (!quiet) openRemindAdd(fresh);        // offer their numbers for Remind
+        } else if (!quiet) toast("You're all caught up — no new sign-ups.");
       })
       .catch(function () { if (!quiet) toast("Couldn't reach the sign-up sheet. Check SIGNUPS_URL."); });
+  }
+
+  // After importing sign-ups, offer their phone numbers to paste into Remind.
+  function openRemindAdd(list) {
+    var phones = list.map(function (a) { return a.phone; }).filter(Boolean);
+    var n = list.length;
+    var html = '<div class="cast-primary">' +
+      '<p class="cast-note"><b>' + n + ' new famil' + (n === 1 ? "y" : "ies") + ' imported.</b> ' +
+        'They\'re auto-invited to Remind by email — to add them yourself, paste their numbers into <b>Remind ▸ Add people</b>.</p>' +
+      (REMIND_URL ? '<a class="btn btn--primary btn--block" href="' + esc(REMIND_URL) + '" target="_blank" rel="noopener">Open Remind</a>' : "") +
+      '<div class="cast-tools" style="margin-top:.7rem">' +
+        '<button type="button" class="btn btn--ghost btn--sm" data-radd="1"' + (phones.length ? "" : " disabled") + '>Copy ' + phones.length + ' phone number' + (phones.length === 1 ? "" : "s") + '</button>' +
+      '</div>' +
+      '<p class="cast-hint">Remind skips anyone already in the class, so pasting is always safe.</p>' +
+      '</div><div class="drawer__foot"><button type="button" class="btn btn--ghost" data-action="close-drawer">Done</button></div>';
+    showDrawer("Add new families to Remind", html);
+    $("#drawerBody").addEventListener("click", function (e) {
+      var b = e.target.closest("[data-radd]"); if (!b) return;
+      var text = phones.join("\n");
+      var done = function () { var o = b.textContent; b.textContent = "Copied ✓"; toast("Copied " + phones.length + " numbers."); setTimeout(function () { b.textContent = o; }, 1600); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () { window.prompt("Copy:", text); });
+      else window.prompt("Copy:", text);
+    });
   }
 
   function openSyncHelp() {
