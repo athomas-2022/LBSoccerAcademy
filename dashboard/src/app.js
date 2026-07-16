@@ -561,25 +561,42 @@
   }
   function importTeam(id) {
     var t = teamById(id); if (!t) return;
+    var missing = (t.players || []).filter(function (p) { return p.grade == null && String(p.name || "").trim(); });
+    if (missing.length) { promptGrades(t, missing); return; }
+    doImportTeam(t);
+  }
+  // Ask for a grade on any roster player that doesn't have one, then import.
+  function promptGrades(t, missing) {
+    var rows = missing.map(function (p, i) {
+      return '<div class="field grade-row"><label>' + esc(p.name) + '</label><select data-gp="' + i + '">' + gradeOptions(3) + '</select></div>';
+    }).join("");
+    showDrawer("Set grades — " + t.name, '<form id="gradeForm">' +
+      '<p class="cast-note">These players need a grade before they go into Athletes — it sets their graduation-year bucket. Confirm each, then import.</p>' +
+      rows +
+      '<div class="drawer__foot"><button type="submit" class="btn btn--primary">Set grades &amp; import</button></div></form>');
+    $("#gradeForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      $$('[data-gp]').forEach(function (sel) { missing[parseInt(sel.dataset.gp, 10)].grade = parseInt(sel.value, 10); });
+      save(); hideDrawer(); doImportTeam(t);
+    });
+  }
+  function doImportTeam(t) {
     var prog = t.program === "Girls" ? "Girls" : "Boys";
-    var added = 0, skipped = 0, unknown = 0;
+    var added = 0, skipped = 0;
     (t.players || []).forEach(function (p) {
       var name = String(p.name || "").trim(); if (!name) return;
       var sp = name.indexOf(" ");
       var first = sp > 0 ? name.slice(0, sp) : name, last = sp > 0 ? name.slice(sp + 1).trim() : "";
-      var grade = p.grade != null ? p.grade : 3; if (p.grade == null) unknown++;
+      var grade = p.grade != null ? p.grade : 3;
       var gy = LB.gradYearFor(grade);
       if (state.athletes.some(function (a) { return a.first.toLowerCase() === first.toLowerCase() && a.last.toLowerCase() === last.toLowerCase() && a.gradYear === gy; })) { skipped++; return; }
       state.athletes.push({ id: uid("a"), first: first, last: last, grade: grade, gradYear: gy, program: prog,
         status: "prospect", sports: ["Soccer"], email: "", phone: "",
-        note: "From " + t.name + (t.coach ? " (coach " + t.coach + ")" : "") + (p.grade == null ? " — grade unconfirmed" : ""), updated: today() });
+        note: "From " + t.name + (t.coach ? " (coach " + t.coach + ")" : ""), updated: today() });
       added++;
     });
     save(); renderView();
-    var msg = added + " prospect" + (added === 1 ? "" : "s") + " added to Athletes";
-    if (skipped) msg += ", " + skipped + " already there";
-    if (unknown) msg += " · " + unknown + " need a grade set";
-    toast(msg + ".");
+    toast(added + " prospect" + (added === 1 ? "" : "s") + " added to Athletes" + (skipped ? ", " + skipped + " already there" : "") + ".");
   }
 
   // ================================================================
