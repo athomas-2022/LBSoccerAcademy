@@ -111,6 +111,46 @@ h1,h2,h3,h4{line-height:1.2;font-weight:700}
 
 .mobile-head{display:none}
 
+/* ============ AUTH GATE ============ */
+body:not(.is-authed) .app,
+body:not(.is-authed) .mobile-head{display:none !important}
+body.is-authed .authgate{display:none}
+.authgate{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;padding:1.5rem;
+  background:linear-gradient(180deg,var(--sidebar),var(--blue-950))}
+.authgate__card{width:min(26rem,100%);background:var(--surface);border-radius:var(--r-lg);
+  padding:2.2rem 1.8rem;text-align:center;box-shadow:0 30px 70px -30px rgba(0,0,0,.6)}
+.authgate__logo{width:56px;height:56px;object-fit:contain;margin:0 auto .4rem}
+.authgate__brand{font-weight:800;letter-spacing:.02em;color:var(--accent);font-size:var(--fs-sm);text-transform:uppercase}
+.authgate__title{font-size:var(--fs-xl);font-weight:800;color:var(--ink);margin:.1rem 0 .5rem}
+.authgate__msg{font-size:var(--fs-sm);color:var(--ink-2);font-weight:500;margin-bottom:1.1rem;min-height:1.2em}
+.authgate__btn{display:flex;justify-content:center;min-height:44px}
+.authgate__pending{margin-top:.4rem;font-size:var(--fs-sm);color:var(--ink-2);font-weight:500}
+.authgate__pending b{color:var(--ink)}
+.authgate__pending .btn{margin-top:.9rem}
+.authgate__sub{color:var(--ink-3);margin-top:.35rem}
+.authgate__foot{margin-top:1.4rem;font-size:var(--fs-xs);color:var(--ink-3);font-weight:500}
+
+/* sidebar identity + access */
+.side__auth{margin-top:.6rem;padding-top:.7rem;border-top:1px solid rgba(255,255,255,.14)}
+.side__who{display:flex;flex-direction:column;line-height:1.25;margin-bottom:.45rem}
+.side__whoname{font-weight:700;color:#fff;font-size:var(--fs-sm)}
+.side__whomail{font-size:var(--fs-xs);color:rgba(255,255,255,.6);word-break:break-all}
+.side__authbtns{display:flex;gap:.4rem;flex-wrap:wrap}
+.side__authbtn{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);color:#fff;
+  border-radius:var(--r-pill);padding:.3rem .7rem;font:inherit;font-size:var(--fs-xs);font-weight:700;cursor:pointer}
+.side__authbtn:hover{background:rgba(255,255,255,.18)}
+.access-body .acc-list{list-style:none;margin:.4rem 0 1rem;padding:0;display:flex;flex-direction:column;gap:.35rem}
+.acc-row{display:flex;align-items:center;gap:.6rem;justify-content:space-between;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:var(--r-md);padding:.5rem .7rem}
+.acc-mail{font-size:var(--fs-sm);color:var(--ink);font-weight:600;word-break:break-all}
+.acc-mail i{color:var(--ink-3);font-weight:500}
+.acc-tag{font-size:var(--fs-xs);font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.04em}
+.acc-rm{background:none;border:0;color:var(--danger-ink);font:inherit;font-size:var(--fs-xs);font-weight:700;cursor:pointer}
+.acc-rm:hover{text-decoration:underline}
+.acc-empty{color:var(--ink-3);font-size:var(--fs-sm);padding:.3rem}
+.acc-add{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+.acc-add input{flex:1 1 8rem;border:1px solid var(--line-2);border-radius:var(--r-md);padding:.5rem .6rem;font:inherit;color:var(--ink);background:var(--surface)}
+
 /* ============ BUTTONS ============ */
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:.45em;padding:.55rem .95rem;min-height:40px;
   border:1px solid transparent;border-radius:var(--r-md);font-weight:600;font-size:var(--fs-base);cursor:pointer;

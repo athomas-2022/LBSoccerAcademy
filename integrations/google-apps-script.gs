@@ -38,6 +38,15 @@ var CONFIG = {
   // CALENDAR_ID. Leave "" to skip calendar creation (events still save & sync).
   CALENDAR_ID: "c_a280d4cafbf4f9838c8141178df7d56c29221939f94bf2b1810d6c5426f8490c@group.calendar.google.com",
 
+  // --- Access control: who may open the Coach Dashboard + read its data ---
+  // CLIENT_ID must equal the OAuth client id pasted into src/app.js
+  // GOOGLE_CLIENT_ID. Owners are always approved and manage the approved list
+  // (Manage access in the dashboard, or the "Access" sheet tab). List each
+  // owner's Google email in lowercase. Leave CLIENT_ID "" to disable the gate
+  // (open access — only while finishing setup).
+  CLIENT_ID:    "",
+  OWNER_EMAILS: ["athomas@liberty-benton.org"],
+
   // --- Remind auto-invite: every signup's welcome email invites them to join ---
   // Your class code (no @) and join link. Leave REMIND_CODE blank to skip.
   REMIND_CODE:     "6ee4bkk",
@@ -55,6 +64,8 @@ var SHEET_SIGNUPS = "Signups";
 var SHEET_SEND    = "Send a message";
 var SHEET_ATT     = "Attendance";
 var SHEET_EVENTS  = "Events";
+var SHEET_ACCESS  = "Access";
+var ACCESS_HEADERS = ["Email", "Name", "Added", "Added by"];
 var HEADERS = ["When", "Child", "Graduation class", "Program",
                "Parent", "Email", "Mobile", "Alerts", "Note", "Other sports"];
 var ATT_HEADERS = ["Date", "Event", "EventId", "Child", "Grad year", "Program", "Updated"];
@@ -62,14 +73,82 @@ var EVENT_HEADERS = ["Id", "Title", "Date", "Start", "End", "Location",
                      "Program", "Tier", "Note", "CalendarEventId", "Updated", "Deleted"];
 
 // ================================================================
+//  ACCESS CONTROL — verify Google ID token + approved-email list
+// ================================================================
+function authEnabled_() { return !!CONFIG.CLIENT_ID; }
+
+// Validate a Google Identity Services ID token and return {email,name} or null.
+function verifyToken_(token) {
+  if (!token) return null;
+  try {
+    var resp = UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo?id_token=" + encodeURIComponent(token),
+      { muteHttpExceptions: true });
+    if (resp.getResponseCode() !== 200) return null;
+    var info = JSON.parse(resp.getContentText());
+    if (String(info.aud) !== String(CONFIG.CLIENT_ID)) return null;                 // issued for another app
+    if (info.exp && (Number(info.exp) * 1000) < Date.now()) return null;            // expired
+    if (info.email_verified !== true && String(info.email_verified) !== "true") return null;
+    return { email: String(info.email || "").toLowerCase(), name: info.name || "" };
+  } catch (e) { return null; }
+}
+
+function owners_() { return (CONFIG.OWNER_EMAILS || []).map(function (e) { return String(e).toLowerCase(); }); }
+function isOwner_(email) { return owners_().indexOf(String(email).toLowerCase()) > -1; }
+function accessEmails_() {
+  var rows = sheetOf_(SHEET_ACCESS).getDataRange().getValues();
+  var out = [];
+  for (var r = 1; r < rows.length; r++) { if (rows[r][0]) out.push({ email: String(rows[r][0]).toLowerCase(), name: rows[r][1] || "" }); }
+  return out;
+}
+function isApproved_(email) {
+  email = String(email).toLowerCase();
+  if (isOwner_(email)) return true;
+  return accessEmails_().some(function (x) { return x.email === email; });
+}
+// Resolve identity from a token. Gate off -> open. Returns null on bad token.
+function authOf_(token) {
+  if (!authEnabled_()) return { email: "", owner: true, approved: true, open: true };
+  var v = verifyToken_(token);
+  if (!v) return null;
+  return { email: v.email, name: v.name, owner: isOwner_(v.email), approved: isApproved_(v.email) };
+}
+function accessAdd_(d, auth) {
+  if (!auth || !auth.owner) return json_({ ok: false, error: "auth" });
+  var email = String(d.email || "").toLowerCase().trim();
+  if (!email || email.indexOf("@") < 1) return json_({ ok: false, error: "bad email" });
+  var sh = sheetOf_(SHEET_ACCESS);
+  var rows = sh.getDataRange().getValues();
+  for (var r = 1; r < rows.length; r++) { if (String(rows[r][0]).toLowerCase() === email) return json_({ ok: true, already: true }); }
+  sh.appendRow([email, d.name || "", new Date(), auth.email || ""]);
+  return json_({ ok: true });
+}
+function accessRemove_(d, auth) {
+  if (!auth || !auth.owner) return json_({ ok: false, error: "auth" });
+  var email = String(d.email || "").toLowerCase().trim();
+  var sh = sheetOf_(SHEET_ACCESS);
+  var rows = sh.getDataRange().getValues();
+  for (var r = rows.length - 1; r >= 1; r--) { if (String(rows[r][0]).toLowerCase() === email) sh.deleteRow(r + 1); }
+  return json_({ ok: true });
+}
+
+// ================================================================
 //  1) INTAKE — website form  ->  this spreadsheet (automatic)
 // ================================================================
 function doPost(e) {
   try {
     var d = JSON.parse(e.postData.contents);
-    if (d.type === "attendance")    return saveAttendance_(d);  // dashboard attendance sync
-    if (d.type === "event")         return saveEvent_(d);       // dashboard event upsert + calendar
-    if (d.type === "event-delete")  return deleteEvent_(d);     // dashboard event delete
+    // Dashboard writes require an approved signed-in account; website signups don't.
+    var DASH = { attendance: 1, event: 1, "event-delete": 1, "access-add": 1, "access-remove": 1 };
+    if (DASH[d.type]) {
+      var auth = authOf_(d.token);
+      if (authEnabled_() && (!auth || !auth.approved)) return json_({ ok: false, error: "auth" });
+      if (d.type === "attendance")    return saveAttendance_(d);
+      if (d.type === "event")         return saveEvent_(d);
+      if (d.type === "event-delete")  return deleteEvent_(d);
+      if (d.type === "access-add")    return accessAdd_(d, auth);
+      if (d.type === "access-remove") return accessRemove_(d, auth);
+    }
+    // ---- public website signup (no auth) ----
     var sh = sheetOf_(SHEET_SIGNUPS);
     sh.appendRow([
       new Date(), d.childName || "", d.gradClass || "", d.program || "",
@@ -196,6 +275,12 @@ function removeCalendar_(calId) {
 //  sign-ups as athletes.
 // ================================================================
 function doGet(e) {
+  var token = (e && e.parameter) ? e.parameter.token : "";
+  var auth = authOf_(token);
+  if (authEnabled_()) {
+    if (!auth) return json_({ ok: false, error: "auth" });
+    if (!auth.approved) return json_({ ok: false, error: "pending", email: auth.email });
+  }
   var sh = sheetOf_(SHEET_SIGNUPS);
   var rows = sh.getDataRange().getValues();
   var signups = [];
@@ -223,7 +308,10 @@ function doGet(e) {
       program: evRows[v][6], tier: evRows[v][7], note: evRows[v][8],
       calId: String(evRows[v][9] || ""), updated: String(evRows[v][10] || "") });
   }
-  return json_({ ok: true, signups: signups, attendance: attendance, events: events });
+  var out = { ok: true, approved: true, owner: auth ? !!auth.owner : true,
+    signups: signups, attendance: attendance, events: events };
+  if (out.owner) { out.access = accessEmails_(); out.owners = owners_(); }
+  return json_(out);
 }
 
 function sendWelcome_(d) {
@@ -376,6 +464,11 @@ function setup() {
   ev.getRange(1, 1, 1, EVENT_HEADERS.length).setFontWeight("bold");
   ev.setFrozenRows(1);
 
+  var acc = ss.getSheetByName(SHEET_ACCESS) || ss.insertSheet(SHEET_ACCESS);
+  if (acc.getLastRow() === 0) acc.appendRow(ACCESS_HEADERS);
+  acc.getRange(1, 1, 1, ACCESS_HEADERS.length).setFontWeight("bold");
+  acc.setFrozenRows(1);
+
   SpreadsheetApp.getUi().alert("Ready.", "Sheets are set up. Deploy as a Web app next.", SpreadsheetApp.getUi().ButtonSet.OK);
 }
 
@@ -385,7 +478,8 @@ function sheetOf_(name) {
   if (!s) { s = ss.insertSheet(name);
     if (name === SHEET_SIGNUPS) s.appendRow(HEADERS);
     else if (name === SHEET_ATT) s.appendRow(ATT_HEADERS);
-    else if (name === SHEET_EVENTS) s.appendRow(EVENT_HEADERS); }
+    else if (name === SHEET_EVENTS) s.appendRow(EVENT_HEADERS);
+    else if (name === SHEET_ACCESS) s.appendRow(ACCESS_HEADERS); }
   return s;
 }
 

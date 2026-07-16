@@ -19,6 +19,13 @@
   // Apps Script CONFIG.CALENDAR_ID and public/app.js GOOGLE_CALENDAR_ID. Leave ""
   // to skip the "View shared calendar" link (events still save + sync).
   var CALENDAR_ID = "c_a280d4cafbf4f9838c8141178df7d56c29221939f94bf2b1810d6c5426f8490c@group.calendar.google.com";
+  // Sign-in gate: only approved Google accounts can open the dashboard or reach
+  // its data. Create a free OAuth Client ID (Google Cloud Console ▸ Credentials ▸
+  // OAuth client ID ▸ Web application), add https://athomas-2022.github.io as an
+  // Authorized JavaScript origin, and paste the "...apps.googleusercontent.com"
+  // id here AND into the Apps Script CONFIG.CLIENT_ID. Leave "" to disable the
+  // gate (open access — only while you finish setup).
+  var GOOGLE_CLIENT_ID = "";
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (m) {
@@ -44,6 +51,127 @@
   var idSeed = 1;
 
   state = load();
+
+  // ================================================================
+  //  AUTH GATE — Google Sign-In + approved-email allowlist
+  // ================================================================
+  var AUTH = { token: "", email: "", name: "", owner: false, enabled: !!GOOGLE_CLIENT_ID, ready: false };
+  function authToken() { return AUTH.token || ""; }
+  function apiGet(extra) {
+    var url = SIGNUPS_URL + "?token=" + encodeURIComponent(authToken()) + (extra || "");
+    return fetch(url, { method: "GET" }).then(function (r) { return r.json(); });
+  }
+  function apiPost(body) {
+    body = body || {}; body.token = authToken();
+    return fetch(SIGNUPS_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(body) });
+  }
+  function b64url(s) { s = String(s).replace(/-/g, "+").replace(/_/g, "/"); while (s.length % 4) s += "=";
+    try { return decodeURIComponent(escape(atob(s))); } catch (e) { try { return atob(s); } catch (e2) { return ""; } } }
+  function decodeJwt(t) { try { return JSON.parse(b64url(String(t).split(".")[1])); } catch (e) { return null; } }
+
+  function gateMsg(m) { var el = $("#authMsg"); if (el) el.textContent = m; }
+  function showGate() { var g = $("#authGate"); if (g) g.style.display = "flex"; document.body.classList.remove("is-authed"); }
+  function hideGate() { document.body.classList.add("is-authed"); var g = $("#authGate"); if (g) g.style.display = "none"; }
+  function showPending(email) {
+    $("#authBtn").hidden = true; $("#authPending").hidden = false;
+    $("#authEmail").textContent = email || AUTH.email || "This account";
+    gateMsg("Signed in, but not approved yet.");
+  }
+  function relock(msg) { if (!AUTH.enabled) return; AUTH.ready = false; showGate(); renderSignIn(); if (msg) gateMsg(msg); }
+
+  function initAuth() {
+    if (!AUTH.enabled) { hideGate(); AUTH.ready = true; runBootSyncs(); return; }  // gate not configured yet
+    showGate(); gateMsg("Checking sign-in…");
+    var stored = null; try { stored = sessionStorage.getItem("lbsa.idtoken"); } catch (e) {}
+    if (stored) { var p = decodeJwt(stored);
+      if (p && p.exp * 1000 > Date.now() + 60000) { AUTH.token = stored; AUTH.email = p.email || ""; AUTH.name = p.name || p.email || ""; verifyAccess(); return; } }
+    renderSignIn();
+  }
+  function renderSignIn() {
+    $("#authPending").hidden = true; $("#authBtn").hidden = false;
+    var host = $("#authBtn"); host.innerHTML = "";
+    if (!(window.google && google.accounts && google.accounts.id)) { gateMsg("Loading Google sign-in…"); setTimeout(renderSignIn, 400); return; }
+    google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: onCredential, auto_select: false });
+    google.accounts.id.renderButton(host, { theme: "filled_blue", size: "large", text: "signin_with", shape: "pill", width: 260 });
+    gateMsg("Sign in with an approved Google account.");
+  }
+  function onCredential(resp) {
+    var t = resp && resp.credential; if (!t) return;
+    var p = decodeJwt(t); AUTH.token = t; AUTH.email = (p && p.email) || ""; AUTH.name = (p && p.name) || AUTH.email;
+    try { sessionStorage.setItem("lbsa.idtoken", t); } catch (e) {}
+    gateMsg("Checking access…"); verifyAccess();
+  }
+  function verifyAccess() {
+    apiGet("&check=1").then(function (data) {
+      if (data && data.ok && data.approved) { AUTH.owner = !!data.owner; hideGate(); AUTH.ready = true; renderIdentity(); runBootSyncs(); }
+      else if (data && data.error === "pending") { showPending(data.email); }
+      else { try { sessionStorage.removeItem("lbsa.idtoken"); } catch (e) {} AUTH.token = ""; renderSignIn(); gateMsg("Sign-in expired or invalid — please sign in again."); }
+    }).catch(function () { gateMsg("Couldn't reach the server — check your connection and retry."); setTimeout(function () { if (!AUTH.ready) renderSignIn(); }, 2500); });
+  }
+  function signOut() {
+    try { sessionStorage.removeItem("lbsa.idtoken"); } catch (e) {}
+    AUTH.token = ""; AUTH.email = ""; AUTH.owner = false; AUTH.ready = false;
+    try { google.accounts.id.disableAutoSelect(); } catch (e) {}
+    renderIdentity(); showGate(); renderSignIn();
+  }
+  function renderIdentity() {
+    var foot = $("#authFoot"); if (!foot) return;
+    if (!AUTH.enabled || !AUTH.email) { foot.hidden = true; foot.innerHTML = ""; return; }
+    foot.hidden = false;
+    foot.innerHTML = '<div class="side__who"><span class="side__whoname">' + esc(AUTH.name || AUTH.email) + '</span>' +
+      '<span class="side__whomail">' + esc(AUTH.email) + (AUTH.owner ? " · owner" : "") + '</span></div>' +
+      '<div class="side__authbtns">' +
+        (AUTH.owner ? '<button class="side__authbtn" data-action="manage-access">Manage access</button>' : "") +
+        '<button class="side__authbtn" data-action="sign-out">Sign out</button>' +
+      '</div>';
+  }
+  function runBootSyncs() { if (SIGNUPS_URL) { syncSignups(true); syncEvents(true); } }
+
+  // ---- approve / remove people (owners only) ----
+  function openAccess() {
+    if (!AUTH.owner) { toast("Owners only."); return; }
+    showDrawer("Team access", '<div id="accessBody" class="access-body">Loading…</div>');
+    refreshAccess();
+  }
+  function refreshAccess() {
+    apiGet().then(function (data) {
+      var b = $("#accessBody"); if (!b) return;
+      if (!data || !data.ok || !data.owner) { b.innerHTML = '<p class="cast-note">Only owners can manage access.</p>'; return; }
+      renderAccessBody(data.access || [], data.owners || []);
+    }).catch(function () { var b = $("#accessBody"); if (b) b.innerHTML = '<p class="cast-note">Couldn\'t load the list — retry.</p>'; });
+  }
+  function renderAccessBody(list, owners) {
+    var b = $("#accessBody"); if (!b) return;
+    var ownerRows = owners.map(function (e) {
+      return '<li class="acc-row"><span class="acc-mail">' + esc(e) + '</span><span class="acc-tag">owner</span></li>'; }).join("");
+    var rows = list.map(function (x) {
+      var email = x.email || x;
+      return '<li class="acc-row"><span class="acc-mail">' + esc(email) + (x.name ? ' <i>' + esc(x.name) + '</i>' : "") + '</span>' +
+        '<button class="acc-rm" data-accrm="' + esc(email) + '">Remove</button></li>'; }).join("");
+    b.innerHTML =
+      '<p class="cast-note">Approved people can sign in and use the dashboard. Owners are set in config and can\'t be removed here.</p>' +
+      '<ul class="acc-list">' + ownerRows + rows + (list.length ? "" : '<li class="acc-empty">No one else approved yet.</li>') + '</ul>' +
+      '<form id="accAdd" class="acc-add">' +
+        '<input id="acc-email" type="email" placeholder="name@email.com" required>' +
+        '<input id="acc-name" placeholder="Name (optional)">' +
+        '<button class="btn btn--primary btn--sm" type="submit">Approve</button>' +
+      '</form>' +
+      '<p class="cast-hint">They sign in with that exact Google account. Changes take effect next time they load the page.</p>';
+    var f = $("#accAdd");
+    if (f) f.addEventListener("submit", function (e) { e.preventDefault();
+      var email = $("#acc-email").value.trim().toLowerCase(); if (!email || email.indexOf("@") < 1) { $("#acc-email").focus(); return; }
+      apiPost({ type: "access-add", email: email, name: $("#acc-name").value.trim() });
+      toast("Approved " + email + "."); b.innerHTML = "Updating…"; setTimeout(refreshAccess, 900);
+    });
+    b.addEventListener("click", function (e) {
+      var rm = e.target.closest("[data-accrm]"); if (!rm) return;
+      var email = rm.dataset.accrm;
+      if (!window.confirm("Remove " + email + "'s access?")) return;
+      apiPost({ type: "access-remove", email: email });
+      toast("Removed " + email + "."); b.innerHTML = "Updating…"; setTimeout(refreshAccess, 900);
+    });
+  }
 
   // ---- derived -----------------------------------------------------
   function pool() {
@@ -412,20 +540,19 @@
   // ---- events cross-device + calendar sync via the Sheet/Apps Script ----
   function pushEvent(e) {
     if (!SIGNUPS_URL || !e) return;
-    fetch(SIGNUPS_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ type: "event", id: e.id, title: e.title, date: e.date, start: e.start, end: e.end,
-        location: e.location, program: e.program, tier: e.tier, note: e.note, updated: e.updated }) })
+    apiPost({ type: "event", id: e.id, title: e.title, date: e.date, start: e.start, end: e.end,
+      location: e.location, program: e.program, tier: e.tier, note: e.note, updated: e.updated })
       .then(function () { delete e.unsynced; save(); }).catch(function () {});
   }
   function pushEventDelete(e) {
     if (!SIGNUPS_URL || !e) return;
-    fetch(SIGNUPS_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ type: "event-delete", id: e.id }) }).catch(function () {});
+    apiPost({ type: "event-delete", id: e.id }).catch(function () {});
   }
   function syncEvents(quiet) {
-    if (!SIGNUPS_URL) return;
+    if (!SIGNUPS_URL || (AUTH.enabled && !AUTH.ready)) return;
     state.events.forEach(function (e) { if (e.unsynced) pushEvent(e); });
-    fetch(SIGNUPS_URL, { method: "GET" }).then(function (r) { return r.json(); }).then(function (data) {
+    apiGet().then(function (data) {
+      if (data && data.error === "auth") { relock("Session expired — sign in again."); return; }
       if (!data || !data.events) return;
       var byId = {}; state.events.forEach(function (e) { byId[e.id] = e; });
       data.events.forEach(function (row) {
@@ -574,15 +701,15 @@
       var parts = k.split("|"); return { name: parts[0], gradYear: parts[1] || "", program: "" };
     });
     var ev = eventById(s.eventId);
-    fetch(SIGNUPS_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ type: "attendance", eventId: s.eventId || "", event: ev ? ev.title : "", date: s.date, updated: s.updated, present: present }) })
+    apiPost({ type: "attendance", eventId: s.eventId || "", event: ev ? ev.title : "", date: s.date, updated: s.updated, present: present })
       .then(function () { delete s.unsynced; save(); }).catch(function () {});
   }
 
   function syncAttendance(quiet) {
-    if (!SIGNUPS_URL) return;
+    if (!SIGNUPS_URL || (AUTH.enabled && !AUTH.ready)) return;
     state.sessions.forEach(function (s) { if (s.unsynced) pushSession(s); });   // push local pending first
-    fetch(SIGNUPS_URL, { method: "GET" }).then(function (r) { return r.json(); }).then(function (data) {
+    apiGet().then(function (data) {
+      if (data && data.error === "auth") { relock("Session expired — sign in again."); return; }
       if (!data || !data.attendance) return;
       var keyOf = function (s) { return s.eventId ? "e:" + s.eventId : "d:" + s.date; };
       var byDate = {};
@@ -873,10 +1000,11 @@
 
   function syncSignups(quiet) {
     if (!SIGNUPS_URL) { if (!quiet) openSyncHelp(); return; }
+    if (AUTH.enabled && !AUTH.ready) return;
     if (!quiet) toast("Checking for new sign-ups…");
-    fetch(SIGNUPS_URL, { method: "GET" })
-      .then(function (r) { return r.json(); })
+    apiGet()
       .then(function (data) {
+        if (data && data.error === "auth") { relock("Session expired — sign in again."); return; }
         if (!data || !data.signups) { if (!quiet) toast("No sign-ups found."); return; }
         state.importedSignups = state.importedSignups || [];
         var seen = {}; state.importedSignups.forEach(function (k) { seen[k] = 1; });
@@ -1014,6 +1142,8 @@
       case "att-none": ui.present = {}; ui.presentEvent = ui.attEvent; ui.attDirty = true; renderAttendance(); break;
       case "att-load": ui.attEvent = act.dataset.id; loadPresent(ui.attEvent); renderAttendance(); break;
       case "save-session": saveSession(); break;
+      case "manage-access": openAccess(); break;
+      case "sign-out": signOut(); break;
       case "close-drawer": hideDrawer(); break;
       case "load-sample": loadSample(); break;
       case "clear": clearAll(); break;
@@ -1038,6 +1168,7 @@
   $("#burger").addEventListener("click", function () {
     if ($("#sidebar").classList.contains("is-open")) closeSidebar(); else openSidebar();
   });
+  var authOther = $("#authOther"); if (authOther) authOther.addEventListener("click", signOut);
   $("#drawerClose").addEventListener("click", hideDrawer);
   $("#scrim").addEventListener("click", function () { hideDrawer(); closeSidebar(); });
   document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closePop(); if ($("#drawer") && !$("#drawer").hidden) hideDrawer(); closeSidebar(); } });
@@ -1047,5 +1178,5 @@
   // ---- boot --------------------------------------------------------
   renderTopbar();
   renderView();
-  if (SIGNUPS_URL) { syncSignups(true); syncEvents(true); }   // quietly pull new sign-ups + attendance + events on load
+  initAuth();   // gate the dashboard; runBootSyncs() pulls sign-ups + attendance + events once approved
 })();
