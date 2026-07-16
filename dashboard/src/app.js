@@ -47,11 +47,13 @@
   var FIN_METHODS = ["Cash", "Check", "Card", "Bank transfer", "Online (PayPal/Venmo)", "In-kind (no cash)", "Other"];
   var FIN_INKIND = "In-kind (no cash)";
 
-  function blank() { return { athletes: [], sponsors: [], phasesDone: [], sessions: [], events: [], finances: [], settings: Object.assign({}, SETTINGS_DEFAULT), seeded: false }; }
+  var TEAM_LEVELS = ["Rec", "Travel", "Club", "School", "Other"];
+
+  function blank() { return { athletes: [], sponsors: [], phasesDone: [], sessions: [], events: [], finances: [], teams: [], settings: Object.assign({}, SETTINGS_DEFAULT), seeded: false }; }
   function load() {
     try { var raw = localStorage.getItem(KEY); if (raw) { var d = JSON.parse(raw);
       d.settings = Object.assign({}, SETTINGS_DEFAULT, d.settings || {}); d.athletes = d.athletes || [];
-      d.sponsors = d.sponsors || []; d.phasesDone = d.phasesDone || []; d.sessions = d.sessions || []; d.events = d.events || []; d.finances = d.finances || []; return d; } }
+      d.sponsors = d.sponsors || []; d.phasesDone = d.phasesDone || []; d.sessions = d.sessions || []; d.events = d.events || []; d.finances = d.finances || []; d.teams = d.teams || []; return d; } }
     catch (e) {}
     return blank();
   }
@@ -216,6 +218,7 @@
   var VIEW_META = {
     overview: { title: "Overview", sub: "The whole pipeline at a glance." },
     athletes: { title: "Athletes", sub: "Every athletic kid, K–8, by graduation year." },
+    teams: { title: "Teams", sub: "Local teams already playing — recruit their kids into the academy." },
     schedule: { title: "Schedule", sub: "Sessions & events — auto-added to the shared calendar families follow." },
     attendance: { title: "Attendance", sub: "Pick a session, tap kids in — it flows into the tracker." },
     plan: { title: "The 360-Day Plan", sub: "Twelve phases from first conversation to year two." },
@@ -232,6 +235,8 @@
       slot.innerHTML = '<button class="btn btn--ghost" data-action="sync-signups">Sync sign-ups</button>' +
         '<button class="btn btn--ghost" data-action="broadcast"><svg class="ic"><use href="#ic-phone"/></svg>Message families</button>' +
         '<button class="btn btn--primary" data-action="add-athlete"><svg class="ic"><use href="#ic-plus"/></svg>Add athlete</button>';
+    } else if (ui.view === "teams") {
+      slot.innerHTML = '<button class="btn btn--primary" data-action="add-team"><svg class="ic"><use href="#ic-plus"/></svg>Add team</button>';
     } else if (ui.view === "schedule") {
       slot.innerHTML = (CALENDAR_ID ? '<a class="btn btn--ghost" href="https://calendar.google.com/calendar/u/0/r?cid=' + encodeURIComponent(CALENDAR_ID) + '" target="_blank" rel="noopener">Open shared calendar</a>' : "") +
         '<button class="btn btn--primary" data-action="add-event"><svg class="ic"><use href="#ic-plus"/></svg>Add event</button>';
@@ -259,6 +264,7 @@
   function renderView() {
     if (ui.view === "overview") renderOverview();
     else if (ui.view === "athletes") renderAthletes();
+    else if (ui.view === "teams") renderTeams();
     else if (ui.view === "schedule") renderSchedule();
     else if (ui.view === "attendance") renderAttendance();
     else if (ui.view === "plan") renderPlan();
@@ -432,6 +438,150 @@
   function athleteByKey(k) { for (var i = 0; i < state.athletes.length; i++) if (athKey(state.athletes[i]) === k) return state.athletes[i]; return null; }
   function fmtDate(d) { var x = new Date(d + "T00:00:00"); return isNaN(x) ? d : ATT_MON[x.getMonth()] + " " + x.getDate(); }
   function daysAgo(d) { var a = new Date(d + "T00:00:00"), b = new Date(today() + "T00:00:00"); return Math.round((b - a) / 86400000); }
+
+  // ================================================================
+  //  TEAMS — local teams already playing; a recruiting funnel
+  // ================================================================
+  function teamById(id) { for (var i = 0; i < state.teams.length; i++) if (state.teams[i].id === id) return state.teams[i]; return null; }
+  function parseRoster(text) {
+    return String(text || "").split("\n").map(function (line) {
+      var t = line.trim(); if (!t) return null;
+      var m = t.match(/^(.*?)[,\-–]\s*(K|\d{1,2})(?:\s*(?:st|nd|rd|th)?\s*(?:grade)?)?\s*$/i);
+      if (m) { var g = /^k$/i.test(m[2]) ? 0 : parseInt(m[2], 10); return { name: m[1].trim(), grade: (g >= 0 && g <= 8) ? g : null }; }
+      return { name: t, grade: null };
+    }).filter(Boolean);
+  }
+  function rosterToText(players) {
+    return (players || []).map(function (p) { return p.name + (p.grade != null ? ", " + (p.grade === 0 ? "K" : p.grade) : ""); }).join("\n");
+  }
+  // how many of a team's players already exist as academy athletes
+  function teamMatched(t) {
+    var prog = t.program === "Girls" ? "Girls" : "Boys";
+    return (t.players || []).filter(function (p) {
+      var name = String(p.name || "").trim(), sp = name.indexOf(" ");
+      var first = sp > 0 ? name.slice(0, sp) : name, last = sp > 0 ? name.slice(sp + 1).trim() : "";
+      var gy = LB.gradYearFor(p.grade != null ? p.grade : 3);
+      return state.athletes.some(function (a) {
+        return a.first.toLowerCase() === first.toLowerCase() && a.last.toLowerCase() === last.toLowerCase() && a.gradYear === gy;
+      });
+    }).length;
+  }
+
+  function renderTeams() {
+    var host = $("#view-teams");
+    var teamCount = state.teams.length;
+    var playerCount = state.teams.reduce(function (n, t) { return n + (t.players ? t.players.length : 0); }, 0);
+    var summary = '<div class="team-summary"><div class="team-stat"><b class="tnum">' + teamCount + '</b> team' + (teamCount === 1 ? "" : "s") +
+      '</div><div class="team-stat"><b class="tnum">' + playerCount + '</b> kids on rosters</div>' +
+      '<p class="team-lede">Teams already playing rec, travel, club or school ball — your funnel into the academy.</p></div>';
+
+    if (!teamCount) {
+      host.innerHTML = summary + '<div class="empty"><img src="../assets/logos/Eagle Head.png" alt="" />' +
+        '<h3>No teams yet.</h3><p>Add a local rec, travel, club or school team — its coach and roster. Then pull those kids into Athletes as prospects with one tap.</p>' +
+        '<div class="empty__actions"><button class="btn btn--primary" data-action="add-team"><svg class="ic"><use href="#ic-plus"/></svg>Add a team</button></div></div>';
+      return;
+    }
+    var cards = state.teams.slice().sort(function (a, b) { return a.name.localeCompare(b.name); }).map(function (t) {
+      var players = t.players || [], matched = teamMatched(t);
+      var chips = '<span class="team-chip">' + esc(t.level || "Team") + '</span>' +
+        '<span class="team-chip">' + esc(t.program || "Coed") + '</span>' +
+        (t.ageGroup ? '<span class="team-chip">' + esc(t.ageGroup) + '</span>' : "");
+      var coach = t.coach ? '<div class="team-coach"><b>Coach ' + esc(t.coach) + '</b>' +
+        (t.coachEmail ? ' · <a href="mailto:' + esc(t.coachEmail) + '">' + esc(t.coachEmail) + '</a>' : "") +
+        (t.coachPhone ? ' · <a href="tel:' + esc(t.coachPhone) + '">' + esc(t.coachPhone) + '</a>' : "") + '</div>' : "";
+      var roster = players.length ? '<div class="team-roster">' + players.map(function (p) {
+        return '<span class="team-player">' + esc(p.name) + (p.grade != null ? ' <i>' + (p.grade === 0 ? "K" : LB.GRADE_LABELS[p.grade]) + '</i>' : "") + '</span>';
+      }).join("") + '</div>' : '<p class="team-empty">No players added yet.</p>';
+      var importLbl = matched >= players.length && players.length ? "All in academy" : "Add roster to Athletes";
+      return '<div class="team-card">' +
+        '<div class="team-card__head"><div><h3 class="team-name">' + esc(t.name) + '</h3><div class="team-chips">' + chips + '</div></div>' +
+          '<div class="team-actions">' +
+            '<button class="btn btn--primary btn--sm" data-action="import-team" data-id="' + t.id + '"' + (players.length && matched < players.length ? "" : " disabled") + '>' + importLbl + '</button>' +
+            '<button class="btn btn--ghost btn--sm" data-action="edit-team" data-id="' + t.id + '">Edit</button>' +
+          '</div></div>' +
+        coach +
+        '<div class="team-rosterhead"><span>' + players.length + ' player' + (players.length === 1 ? "" : "s") + '</span>' +
+          (players.length ? '<span class="team-matched">' + matched + ' already in academy</span>' : "") + '</div>' +
+        roster +
+        (t.note ? '<p class="team-note">' + esc(t.note) + '</p>' : "") +
+      '</div>';
+    }).join("");
+    host.innerHTML = summary + '<div class="team-list">' + cards + '</div>';
+  }
+
+  function teamForm(t) {
+    t = t || {};
+    var prog = t.program || "Coed";
+    var levels = TEAM_LEVELS.map(function (l) { return '<option value="' + l + '"' + (t.level === l ? " selected" : "") + '>' + l + '</option>'; }).join("");
+    return '<form id="teamForm">' +
+      '<div class="field"><label for="t-name">Team name</label><input id="t-name" value="' + esc(t.name || "") + '" placeholder="Findlay FC Red, LB Rec 3rd grade…" required></div>' +
+      '<div class="field--row">' +
+        '<div class="field"><label for="t-level">Level</label><select id="t-level">' + levels + '</select></div>' +
+        '<div class="field"><label>Who</label><div class="segfield">' +
+          ["Boys", "Girls", "Coed"].map(function (p) { return '<label><input type="radio" name="t-prog" value="' + p + '"' + (prog === p ? " checked" : "") + '><span>' + p + '</span></label>'; }).join("") +
+        '</div></div>' +
+      '</div>' +
+      '<div class="field"><label for="t-age">Age group <span style="font-weight:500;color:var(--ink-3)">(optional)</span></label><input id="t-age" value="' + esc(t.ageGroup || "") + '" placeholder="U10 · 3rd–4th grade"></div>' +
+      '<fieldset class="field"><legend>Coach</legend>' +
+        '<input id="t-coach" value="' + esc(t.coach || "") + '" placeholder="Coach name" style="margin-bottom:.5rem">' +
+        '<div class="field--row" style="margin:0">' +
+          '<input id="t-cemail" type="email" value="' + esc(t.coachEmail || "") + '" placeholder="coach@email.com">' +
+          '<input id="t-cphone" type="tel" value="' + esc(t.coachPhone || "") + '" placeholder="419-555-0100">' +
+        '</div></fieldset>' +
+      '<div class="field"><label for="t-roster">Roster <span style="font-weight:500;color:var(--ink-3)">(one player per line — optionally add a grade: “Jack Smith, 4”)</span></label>' +
+        '<textarea id="t-roster" rows="7" placeholder="Jack Smith, 4&#10;Ava Jones, 3&#10;Liam Carter">' + esc(rosterToText(t.players)) + '</textarea></div>' +
+      '<div class="field"><label for="t-note">Note <span style="font-weight:500;color:var(--ink-3)">(optional)</span></label><textarea id="t-note" placeholder="Coach open to a joint session · plays Saturdays…">' + esc(t.note || "") + '</textarea></div>' +
+      '<div class="drawer__foot">' +
+        (t.id ? '<button type="button" class="btn btn--danger" data-action="delete-team" data-id="' + t.id + '">Delete</button>' : "") +
+        '<button type="submit" class="btn btn--primary">' + (t.id ? "Save team" : "Add team") + '</button>' +
+      '</div></form>';
+  }
+  function openTeam(t) {
+    showDrawer(t ? "Edit team" : "Add team", teamForm(t));
+    $("#teamForm").addEventListener("submit", function (sub) {
+      sub.preventDefault();
+      var name = $("#t-name").value.trim();
+      $("#t-name").closest(".field").classList.toggle("field--invalid", !name);
+      if (!name) { $("#t-name").focus(); return; }
+      var data = { name: name, level: $("#t-level").value, program: (document.querySelector('input[name="t-prog"]:checked') || {}).value || "Coed",
+        ageGroup: $("#t-age").value.trim(), coach: $("#t-coach").value.trim(), coachEmail: $("#t-cemail").value.trim(),
+        coachPhone: $("#t-cphone").value.trim(), players: parseRoster($("#t-roster").value), note: $("#t-note").value.trim(),
+        updated: today() };
+      if (t && t.id) { var idx = state.teams.findIndex(function (x) { return x.id === t.id; });
+        state.teams[idx] = Object.assign({}, t, data); toast("Saved " + name + "."); }
+      else { data.id = uid("tm"); state.teams.push(data); toast("Added " + name + " (" + data.players.length + " players)."); }
+      save(); hideDrawer(); renderView();
+    });
+  }
+  function deleteTeam(id) {
+    var t = teamById(id); if (!t) return;
+    if (!window.confirm("Delete the team “" + t.name + "”? (Any players you already imported into Athletes stay.)")) return;
+    state.teams = state.teams.filter(function (x) { return x.id !== id; });
+    save(); hideDrawer(); renderView(); toast("Team removed.");
+  }
+  function importTeam(id) {
+    var t = teamById(id); if (!t) return;
+    var prog = t.program === "Girls" ? "Girls" : "Boys";
+    var added = 0, skipped = 0, unknown = 0;
+    (t.players || []).forEach(function (p) {
+      var name = String(p.name || "").trim(); if (!name) return;
+      var sp = name.indexOf(" ");
+      var first = sp > 0 ? name.slice(0, sp) : name, last = sp > 0 ? name.slice(sp + 1).trim() : "";
+      var grade = p.grade != null ? p.grade : 3; if (p.grade == null) unknown++;
+      var gy = LB.gradYearFor(grade);
+      if (state.athletes.some(function (a) { return a.first.toLowerCase() === first.toLowerCase() && a.last.toLowerCase() === last.toLowerCase() && a.gradYear === gy; })) { skipped++; return; }
+      state.athletes.push({ id: uid("a"), first: first, last: last, grade: grade, gradYear: gy, program: prog,
+        status: "prospect", sports: ["Soccer"], email: "", phone: "",
+        note: "From " + t.name + (t.coach ? " (coach " + t.coach + ")" : "") + (p.grade == null ? " — grade unconfirmed" : ""), updated: today() });
+      added++;
+    });
+    save(); renderView();
+    var msg = added + " prospect" + (added === 1 ? "" : "s") + " added to Athletes";
+    if (skipped) msg += ", " + skipped + " already there";
+    if (unknown) msg += " · " + unknown + " need a grade set";
+    toast(msg + ".");
+  }
+
   // ================================================================
   //  SCHEDULE / EVENTS
   // ================================================================
@@ -1372,6 +1522,10 @@
       case "add-athlete": openAthlete(null); break;
       case "edit": openAthlete(state.athletes.find(function (x) { return x.id === id; })); break;
       case "delete-athlete": state.athletes = state.athletes.filter(function (x) { return x.id !== id; }); save(); hideDrawer(); renderView(); toast("Athlete removed."); break;
+      case "add-team": openTeam(null); break;
+      case "edit-team": openTeam(teamById(id)); break;
+      case "delete-team": deleteTeam(id); break;
+      case "import-team": importTeam(id); break;
       case "reached": setStatus(id, "active"); break;
       case "status": e.stopPropagation(); openStatusPop(act, id); break;
       case "filter-status": ui.status = act.dataset.status; renderAthletes(); break;
@@ -1417,7 +1571,7 @@
   }
   function loadSample() {
     state = JSON.parse(JSON.stringify(LB.SAMPLE)); state.seeded = true;
-    state.sessions = state.sessions || []; state.phasesDone = state.phasesDone || []; state.events = state.events || []; state.finances = state.finances || [];
+    state.sessions = state.sessions || []; state.phasesDone = state.phasesDone || []; state.events = state.events || []; state.finances = state.finances || []; state.teams = state.teams || [];
     save(); renderView();
     toast("Sample roster loaded.");
   }
