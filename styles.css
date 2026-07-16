@@ -5,14 +5,14 @@
    ============================================================ */
 
 /* ---------- Fonts ---------- */
-@font-face{font-family:"Octin Sports";src:url("../assets/fonts/OctinSportsRg.woff2") format("woff2"),url("../assets/fonts/OctinSportsRg.ttf") format("truetype");font-weight:400;font-display:swap}
-@font-face{font-family:"Montserrat";src:url("../assets/fonts/Montserrat-Light.woff2") format("woff2"),url("../assets/fonts/Montserrat-Light.ttf") format("truetype");font-weight:300;font-display:swap}
-@font-face{font-family:"Montserrat";src:url("../assets/fonts/Montserrat-Regular.woff2") format("woff2"),url("../assets/fonts/Montserrat-Regular.ttf") format("truetype");font-weight:400;font-display:swap}
-@font-face{font-family:"Montserrat";src:url("../assets/fonts/Montserrat-Medium.woff2") format("woff2"),url("../assets/fonts/Montserrat-Medium.ttf") format("truetype");font-weight:500;font-display:swap}
-@font-face{font-family:"Montserrat";src:url("../assets/fonts/Montserrat-SemiBold.woff2") format("woff2"),url("../assets/fonts/Montserrat-SemiBold.ttf") format("truetype");font-weight:600;font-display:swap}
-@font-face{font-family:"Montserrat";src:url("../assets/fonts/Montserrat-Bold.woff2") format("woff2"),url("../assets/fonts/Montserrat-Bold.ttf") format("truetype");font-weight:700;font-display:swap}
-@font-face{font-family:"Montserrat";src:url("../assets/fonts/Montserrat-ExtraBold.woff2") format("woff2"),url("../assets/fonts/Montserrat-ExtraBold.ttf") format("truetype");font-weight:800;font-display:swap}
-@font-face{font-family:"Montserrat";src:url("../assets/fonts/Montserrat-Black.woff2") format("woff2"),url("../assets/fonts/Montserrat-Black.ttf") format("truetype");font-weight:900;font-display:swap}
+@font-face{font-family:"Octin Sports";src:url("assets/fonts/OctinSportsRg.woff2") format("woff2"),url("assets/fonts/OctinSportsRg.ttf") format("truetype");font-weight:400;font-display:swap}
+@font-face{font-family:"Montserrat";src:url("assets/fonts/Montserrat-Light.woff2") format("woff2"),url("assets/fonts/Montserrat-Light.ttf") format("truetype");font-weight:300;font-display:swap}
+@font-face{font-family:"Montserrat";src:url("assets/fonts/Montserrat-Regular.woff2") format("woff2"),url("assets/fonts/Montserrat-Regular.ttf") format("truetype");font-weight:400;font-display:swap}
+@font-face{font-family:"Montserrat";src:url("assets/fonts/Montserrat-Medium.woff2") format("woff2"),url("assets/fonts/Montserrat-Medium.ttf") format("truetype");font-weight:500;font-display:swap}
+@font-face{font-family:"Montserrat";src:url("assets/fonts/Montserrat-SemiBold.woff2") format("woff2"),url("assets/fonts/Montserrat-SemiBold.ttf") format("truetype");font-weight:600;font-display:swap}
+@font-face{font-family:"Montserrat";src:url("assets/fonts/Montserrat-Bold.woff2") format("woff2"),url("assets/fonts/Montserrat-Bold.ttf") format("truetype");font-weight:700;font-display:swap}
+@font-face{font-family:"Montserrat";src:url("assets/fonts/Montserrat-ExtraBold.woff2") format("woff2"),url("assets/fonts/Montserrat-ExtraBold.ttf") format("truetype");font-weight:800;font-display:swap}
+@font-face{font-family:"Montserrat";src:url("assets/fonts/Montserrat-Black.woff2") format("woff2"),url("assets/fonts/Montserrat-Black.ttf") format("truetype");font-weight:900;font-display:swap}
 
 /* ---------- Tokens ---------- */
 :root{
@@ -191,7 +191,7 @@ p{text-wrap:pretty}
   -webkit-mask-image:linear-gradient(180deg,transparent,#000 13%,#000 88%,transparent);
           mask-image:linear-gradient(180deg,transparent,#000 13%,#000 88%,transparent)}
 .hero__mark{position:absolute;z-index:-1;right:-6%;bottom:-14%;width:min(46vw,560px);aspect-ratio:1;
-  background:no-repeat center/contain url("../assets/logos/Block LB - white.png");opacity:.05;pointer-events:none}
+  background:no-repeat center/contain url("assets/logos/Block LB - white.png");opacity:.05;pointer-events:none}
 .hero__eagle{position:absolute;z-index:-1;right:clamp(-5rem,-3vw,-1rem);top:50%;
   width:min(52vw,650px);height:auto;transform:translateY(-46%);
   filter:drop-shadow(0 30px 50px oklch(0.15 .05 255 / .6));
@@ -298,7 +298,7 @@ p{text-wrap:pretty}
 .why{padding-block:var(--section-y);color:#fff;position:relative;overflow:hidden;
   background:linear-gradient(155deg,var(--blue-700),var(--blue-900))}
 .why::after{content:"";position:absolute;right:-8%;top:-20%;width:min(40vw,460px);aspect-ratio:1;
-  background:no-repeat center/contain url("../assets/logos/Block LB - white.png");opacity:.045;pointer-events:none}
+  background:no-repeat center/contain url("assets/logos/Block LB - white.png");opacity:.045;pointer-events:none}
 .why__grid{display:grid;gap:clamp(2rem,5vw,4rem);align-items:start;grid-template-columns:1fr}
 .why__copy .section-title{font-size:var(--step-3)}
 .why__copy p{margin-top:1.2rem;color:oklch(0.92 .03 255);font-weight:500;max-width:56ch}
@@ -506,7 +506,7 @@ p{text-wrap:pretty}
 .register{padding-block:var(--section-y);color:#fff;position:relative;overflow:hidden;
   background:radial-gradient(120% 130% at 85% 10%,var(--blue-700),var(--blue-950) 72%)}
 .register::after{content:"";position:absolute;left:-6%;bottom:-18%;width:min(40vw,440px);aspect-ratio:1;
-  background:no-repeat center/contain url("../assets/logos/Block LB - white.png");opacity:.05;pointer-events:none}
+  background:no-repeat center/contain url("assets/logos/Block LB - white.png");opacity:.05;pointer-events:none}
 .register__grid{display:grid;gap:clamp(2rem,5vw,4rem);grid-template-columns:1fr;align-items:start;position:relative}
 .register__pitch .section-title{font-size:var(--step-3)}
 .register__lede{margin-top:1.1rem;color:oklch(0.93 .03 255);font-weight:500;font-size:var(--step-1);max-width:44ch}

@@ -2,122 +2,667 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Coach's Dashboard — The LB Soccer Academy</title>
-<meta name="description" content="Run the LB Soccer Academy pipeline: capture & retention map, the Four Numbers, the 360-day launch plan, and sponsors." />
-<meta name="theme-color" content="#0A2540" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>The LB Soccer Academy — Every Kid Plays | Liberty-Benton Eagles</title>
+<meta name="description" content="A free, year-round soccer home for every kid in the Liberty-Benton district — boys and girls, first touch to varsity. No tryouts, nobody turned away. Sign up or become a sponsor." />
+<meta name="theme-color" content="#003DA5" />
+<meta property="og:title" content="The LB Soccer Academy — Every Kid Plays" />
+<meta property="og:description" content="Free, year-round youth soccer for every kid in our district. Boys and girls, first touch to varsity. Nobody turned away." />
+<meta property="og:type" content="website" />
 <link rel="icon" href="assets/logos/Eagle Head.png" />
-<link rel="stylesheet" href="src/styles.css" />
-<script src="https://accounts.google.com/gsi/client" async></script>
+<link rel="apple-touch-icon" href="assets/logos/Eagle Head.png" />
+<link rel="preload" href="assets/fonts/OctinSportsRg.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="assets/fonts/Montserrat-SemiBold.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+<a class="skip-link" href="#main">Skip to content</a>
 
-<!-- icon sprite -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="ic-overview" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></symbol>
-  <symbol id="ic-athletes" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
-  <symbol id="ic-plan" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/><path d="m9 16 2 2 4-4"/></symbol>
-  <symbol id="ic-sponsors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12v10H4V12"/><rect x="2" y="7" width="20" height="5"/><path d="M12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></symbol>
-  <symbol id="ic-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></symbol>
-  <symbol id="ic-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
-  <symbol id="ic-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></symbol>
-  <symbol id="ic-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></symbol>
-  <symbol id="ic-alert" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
-  <symbol id="ic-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18M3 6h18M3 18h18"/></symbol>
-  <symbol id="ic-attend" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="m9 14 2 2 4-4"/></symbol>
-  <symbol id="ic-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
-  <symbol id="ic-money" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></symbol>
-  <symbol id="ic-phone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></symbol>
-</svg>
+<!-- ============ HEADER / NAV ============ -->
+<header class="site-header" id="siteHeader" data-elevated="false">
+  <div class="wrap header-inner">
+    <a class="brand" href="#top" aria-label="The LB Soccer Academy — home">
+      <img class="brand-lockup" src="assets/logos/Lockup - Horizontal - White.png" alt="" width="440" height="120" />
+      <span class="brand-fallback">
+        <img src="assets/logos/Eagle Head.png" alt="" width="40" height="40" />
+        <span>LB Soccer <b>Academy</b></span>
+      </span>
+    </a>
 
-<!-- AUTH GATE — shown until an approved account signs in -->
-<div class="authgate" id="authGate">
-  <div class="authgate__card">
-    <img class="authgate__logo" src="assets/logos/Eagle Head.png" alt="" />
-    <div class="authgate__brand">LB Academy</div>
-    <h1 class="authgate__title">Coach's Dashboard</h1>
-    <p class="authgate__msg" id="authMsg">Sign in to continue.</p>
-    <div class="authgate__btn" id="authBtn"></div>
-    <div class="authgate__pending" id="authPending" hidden>
-      <p><b id="authEmail"></b> isn't approved yet.</p>
-      <p class="authgate__sub">Ask an administrator to add your email to the access list, then reload this page.</p>
-      <button class="btn btn--ghost" id="authOther">Use a different account</button>
+    <nav class="primary-nav" aria-label="Primary">
+      <a href="#why">Why it's free</a>
+      <a href="#pathway">The path</a>
+      <a href="#overlay">Already play?</a>
+      <a href="#standard">The Standard</a>
+      <a href="#calendar">Schedule</a>
+      <a href="#sponsors">Sponsors</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+
+    <div class="header-cta">
+      <a class="btn btn--sky" href="#register">Sign up a kid</a>
     </div>
-    <p class="authgate__foot">Access is limited to approved LB Academy staff.</p>
+
+    <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="mobileNav">
+      <span class="nav-toggle__bars" aria-hidden="true"><i></i><i></i><i></i></span>
+      <span class="sr-only">Menu</span>
+    </button>
   </div>
-</div>
 
-<div class="mobile-head">
-  <img src="assets/logos/Eagle Head.png" alt="" />
-  <span class="mtitle">LB Academy</span>
-  <button class="burger" id="burger" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false"><svg class="ic" width="22" height="22"><use href="#ic-menu"/></svg></button>
-</div>
+  <div class="mobile-nav" id="mobileNav" hidden>
+    <a href="#why">Why it's free</a>
+    <a href="#pathway">The path</a>
+    <a href="#overlay">Already play?</a>
+    <a href="#standard">The Standard</a>
+    <a href="#calendar">Schedule</a>
+    <a href="#sponsors">Sponsors</a>
+    <a href="#gear">Gear closet</a>
+    <a href="#faq">FAQ</a>
+    <a class="btn btn--sky btn--block" href="#register">Sign up a kid</a>
+  </div>
+</header>
 
-<div class="app">
-  <!-- SIDEBAR -->
-  <aside class="side" id="sidebar" aria-label="Dashboard sections">
-    <div class="side__brand">
-      <img src="assets/logos/Eagle Head.png" alt="" />
-      <div>
-        <div class="side__title">LB Academy</div>
-        <div class="side__sub">Coach's Dashboard</div>
+<main id="main">
+<span id="top"></span>
+
+<!-- ============ HERO ============ -->
+<section class="hero" aria-labelledby="hero-h">
+  <svg class="hero__pitch" viewBox="0 0 1050 680" preserveAspectRatio="xMidYMid slice" fill="none" stroke="#fff" stroke-width="3" aria-hidden="true">
+    <rect x="24" y="24" width="1002" height="632"/>
+    <line x1="525" y1="24" x2="525" y2="656"/>
+    <circle cx="525" cy="340" r="91.5"/>
+    <circle cx="525" cy="340" r="5" fill="#fff" stroke="none"/>
+    <rect x="24" y="138.4" width="165" height="403.2"/>
+    <rect x="24" y="248.4" width="55" height="183.2"/>
+    <circle cx="134" cy="340" r="5" fill="#fff" stroke="none"/>
+    <path d="M189 266.87 A91.5 91.5 0 0 1 189 413.13"/>
+    <rect x="861" y="138.4" width="165" height="403.2"/>
+    <rect x="971" y="248.4" width="55" height="183.2"/>
+    <circle cx="916" cy="340" r="5" fill="#fff" stroke="none"/>
+    <path d="M861 266.87 A91.5 91.5 0 0 0 861 413.13"/>
+    <path d="M34 24 A10 10 0 0 1 24 34"/>
+    <path d="M1016 24 A10 10 0 0 0 1026 34"/>
+    <path d="M24 646 A10 10 0 0 1 34 656"/>
+    <path d="M1026 646 A10 10 0 0 0 1016 656"/>
+  </svg>
+  <img class="hero__eagle" src="assets/logos/Eagle with Wings-web.png" alt="" width="900" height="900" fetchpriority="high" />
+  <div class="hero__mark" aria-hidden="true"></div>
+
+  <div class="wrap">
+   <div class="hero__inner">
+    <p class="hero__tag"><span class="dot"></span>Liberty-Benton Eagles Soccer</p>
+    <h1 id="hero-h" class="hero__title">
+      <span class="hero__line">Every kid</span>
+      <span class="hero__line hero__line--accent">plays.</span>
+    </h1>
+    <p class="hero__lede">
+      A free, year-round soccer home for every kid in our district —
+      <strong>boys and girls, first touch to varsity.</strong>
+      No tryouts. Nobody turned away.
+    </p>
+    <div class="hero__actions">
+      <a class="btn btn--sky btn--lg" href="#register">Sign up a kid<span class="btn__arrow" aria-hidden="true">→</span></a>
+      <a class="btn btn--ghost btn--lg" href="#sponsors">Back the program</a>
+    </div>
+    <ul class="hero__strip" aria-label="At a glance">
+      <li><b>Free</b><span>every season</span></li>
+      <li><b>K&ndash;8</b><span>boys &amp; girls</span></li>
+      <li><b>Year-round</b><span>never goes dark</span></li>
+      <li><b>Run by Eagles</b><span>varsity &amp; coaches</span></li>
+    </ul>
+   </div>
+  </div>
+</section>
+
+<!-- ============ FIELD PHOTO BAND — real proof ============ -->
+<section class="fieldband" aria-labelledby="fb-h">
+  <picture class="fieldband__pic">
+    <source type="image/webp" srcset="assets/photos/field-day-sm.webp 1000w, assets/photos/field-day.webp 2000w" sizes="100vw" />
+    <img src="assets/photos/field-day.jpg" srcset="assets/photos/field-day-sm.jpg 1000w, assets/photos/field-day.jpg 2000w" sizes="100vw" width="2000" height="749" decoding="async" alt="Kids of many ages in yellow, blue, red and green pinnies spread across the Liberty-Benton grass field at a session, with the district's red barn and tree line behind." />
+  </picture>
+  <div class="fieldband__scrim" aria-hidden="true"></div>
+  <div class="wrap fieldband__inner">
+    <p class="fieldband__place">Liberty-Benton</p>
+    <h2 id="fb-h" class="fieldband__title">This is our district,<br />on the ball.</h2>
+    <p class="fieldband__sub">Real kids, real field — grassroot to varsity, right here at home.</p>
+  </div>
+</section>
+
+<!-- ============ MISSION & VISION ============ -->
+<section class="mission" id="mission" aria-labelledby="mission-h">
+  <div class="wrap">
+    <div class="mission__head">
+      <p class="kicker">Our mission</p>
+      <h2 id="mission-h" class="mission__statement">
+        The LB Soccer Academy exists to give <span class="u-blue">every kid</span> in our district the
+        chance to fall in love with the game, grow real skill, and become future varsity Eagles —
+        <span class="u-blue">free of cost</span>, starting young, and coached by our own community
+        every step of the way.
+      </h2>
+    </div>
+
+    <div class="vision">
+      <p class="vision__eyebrow">Our vision</p>
+      <p class="vision__spell" aria-hidden="true">E&middot;A&middot;G&middot;L&middot;E&middot;S</p>
+      <ol class="vision__list" aria-label="Our vision — EAGLES">
+        <li class="vline">
+          <span class="vline__letter" aria-hidden="true">E</span>
+          <span class="vline__text"><b>Every kid plays</b> — free and welcome, from day one</span>
+        </li>
+        <li class="vline">
+          <span class="vline__letter" aria-hidden="true">A</span>
+          <span class="vline__text"><b>All year round</b> — no gaps, no lost kids</span>
+        </li>
+        <li class="vline">
+          <span class="vline__letter" aria-hidden="true">G</span>
+          <span class="vline__text"><b>Grow them early</b> — keep them forever</span>
+        </li>
+        <li class="vline">
+          <span class="vline__letter" aria-hidden="true">L</span>
+          <span class="vline__text"><b>Love for the game</b> — grows with every touch</span>
+        </li>
+        <li class="vline">
+          <span class="vline__letter" aria-hidden="true">E</span>
+          <span class="vline__text"><b>Endless touches</b> — every kid, a ball, every session</span>
+        </li>
+        <li class="vline">
+          <span class="vline__letter" aria-hidden="true">S</span>
+          <span class="vline__text"><b>Skilled and confident Eagles</b> — built one year at a time</span>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============ THE IDEA — three things ============ -->
+<section class="idea" aria-labelledby="idea-h">
+  <div class="wrap">
+    <div class="idea__head">
+      <h2 id="idea-h" class="section-title">
+        One idea, start to finish:<br />we <span class="u-blue">grow our own.</span>
+      </h2>
+      <p class="section-lede">
+        The kids in our district are our team — today's second-graders are our varsity in
+        ten years. So we get more of them playing soccer, younger and better, and keep
+        every one of them all the way to game night under the lights. The best soccer nations already
+        proved how. We copy it, right here.
+      </p>
+    </div>
+
+    <ol class="triad" aria-label="The three things that matter">
+      <li class="triad__item">
+        <span class="triad__num">01</span>
+        <h3>Start young</h3>
+        <p>The kid who falls for soccer at eight is the varsity starter who never quits at sixteen.</p>
+      </li>
+      <li class="triad__item">
+        <span class="triad__num">02</span>
+        <h3>More touches</h3>
+        <p>Every kid, every session, on a ball. No lines, no laps — the ball is the coach.</p>
+      </li>
+      <li class="triad__item">
+        <span class="triad__num">03</span>
+        <h3>Make it cool</h3>
+        <p>Train Tuesday, stand in the high-five tunnel on game night. Being an Eagle becomes the thing to be.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ WHY FREE ============ -->
+<section class="why" id="why" aria-labelledby="why-h">
+  <div class="wrap why__grid">
+    <div class="why__copy">
+      <h2 id="why-h" class="section-title section-title--light">
+        Seventy percent of kids quit by fourteen.<br />
+        <span class="u-sky">Almost always, it's the cost.</span>
+      </h2>
+      <p>
+        Cleats, club fees, a ball, a ride — pay-to-play quietly prices kids out of the game
+        right around the age they'd become good at it. We can't make elite club cheap, and
+        we don't try. We do something simpler and fully winnable:
+      </p>
+      <p class="why__promise">
+        In our district, getting priced out of club never means getting priced out of soccer.
+        We are the free floor underneath the whole thing.
+      </p>
+      <ul class="why__list">
+        <li><span aria-hidden="true">✓</span> Free to play — nobody turned away, no forms, no shame.</li>
+        <li><span aria-hidden="true">✓</span> A free gear closet so cleats are never the reason.</li>
+        <li><span aria-hidden="true">✓</span> Funded by local sponsors — not by families.</li>
+        <li><span aria-hidden="true">✓</span> Run by our varsity players and trained coaches.</li>
+      </ul>
+    </div>
+    <aside class="why__stats" aria-label="By the numbers">
+      <div class="stat">
+        <span class="stat__num" data-count="70" data-suffix="%">70%</span>
+        <span class="stat__label">of kids nationally quit soccer by age 14 — mostly over cost</span>
+      </div>
+      <div class="stat">
+        <span class="stat__num" data-count="0" data-prefix="$">$0</span>
+        <span class="stat__label">to play the year-round program. Ever. For any kid in the district.</span>
+      </div>
+      <div class="stat">
+        <span class="stat__num">K&ndash;8</span>
+        <span class="stat__label">every grade, boys and girls — one system, one standard</span>
+      </div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ THE PATHWAY ============ -->
+<section class="pathway" id="pathway" aria-labelledby="path-h">
+  <div class="wrap">
+    <div class="pathway__head">
+      <h2 id="path-h" class="section-title">One ladder. <span class="u-blue">Neighborhood to varsity.</span></h2>
+      <p class="section-lede">
+        A kid never leaves the program as they grow — they climb it. Same words, same game,
+        same Eagles, from their first touch in kindergarten to their last home game as a senior.
+        That continuity is the whole point.
+      </p>
+    </div>
+
+    <ol class="ladder" aria-label="The player pathway">
+      <li class="rung" data-tier="grassroot">
+        <div class="rung__marker"><span class="rung__grades">K&ndash;2</span></div>
+        <div class="rung__body">
+          <h3 class="rung__name">Grassroot Eagles</h3>
+          <p class="rung__tag">They leave loving it.</p>
+          <p class="rung__desc">45 minutes of pure play. Coordination, ball love, and goals — fun <em>is</em> the curriculum. Coached by varsity players the little ones look up to.</p>
+        </div>
+        <span class="rung__meta">45 min · weekly</span>
+      </li>
+      <li class="rung" data-tier="academy">
+        <div class="rung__marker"><span class="rung__grades">3&ndash;5</span></div>
+        <div class="rung__body">
+          <h3 class="rung__name">Eagles Academy</h3>
+          <p class="rung__tag">Where players are made.</p>
+          <p class="rung__desc">The skill-building engine: dribbling, passing, 1v1, small-sided games — thousands of touches on a real 8-week curriculum that deepens every season.</p>
+        </div>
+        <span class="rung__meta">60 min · weekly</span>
+      </li>
+      <li class="rung" data-tier="nextxi">
+        <div class="rung__marker"><span class="rung__grades">6&ndash;8</span></div>
+        <div class="rung__body">
+          <h3 class="rung__name">Next XI Eagles</h3>
+          <p class="rung__tag">Training like varsity.</p>
+          <p class="rung__desc">Our actual system — shape, patterns, set pieces, our vocabulary. By freshman year, walking into varsity feels like coming home, not starting over.</p>
+        </div>
+        <span class="rung__meta">75 min · 1&ndash;2×/wk</span>
+      </li>
+      <li class="rung rung--summit" data-tier="varsity">
+        <div class="rung__marker"><span class="rung__grades">9&ndash;12</span></div>
+        <div class="rung__body">
+          <h3 class="rung__name">Varsity Eagles</h3>
+          <p class="rung__tag">Home.</p>
+          <p class="rung__desc">Game nights under the lights, a packed house, and a roster stocked with kids who've been Eagles since they were eight — playing a system they've known for a decade.</p>
+        </div>
+        <span class="rung__meta">The dream</span>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============ THE OVERLAY — additive to rec & travel ============ -->
+<section class="overlay" id="overlay" aria-labelledby="ov-h">
+  <div class="wrap">
+    <div class="overlay__head">
+      <h2 id="ov-h" class="section-title">You don't have to choose.<br /><span class="u-blue">Keep your team — we're the part in between.</span></h2>
+      <p class="section-lede">
+        The Academy isn't another team to join. It's free development layered on top of whatever
+        your kid already plays. Rec and travel stay their home for games — we're where Eagles coaches
+        add the things a game schedule never has time for, and we work in the gaps, never against them.
+      </p>
+    </div>
+
+    <div class="overlay__equation">
+      <div class="keepadd keepadd--keep">
+        <span class="keepadd__label">What your kid keeps</span>
+        <ul class="keepadd__list">
+          <li>Their rec league</li>
+          <li>Their travel club</li>
+          <li>Other sports &amp; their weekends</li>
+        </ul>
+        <p class="keepadd__foot">Their home for games and competition — unchanged.</p>
+      </div>
+
+      <div class="overlay__plus" aria-hidden="true">+</div>
+
+      <div class="keepadd keepadd--add">
+        <span class="keepadd__label">What the Academy adds</span>
+        <ul class="keepadd__list">
+          <li>Real technique &amp; ball mastery</li>
+          <li>Creative small-sided play</li>
+          <li>The Eagles system &amp; words, learned early</li>
+        </ul>
+        <p class="keepadd__foot">The development a game schedule never has time for.</p>
       </div>
     </div>
-    <nav class="side__nav" aria-label="Primary">
-      <button class="side__link" data-view="overview" aria-current="true"><svg class="ic"><use href="#ic-overview"/></svg>Overview</button>
-      <button class="side__link" data-view="athletes"><svg class="ic"><use href="#ic-athletes"/></svg>Athletes<span class="badge" id="navRisk" hidden>0</span></button>
-      <button class="side__link" data-view="schedule"><svg class="ic"><use href="#ic-cal"/></svg>Schedule</button>
-      <button class="side__link" data-view="attendance"><svg class="ic"><use href="#ic-attend"/></svg>Attendance</button>
-      <button class="side__link" data-view="plan"><svg class="ic"><use href="#ic-plan"/></svg>The Plan</button>
-      <button class="side__link" data-view="finances"><svg class="ic"><use href="#ic-money"/></svg>Finances</button>
-    </nav>
-    <div class="side__foot">
-      <div class="side__filter">
-        <label id="progLabel">Program</label>
-        <div class="seg" role="group" aria-labelledby="progLabel" id="progSeg">
-          <button data-prog="all" aria-pressed="true">All</button>
-          <button data-prog="Boys" aria-pressed="false">Boys</button>
-          <button data-prog="Girls" aria-pressed="false">Girls</button>
+
+    <div class="overlay__fit">
+      <h3 class="overlay__fit-title">How it fits your week</h3>
+      <ul class="fitgrid">
+        <li class="fit"><span class="fit__k">Off-season first</span><p>We run heaviest in winter, over breaks, and in the mid-summer lull — right when rec and travel go quiet.</p></li>
+        <li class="fit"><span class="fit__k">Off-nights &amp; weekend mornings</span><p>We live in the slots the leagues don't use, so we never fight for the same spot on your calendar.</p></li>
+        <li class="fit"><span class="fit__k">Right where kids already are</span><p>After-school clinics and quick skills sessions at school — little to no extra driving added to your week.</p></li>
+        <li class="fit"><span class="fit__k">Drop-in, not lock-in</span><p>Come to the sessions that fit. No season-long commitment, no roster to be cut from.</p></li>
+      </ul>
+    </div>
+
+    <p class="overlay__flow">
+      Play rec or travel for the games <span aria-hidden="true">&rarr;</span> come to us for touches in the gaps
+      <span aria-hidden="true">&rarr;</span> get on the field on Eagle game nights. <b>Always in the pipeline, never forced to pick.</b>
+    </p>
+  </div>
+</section>
+
+<!-- ============ THE STANDARD ============ -->
+<section class="standard" id="standard" aria-labelledby="std-h">
+  <div class="wrap">
+    <div class="standard__head">
+      <h2 id="std-h" class="section-title">The Standard every coach carries.</h2>
+      <p class="section-lede">
+        Five non-negotiables, posted where every coach can see them — the same at every age,
+        from a kindergartner's first Saturday to a Next XI session. It's why the sessions work.
+      </p>
+    </div>
+    <ul class="standard__grid">
+      <li class="std">
+        <span class="std__key">Touches</span>
+        <p>Max touches, always. No lines, no laps, no long lectures. If a kid is standing still, the drill is wrong.</p>
+      </li>
+      <li class="std">
+        <span class="std__key">Brave</span>
+        <p>Praise the brave, not just the skilled. We reward the kid who tries the move and loses it — we build players who want the ball.</p>
+      </li>
+      <li class="std">
+        <span class="std__key">Play</span>
+        <p>Every session ends with a game. Games are why kids come back. We always finish playing.</p>
+      </li>
+      <li class="std">
+        <span class="std__key">Youngest</span>
+        <p>Our best, most energetic coaches go with our youngest kids. That's where love of the game is built.</p>
+      </li>
+      <li class="std">
+        <span class="std__key">System</span>
+        <p>One vocabulary at every age, so an eight-year-old and a varsity starter speak the same soccer.</p>
+      </li>
+      <li class="std std--names">
+        <p>And above all — <strong>every kid known by name.</strong> Being known is the number-one reason a kid comes back.</p>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ CALENDAR ============ -->
+<section class="calendar" id="calendar" aria-labelledby="cal-h">
+  <div class="wrap">
+    <div class="calendar__head">
+      <h2 id="cal-h" class="section-title">Never miss a <span class="u-blue">session.</span></h2>
+      <p class="section-lede">Add the schedule to your phone once. Every training and playing session — plus any change — shows up automatically, no group texts to dig through.</p>
+    </div>
+
+    <div class="calendar__cta">
+      <a class="btn btn--sky btn--lg" id="calGoogle" href="#" target="_blank" rel="noopener">Add to calendar</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ALERTS ============ -->
+<section class="alerts" id="alerts" aria-labelledby="al-h">
+  <div class="wrap alerts__box">
+    <div class="alerts__copy">
+      <p class="kicker kicker--sky">Text &amp; email alerts</p>
+      <h2 id="al-h" class="section-title section-title--light">Storm rolls in? You'll know first.</h2>
+      <p class="section-lede section-lede--light">We send session reminders and urgent weather/cancellation alerts through <strong>Remind</strong> — they reach your phone, text, and email. Sign a kid up and you'll be prompted to turn them on in one tap. Want alerts too — a <strong>grandparent, carpool driver, or helper</strong>? Join here.</p>
+    </div>
+    <aside class="alerts__cta">
+      <a class="btn btn--sky btn--lg btn--block" id="remindJoin" href="#" target="_blank" rel="noopener">Add a number for alerts</a>
+      <p class="alerts__code" id="remindCode" hidden>Or text <b></b> to <b>81010</b></p>
+      <p class="alerts__fine">Free. Message rates may apply. Reply STOP anytime.</p>
+    </aside>
+  </div>
+</section>
+
+<!-- ============ SPONSORS ============ -->
+<section class="sponsors" id="sponsors" aria-labelledby="spon-h">
+  <div class="wrap">
+    <div class="sponsors__head">
+      <p class="kicker kicker--sky">Keep every kid in town playing</p>
+      <h2 id="spon-h" class="section-title section-title--light">Local businesses make it free.</h2>
+      <p class="section-lede section-lede--light">
+        The program is volunteer-run, so effectively <strong>100% of every dollar reaches the kids</strong> —
+        gear, field costs, and keeping the whole year free for every family. Your name goes in front of
+        the whole town at every packed home game, and it's tax-deductible.
+      </p>
+    </div>
+
+    <div class="sponsor-support">
+      <div class="sponsor-support__ways">
+        <h3 class="sponsor-support__h">What your support does</h3>
+        <ul class="sponsor-support__list">
+          <li>Puts cleats, shin guards, and a ball on a kid who has none</li>
+          <li>Stocks the free gear closet for a whole season</li>
+          <li>Covers field time, equipment, and game-night costs</li>
+          <li>Keeps whole groups of kids playing, all year long</li>
+          <li><b>Funds scholarships for individual players</b> — high-level development for a specific kid, whatever their family can afford</li>
+        </ul>
+        <p class="sponsor-support__scholar">The program is free for every kid — and your sponsorship goes further. It becomes direct <strong>financial support and scholarships</strong> that put <strong>high-level development within reach for specific players</strong>: the extra coaching, training, and opportunities that turn a driven kid into a varsity difference-maker, no matter what their family can afford.</p>
+      </div>
+      <aside class="sponsor-support__cta">
+        <p class="sponsor-support__lead">Give whatever works for your business — there's no set amount, and every dollar goes straight to the kids.</p>
+        <p class="sponsor-support__inkind">Prefer to give <b>in-kind</b>? Cleats, equipment, printing, and water all help too.</p>
+        <a class="btn btn--sky btn--lg btn--block" href="#register">Become a sponsor</a>
+        <p class="sponsor-support__contact">or email <a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=athomas@Liberty-Benton.org&amp;su=LB%20Soccer%20Academy%20sponsorship" target="_blank" rel="noopener" class="link-sky">athomas@Liberty-Benton.org</a></p>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ============ GEAR CLOSET ============ -->
+<section class="gear" id="gear" aria-labelledby="gear-h">
+  <div class="wrap gear__inner">
+    <div class="gear__copy">
+      <h2 id="gear-h" class="section-title">No kid sits out over cleats.</h2>
+      <p>
+        The gear closet is a simple promise: a bin of cleats, shin guards, socks, and balls that
+        any kid can take — <strong>need some? take some.</strong> No forms, no questions, no shame.
+        It travels to every clinic and session, so a kid who owns nothing still plays that day.
+      </p>
+    </div>
+    <div class="gear__actions">
+      <a class="btn btn--blue btn--lg" href="#register">Grab gear for your kid</a>
+      <a class="btn btn--outline btn--lg" href="#register">Donate outgrown gear</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="faq" id="faq" aria-labelledby="faq-h">
+  <div class="wrap faq__grid">
+    <div class="faq__head">
+      <h2 id="faq-h" class="section-title">Questions,<br />answered.</h2>
+      <p class="section-lede">The things families ask most. Still wondering something? <a href="#register" class="link-blue">Just ask us.</a></p>
+    </div>
+    <div class="faq__list">
+      <details class="qa" open>
+        <summary><span>How much does it cost?</span><span class="qa__icon" aria-hidden="true"></span></summary>
+        <div class="qa__body"><p>It's free — the year-round program costs families nothing to play, ever. No child is turned away for cost, and if gear is the barrier, our gear closet covers cleats, shin guards, and balls, no questions asked.</p></div>
+      </details>
+      <details class="qa">
+        <summary><span>What ages and grades can play?</span><span class="qa__icon" aria-hidden="true"></span></summary>
+        <div class="qa__body"><p>Kindergarten through 8th grade, boys and girls, in three age tiers — Grassroot Eagles (K&ndash;2), Eagles Academy (3&ndash;5), and Next XI Eagles (6&ndash;8) — so a child can grow through the whole pathway.</p></div>
+      </details>
+      <details class="qa">
+        <summary><span>My child has never played before. Is that okay?</span><span class="qa__icon" aria-hidden="true"></span></summary>
+        <div class="qa__body"><p>Absolutely — that's exactly who we're built for. Every tier meets kids where they are, starting with the basics in a fun, low-pressure setting. No experience needed, ever.</p></div>
+      </details>
+      <details class="qa">
+        <summary><span>What if we can't afford cleats or a ball?</span><span class="qa__icon" aria-hidden="true"></span></summary>
+        <div class="qa__body"><p>No child is turned away for gear. Our gear closet — stocked by community donations — provides cleats, shin guards, and balls free of charge. Just ask an organizer. It's confidential and judgment-free.</p></div>
+      </details>
+      <details class="qa">
+        <summary><span>Is it for boys or girls?</span><span class="qa__icon" aria-hidden="true"></span></summary>
+        <div class="qa__body"><p>Both — equally. It's one program and one standard for the boys and girls sides alike. Kids are grouped by age, not gender, and everything we run serves both.</p></div>
+      </details>
+      <details class="qa">
+        <summary><span>Will this conflict with rec league or other sports?</span><span class="qa__icon" aria-hidden="true"></span></summary>
+        <div class="qa__body"><p>No — the Academy is built to be <strong>in addition, never instead</strong>. We run in the gaps (off-nights, weekend mornings, and the off-season) and coordinate the calendar so kids can play multiple sports without burning out or being forced to choose. Many kids do both.</p></div>
+      </details>
+      <details class="qa">
+        <summary><span>We already play travel or club. Is this instead of that?</span><span class="qa__icon" aria-hidden="true"></span></summary>
+        <div class="qa__body"><p>Not at all — keep your club for games and competition. The Academy layers free technique work and the Eagles system on top, in the slots your league doesn't use, so your kid keeps developing without ever having to pick one over the other.</p></div>
+      </details>
+      <details class="qa">
+        <summary><span>How do I sign my child up?</span><span class="qa__icon" aria-hidden="true"></span></summary>
+        <div class="qa__body"><p>Fill out the quick form below and we'll place your child in the right tier for their age and experience, and send you the schedule for their group. That's it.</p></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============ REGISTER / CTA ============ -->
+<section class="register" id="register" aria-labelledby="reg-h">
+  <div class="wrap register__grid">
+    <div class="register__pitch">
+      <h2 id="reg-h" class="section-title section-title--light">Get your kid on a ball.</h2>
+      <p class="register__lede">
+        One short form. We'll follow up with the tier, schedule, and field for your child's group —
+        and answer anything you're wondering. Free to play, nobody turned away.
+      </p>
+      <ul class="register__reassure">
+        <li>Takes about a minute</li>
+        <li>No payment, no commitment to sign up</li>
+        <li>Session reminders &amp; urgent alerts by text and email</li>
+        <li>Gear help available if you need it</li>
+      </ul>
+      <p class="register__sponsor">
+        Here as a <strong>business</strong>? We'd love your help keeping kids playing.
+        Pick “Sponsor / partner” below, or email
+        <a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=athomas@Liberty-Benton.org&amp;su=LB%20Soccer%20Academy%20sponsorship" target="_blank" rel="noopener" class="link-sky">athomas@Liberty-Benton.org</a>.
+      </p>
+    </div>
+
+    <form class="reg-form" id="regForm" novalidate>
+      <div class="reg-form__row">
+        <div class="field">
+          <label for="parentName">Your name <span class="req" aria-hidden="true">*</span></label>
+          <input id="parentName" name="parentName" type="text" autocomplete="name" required />
+        </div>
+        <div class="field">
+          <label for="email">Email <span class="req" aria-hidden="true">*</span></label>
+          <input id="email" name="email" type="email" inputmode="email" autocomplete="email" required />
         </div>
       </div>
-      <a class="side__ext" href="public/index.html" target="_blank" rel="noopener">View the public site<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></a>
-      <div class="side__auth" id="authFoot" hidden></div>
-      <p class="side__note" id="dataNote"></p>
-    </div>
-  </aside>
 
-  <!-- MAIN -->
-  <div class="main">
-    <div class="topbar">
-      <div class="topbar__titles">
-        <h1 id="viewTitle">Overview</h1>
-        <p id="viewSub">The whole pipeline at a glance.</p>
+      <div class="field">
+        <label for="phone">Mobile phone <span class="req" aria-hidden="true">*</span></label>
+        <input id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" required />
+        <p class="field__hint">This is how you'll get urgent weather and cancellation alerts — no app to download.</p>
       </div>
-      <div class="topbar__actions" id="topActions"></div>
+
+      <p class="reg-form__consent">
+        <strong>Signing up turns on alerts.</strong> You'll get session reminders and urgent
+        weather/cancellation notices — one tap after you sign up turns them on for your
+        <strong>phone, text, and email</strong>. Message rates may apply; reply STOP anytime.
+      </p>
+
+      <div class="reg-form__row">
+        <div class="field">
+          <label for="childName">Child's full name <span class="req" aria-hidden="true">*</span></label>
+          <input id="childName" name="childName" type="text" autocomplete="name" required />
+        </div>
+        <div class="field field--narrow">
+          <label for="gradClass">Graduation class <span class="req" aria-hidden="true">*</span></label>
+          <select id="gradClass" name="gradClass" required>
+            <option value="" selected disabled>Select…</option>
+            <option>Class of 2040 (Pre-K)</option>
+            <option>Class of 2039 (Kindergarten)</option>
+            <option>Class of 2038 (1st grade)</option>
+            <option>Class of 2037 (2nd grade)</option>
+            <option>Class of 2036 (3rd grade)</option>
+            <option>Class of 2035 (4th grade)</option>
+            <option>Class of 2034 (5th grade)</option>
+            <option>Class of 2033 (6th grade)</option>
+            <option>Class of 2032 (7th grade)</option>
+            <option>Class of 2031 (8th grade)</option>
+            <option>Class of 2030 (9th grade)</option>
+            <option>Class of 2029 (10th grade)</option>
+            <option>Class of 2028 (11th grade)</option>
+            <option>Class of 2027 (12th grade)</option>
+          </select>
+          <p class="field__hint">The year your child graduates high school — grade this fall in parentheses.</p>
+        </div>
+      </div>
+
+      <fieldset class="field field--choice">
+        <legend>Which program? <span class="req" aria-hidden="true">*</span></legend>
+        <div class="choice-row">
+          <label class="choice"><input type="radio" name="program" value="Boys" required /><span>Boys</span></label>
+          <label class="choice"><input type="radio" name="program" value="Girls" /><span>Girls</span></label>
+          <label class="choice"><input type="radio" name="program" value="Sponsor / partner" /><span>Sponsor / partner</span></label>
+        </div>
+      </fieldset>
+
+      <div class="field">
+        <label for="sports">Other sports &amp; activities <span class="field__opt">(optional)</span></label>
+        <input id="sports" name="sports" type="text" autocomplete="off" placeholder="Basketball, travel soccer, band…" />
+        <p class="field__hint">So we can plan sessions around your kid's schedule — we run in the gaps, never instead of another team.</p>
+      </div>
+
+      <div class="field">
+        <label for="note">Anything we should know? <span class="field__opt">(optional)</span></label>
+        <textarea id="note" name="note" rows="3" placeholder="First time playing, need gear help, sibling signing up too…"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn--sky btn--lg btn--block" id="regSubmit">Sign up — it's free</button>
+      <p class="reg-form__status" id="regStatus" role="status" aria-live="polite"></p>
+
+      <div class="reg-form__alertstep" id="regJoin" hidden>
+        <p class="reg-form__alertstep-h">✅ You're signed up! <strong>One tap to turn on alerts</strong> — reminders and urgent weather/cancellation notices on your phone.</p>
+        <a class="btn btn--blue btn--lg btn--block" id="regJoinBtn" href="#" target="_blank" rel="noopener">Turn on phone alerts</a>
+      </div>
+      <p class="reg-form__fineprint">By signing up you're just saying hello — we'll reach out with details, no payment needed.</p>
+      <p class="reg-form__legal">Soccer involves inherent risks, including injury; The LB Soccer Academy, Liberty-Benton Local Schools, and its coaches, volunteers, and staff are not liable for injury or loss during participation. Players may be photographed or recorded, and those images may be used in Academy and school materials, including social media. Questions? Email <a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=athomas@Liberty-Benton.org&amp;su=LB%20Soccer%20Academy%20%E2%80%94%20question" target="_blank" rel="noopener" class="link-blue">athomas@Liberty-Benton.org</a>.</p>
+    </form>
+  </div>
+</section>
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="site-footer">
+  <div class="wrap footer__inner">
+    <div class="footer__brand">
+      <img src="assets/logos/Lockup - Vertical - White.png" alt="Liberty-Benton Eagles" width="150" height="150" loading="lazy" />
+      <p class="footer__tagline">The LB Soccer Academy<br /><span>Grow our own.</span></p>
     </div>
-
-    <section class="view is-active" id="view-overview" tabindex="-1" aria-labelledby="viewTitle"></section>
-    <section class="view" id="view-athletes" tabindex="-1"></section>
-    <section class="view" id="view-schedule" tabindex="-1"></section>
-    <section class="view" id="view-attendance" tabindex="-1"></section>
-    <section class="view" id="view-plan" tabindex="-1"></section>
-    <section class="view" id="view-finances" tabindex="-1"></section>
+    <nav class="footer__nav" aria-label="Footer">
+      <div>
+        <h3>Families</h3>
+        <a href="#why">Why it's free</a>
+        <a href="#pathway">The pathway</a>
+        <a href="#register">Sign up</a>
+      </div>
+      <div>
+        <h3>Community</h3>
+        <a href="#sponsors">Become a sponsor</a>
+        <a href="#gear">Gear closet</a>
+        <a href="#standard">Our Standard</a>
+        <a href="#faq">FAQ</a>
+      </div>
+      <div>
+        <h3>Reach us</h3>
+        <a href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=athomas@Liberty-Benton.org&amp;su=LB%20Soccer%20Academy" target="_blank" rel="noopener">athomas@Liberty-Benton.org</a>
+        <p class="footer__place">Liberty-Benton Local Schools<br />Findlay, Ohio</p>
+      </div>
+    </nav>
   </div>
-</div>
-
-<!-- DRAWER + SCRIM -->
-<div class="scrim" id="scrim"></div>
-<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" hidden>
-  <div class="drawer__head">
-    <h2 id="drawerTitle">Add athlete</h2>
-    <button class="drawer__close" id="drawerClose" aria-label="Close"><svg class="ic" width="18" height="18"><use href="#ic-x"/></svg></button>
+  <div class="wrap footer__base">
+    <p class="footer__go">Go Eagles.</p>
+    <p class="footer__legal">© <span id="year">2026</span> Liberty-Benton Eagles Soccer · Free youth program · Nobody turned away.</p>
   </div>
-  <div class="drawer__body" id="drawerBody"></div>
-</aside>
+</footer>
 
-<div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-<script src="src/data.js"></script>
-<script src="src/app.js"></script>
+<script src="app.js"></script>
 </body>
 </html>

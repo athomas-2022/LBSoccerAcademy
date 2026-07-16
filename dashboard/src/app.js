@@ -339,7 +339,7 @@
   }
   function firstRunEmpty() {
     return '<div class="empty">' +
-      '<img src="assets/logos/Eagle Head.png" alt="" />' +
+      '<img src="../assets/logos/Eagle Head.png" alt="" />' +
       '<h3>Let’s build the map.</h3>' +
       '<p>Every athletic kid in the district matters — today’s second-grader is tomorrow’s varsity. Start by adding the kids you know, or load a sample roster to see how it works.</p>' +
       '<div class="empty__actions">' +
@@ -364,7 +364,7 @@
   function renderAthletes() {
     var host = $("#view-athletes");
     if (!state.athletes.length) {
-      host.innerHTML = '<div class="empty"><img src="assets/logos/Eagle Head.png" alt="" />' +
+      host.innerHTML = '<div class="empty"><img src="../assets/logos/Eagle Head.png" alt="" />' +
         '<h3>No athletes yet.</h3><p>Map every athletic kid K–8 — including the fast basketball kid who’s never touched a soccer ball. A future center back or keeper.</p>' +
         '<div class="empty__actions"><button class="btn btn--primary" data-action="add-athlete"><svg class="ic"><use href="#ic-plus"/></svg>Add an athlete</button>' +
         '<button class="btn btn--ghost" data-action="load-sample">Load sample roster</button></div></div>';
@@ -463,7 +463,7 @@
       ? '<p class="sched-note">Every event is added to your shared Google Calendar — families who tapped “Add to calendar” see it, and any change, automatically.</p>'
       : '<p class="sched-note sched-note--off">Events save and sync across your devices. To also push them to a calendar families can subscribe to, connect a shared Google Calendar (see setup).</p>';
     if (!state.events.length) {
-      host.innerHTML = calNote + '<div class="empty"><img src="assets/logos/Eagle Head.png" alt="" />' +
+      host.innerHTML = calNote + '<div class="empty"><img src="../assets/logos/Eagle Head.png" alt="" />' +
         '<h3>No events yet.</h3><p>Add your first session — practices, game nights, Youth Nights. You’ll take attendance against these.</p>' +
         '<div class="empty__actions"><button class="btn btn--primary" data-action="add-event"><svg class="ic"><use href="#ic-plus"/></svg>Add an event</button></div></div>';
       return;
@@ -607,14 +607,14 @@
   function renderAttendance() {
     var host = $("#view-attendance");
     if (!state.athletes.length) {
-      host.innerHTML = '<div class="empty"><img src="assets/logos/Eagle Head.png" alt="" />' +
+      host.innerHTML = '<div class="empty"><img src="../assets/logos/Eagle Head.png" alt="" />' +
         '<h3>No roster yet.</h3><p>Add athletes or sync sign-ups first, then tap kids in here each session.</p>' +
         '<div class="empty__actions"><button class="btn btn--primary" data-action="add-athlete"><svg class="ic"><use href="#ic-plus"/></svg>Add an athlete</button>' +
         '<button class="btn btn--ghost" data-action="load-sample">Load sample roster</button></div></div>';
       return;
     }
     if (!state.events.length) {
-      host.innerHTML = '<div class="empty"><img src="assets/logos/Eagle Head.png" alt="" />' +
+      host.innerHTML = '<div class="empty"><img src="../assets/logos/Eagle Head.png" alt="" />' +
         '<h3>No sessions to take.</h3><p>Add an event on the <b>Schedule</b> first — practices, game nights — then tap kids in against it here.</p>' +
         '<div class="empty__actions"><button class="btn btn--primary" data-action="add-event"><svg class="ic"><use href="#ic-plus"/></svg>Add an event</button></div></div>';
       return;
