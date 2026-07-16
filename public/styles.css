@@ -200,6 +200,10 @@ p{text-wrap:pretty}
 @media (max-width:820px){
   .hero__eagle{width:min(86vw,460px);top:auto;bottom:-2.5rem;right:-3.5rem;transform:none;opacity:.24}
 }
+@media (min-width:821px){
+  /* fill one full desktop screen (accounts for the overlaid 74px header) */
+  .hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+}
 .hero__tag{display:inline-flex;align-items:center;gap:.55rem;font-weight:700;letter-spacing:.02em;
   font-size:var(--step--1);text-transform:uppercase;color:oklch(0.92 .03 255);
   background:oklch(1 0 0 / .08);border:1px solid oklch(1 0 0 / .16);padding:.45rem .9rem;border-radius:var(--r-pill)}
