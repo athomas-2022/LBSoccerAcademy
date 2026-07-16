@@ -30,6 +30,14 @@ var CONFIG = {
   PROGRAM_NAME: "LB Soccer Academy",
   REPLY_TO:     "athomas@Liberty-Benton.org", // families reply here
 
+  // --- Shared Google Calendar: events added in the dashboard are created here ---
+  // Make a Google Calendar (calendar.google.com ▸ + ▸ Create new calendar),
+  // set it "Make available to public", then Settings ▸ Integrate calendar ▸
+  // copy the "Calendar ID" (looks like ...@group.calendar.google.com) here.
+  // Paste the SAME id into public/app.js GOOGLE_CALENDAR_ID and src/app.js
+  // CALENDAR_ID. Leave "" to skip calendar creation (events still save & sync).
+  CALENDAR_ID: "c_a280d4cafbf4f9838c8141178df7d56c29221939f94bf2b1810d6c5426f8490c@group.calendar.google.com",
+
   // --- Remind auto-invite: every signup's welcome email invites them to join ---
   // Your class code (no @) and join link. Leave REMIND_CODE blank to skip.
   REMIND_CODE:     "6ee4bkk",
@@ -46,9 +54,12 @@ var CONFIG = {
 var SHEET_SIGNUPS = "Signups";
 var SHEET_SEND    = "Send a message";
 var SHEET_ATT     = "Attendance";
+var SHEET_EVENTS  = "Events";
 var HEADERS = ["When", "Child", "Graduation class", "Program",
                "Parent", "Email", "Mobile", "Alerts", "Note", "Other sports"];
-var ATT_HEADERS = ["Date", "Child", "Grad year", "Program", "Updated"];
+var ATT_HEADERS = ["Date", "Event", "EventId", "Child", "Grad year", "Program", "Updated"];
+var EVENT_HEADERS = ["Id", "Title", "Date", "Start", "End", "Location",
+                     "Program", "Tier", "Note", "CalendarEventId", "Updated", "Deleted"];
 
 // ================================================================
 //  1) INTAKE — website form  ->  this spreadsheet (automatic)
@@ -56,7 +67,9 @@ var ATT_HEADERS = ["Date", "Child", "Grad year", "Program", "Updated"];
 function doPost(e) {
   try {
     var d = JSON.parse(e.postData.contents);
-    if (d.type === "attendance") return saveAttendance_(d);   // dashboard attendance sync
+    if (d.type === "attendance")    return saveAttendance_(d);  // dashboard attendance sync
+    if (d.type === "event")         return saveEvent_(d);       // dashboard event upsert + calendar
+    if (d.type === "event-delete")  return deleteEvent_(d);     // dashboard event delete
     var sh = sheetOf_(SHEET_SIGNUPS);
     sh.appendRow([
       new Date(), d.childName || "", d.gradClass || "", d.program || "",
@@ -71,18 +84,110 @@ function doPost(e) {
   }
 }
 
-// Save one session's attendance: overwrite the rows for that date.
+// Save one session's attendance: overwrite the rows for that event (or date).
+// Columns: Date, Event, EventId, Child, Grad year, Program, Updated
 function saveAttendance_(d) {
   var sh = sheetOf_(SHEET_ATT);
   if (sh.getLastRow() === 0) sh.appendRow(ATT_HEADERS);
+  var eventId = String(d.eventId || "");
   var date = String(d.date || "");
   var vals = sh.getDataRange().getValues();
-  for (var r = vals.length - 1; r >= 1; r--) { if (String(vals[r][0]) === date) sh.deleteRow(r + 1); }
+  for (var r = vals.length - 1; r >= 1; r--) {
+    var match = eventId ? (String(vals[r][2]) === eventId)
+                        : (String(vals[r][2]) === "" && String(vals[r][0]) === date);
+    if (match) sh.deleteRow(r + 1);
+  }
   var updated = d.updated || new Date().toISOString();
   (d.present || []).forEach(function (p) {
-    sh.appendRow([date, p.name || "", p.gradYear || "", p.program || "", updated]);
+    sh.appendRow([date, d.event || "", eventId, p.name || "", p.gradYear || "", p.program || "", updated]);
   });
   return json_({ ok: true, saved: (d.present || []).length });
+}
+
+// ================================================================
+//  EVENTS — dashboard schedule  ->  this spreadsheet + Google Calendar
+// ================================================================
+// Create or update one event row (keyed by Id) and mirror it onto the shared
+// Google Calendar so families who subscribed see it automatically.
+function saveEvent_(d) {
+  var sh = sheetOf_(SHEET_EVENTS);
+  if (sh.getLastRow() === 0) sh.appendRow(EVENT_HEADERS);
+  var id = String(d.id || "");
+  if (!id) return json_({ ok: false, error: "missing id" });
+  var vals = sh.getDataRange().getValues();
+  var rowIdx = -1;
+  for (var r = 1; r < vals.length; r++) { if (String(vals[r][0]) === id) { rowIdx = r; break; } }
+  var existingCalId = rowIdx > -1 ? String(vals[rowIdx][9] || "") : "";
+  var calId = syncCalendar_(d, existingCalId);
+  var row = [id, d.title || "", String(d.date || ""), String(d.start || ""), String(d.end || ""),
+    d.location || "", d.program || "All", d.tier || "", d.note || "", calId,
+    d.updated || new Date().toISOString(), ""];
+  if (rowIdx > -1) sh.getRange(rowIdx + 1, 1, 1, row.length).setValues([row]);
+  else sh.appendRow(row);
+  return json_({ ok: true, calId: calId });
+}
+
+// Delete an event: remove its row, its calendar entry, and its attendance rows.
+function deleteEvent_(d) {
+  var id = String(d.id || "");
+  if (!id) return json_({ ok: false, error: "missing id" });
+  var sh = sheetOf_(SHEET_EVENTS);
+  var vals = sh.getDataRange().getValues();
+  for (var r = vals.length - 1; r >= 1; r--) {
+    if (String(vals[r][0]) === id) { removeCalendar_(String(vals[r][9] || "")); sh.deleteRow(r + 1); }
+  }
+  var at = sheetOf_(SHEET_ATT);
+  var av = at.getDataRange().getValues();
+  for (var a = av.length - 1; a >= 1; a--) { if (String(av[a][2]) === id) at.deleteRow(a + 1); }
+  return json_({ ok: true });
+}
+
+// ---- Google Calendar helpers ----
+function calendar_() {
+  if (!CONFIG.CALENDAR_ID) return null;
+  try { return CalendarApp.getCalendarById(CONFIG.CALENDAR_ID); } catch (e) { return null; }
+}
+function pad2_(t) { var p = String(t).split(":"); return ("0" + (p[0] || "0")).slice(-2) + ":" + ("0" + (p[1] || "0")).slice(-2); }
+function eventTimes_(d) {
+  var date = String(d.date || ""); if (!date) return null;
+  if (d.start) {
+    var s = new Date(date + "T" + pad2_(d.start) + ":00");
+    var e = d.end ? new Date(date + "T" + pad2_(d.end) + ":00") : new Date(s.getTime() + 3600000);
+    if (e <= s) e = new Date(s.getTime() + 3600000);
+    return { start: s, end: e, allDay: false };
+  }
+  return { start: new Date(date + "T00:00:00"), allDay: true };
+}
+function eventTitle_(d) { return (d.title || "Session") + (d.program && d.program !== "All" ? " (" + d.program + ")" : ""); }
+function eventDesc_(d) {
+  var parts = [];
+  if (d.tier) parts.push(d.tier);
+  if (d.note) parts.push(d.note);
+  parts.push(CONFIG.PROGRAM_NAME);
+  return parts.join("\n");
+}
+function syncCalendar_(d, existingCalId) {
+  var cal = calendar_(); if (!cal) return existingCalId || "";
+  var t = eventTimes_(d); if (!t) return existingCalId || "";
+  var title = eventTitle_(d);
+  try {
+    var ev = existingCalId ? cal.getEventById(existingCalId) : null;
+    if (ev) {
+      ev.setTitle(title);
+      if (t.allDay) ev.setAllDayDate(t.start); else ev.setTime(t.start, t.end);
+      ev.setLocation(d.location || ""); ev.setDescription(eventDesc_(d));
+      return ev.getId();
+    }
+    var created = t.allDay
+      ? cal.createAllDayEvent(title, t.start, { location: d.location || "", description: eventDesc_(d) })
+      : cal.createEvent(title, t.start, t.end, { location: d.location || "", description: eventDesc_(d) });
+    return created.getId();
+  } catch (e) { return existingCalId || ""; }
+}
+function removeCalendar_(calId) {
+  if (!calId) return;
+  var cal = calendar_(); if (!cal) return;
+  try { var ev = cal.getEventById(calId); if (ev) ev.deleteEvent(); } catch (e) {}
 }
 
 // ================================================================
@@ -104,11 +209,21 @@ function doGet(e) {
   var att = sheetOf_(SHEET_ATT).getDataRange().getValues();
   var attendance = [];
   for (var a = 1; a < att.length; a++) {
-    if (!att[a][0]) continue;
-    attendance.push({ date: String(att[a][0]), name: att[a][1], gradYear: att[a][2],
-      program: att[a][3], updated: String(att[a][4]) });
+    if (!att[a][0] && !att[a][2]) continue;
+    attendance.push({ date: String(att[a][0]), event: att[a][1], eventId: String(att[a][2] || ""),
+      name: att[a][3], gradYear: att[a][4], program: att[a][5], updated: String(att[a][6]) });
   }
-  return json_({ ok: true, signups: signups, attendance: attendance });
+  var evRows = sheetOf_(SHEET_EVENTS).getDataRange().getValues();
+  var events = [];
+  for (var v = 1; v < evRows.length; v++) {
+    if (!evRows[v][0]) continue;                                    // no id
+    if (String(evRows[v][11]).toLowerCase() === "yes") continue;    // soft-deleted
+    events.push({ id: String(evRows[v][0]), title: evRows[v][1], date: String(evRows[v][2]),
+      start: String(evRows[v][3] || ""), end: String(evRows[v][4] || ""), location: evRows[v][5],
+      program: evRows[v][6], tier: evRows[v][7], note: evRows[v][8],
+      calId: String(evRows[v][9] || ""), updated: String(evRows[v][10] || "") });
+  }
+  return json_({ ok: true, signups: signups, attendance: attendance, events: events });
 }
 
 function sendWelcome_(d) {
@@ -251,9 +366,15 @@ function setup() {
   m.setColumnWidth(2, 520);
 
   var att = ss.getSheetByName(SHEET_ATT) || ss.insertSheet(SHEET_ATT);
-  if (att.getLastRow() === 0) att.appendRow(ATT_HEADERS);
+  var ah = att.getLastRow() ? att.getRange(1, 1, 1, ATT_HEADERS.length).getValues()[0].join("|") : "";
+  if (ah !== ATT_HEADERS.join("|")) { att.clear(); att.appendRow(ATT_HEADERS); } // migrate old schema
   att.getRange(1, 1, 1, ATT_HEADERS.length).setFontWeight("bold");
   att.setFrozenRows(1);
+
+  var ev = ss.getSheetByName(SHEET_EVENTS) || ss.insertSheet(SHEET_EVENTS);
+  if (ev.getLastRow() === 0) ev.appendRow(EVENT_HEADERS);
+  ev.getRange(1, 1, 1, EVENT_HEADERS.length).setFontWeight("bold");
+  ev.setFrozenRows(1);
 
   SpreadsheetApp.getUi().alert("Ready.", "Sheets are set up. Deploy as a Web app next.", SpreadsheetApp.getUi().ButtonSet.OK);
 }
@@ -263,7 +384,8 @@ function sheetOf_(name) {
   var s = ss.getSheetByName(name);
   if (!s) { s = ss.insertSheet(name);
     if (name === SHEET_SIGNUPS) s.appendRow(HEADERS);
-    else if (name === SHEET_ATT) s.appendRow(ATT_HEADERS); }
+    else if (name === SHEET_ATT) s.appendRow(ATT_HEADERS);
+    else if (name === SHEET_EVENTS) s.appendRow(EVENT_HEADERS); }
   return s;
 }
 

@@ -14,6 +14,11 @@
   // web-app URL (the same /exec URL used for the sign-up form). "Sync sign-ups"
   // then pulls new sign-ups straight into Athletes. Leave "" to disable.
   var SIGNUPS_URL = "https://script.google.com/macros/s/AKfycby68vlCB8FhoyOk03A5Yam4f1Vhwumm8rqSPz8bAw26Tk2UUH1mLwwy0MvnLl7-YQD5/exec";
+  // Shared Google Calendar ID (the calendar events post to and parents subscribe
+  // to). Looks like "...@group.calendar.google.com". Paste the SAME id into the
+  // Apps Script CONFIG.CALENDAR_ID and public/app.js GOOGLE_CALENDAR_ID. Leave ""
+  // to skip the "View shared calendar" link (events still save + sync).
+  var CALENDAR_ID = "c_a280d4cafbf4f9838c8141178df7d56c29221939f94bf2b1810d6c5426f8490c@group.calendar.google.com";
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (m) {
@@ -24,13 +29,13 @@
   var SPONSOR_GOAL = 3000;
 
   // ---- state -------------------------------------------------------
-  var state, ui = { view: "overview", prog: "all", search: "", status: "all", grad: "all", attDate: "", present: {} };
+  var state, ui = { view: "overview", prog: "all", search: "", status: "all", grad: "all", attDate: "", attEvent: "", present: {} };
 
-  function blank() { return { athletes: [], sponsors: [], phasesDone: [], sessions: [], settings: Object.assign({}, SETTINGS_DEFAULT), seeded: false }; }
+  function blank() { return { athletes: [], sponsors: [], phasesDone: [], sessions: [], events: [], settings: Object.assign({}, SETTINGS_DEFAULT), seeded: false }; }
   function load() {
     try { var raw = localStorage.getItem(KEY); if (raw) { var d = JSON.parse(raw);
       d.settings = Object.assign({}, SETTINGS_DEFAULT, d.settings || {}); d.athletes = d.athletes || [];
-      d.sponsors = d.sponsors || []; d.phasesDone = d.phasesDone || []; d.sessions = d.sessions || []; return d; } }
+      d.sponsors = d.sponsors || []; d.phasesDone = d.phasesDone || []; d.sessions = d.sessions || []; d.events = d.events || []; return d; } }
     catch (e) {}
     return blank();
   }
@@ -74,7 +79,8 @@
   var VIEW_META = {
     overview: { title: "Overview", sub: "The whole pipeline at a glance." },
     athletes: { title: "Athletes", sub: "Every athletic kid, K–8, by graduation year." },
-    attendance: { title: "Attendance", sub: "Tap kids in for today's session — it flows into the tracker." },
+    schedule: { title: "Schedule", sub: "Sessions & events — auto-added to the shared calendar families follow." },
+    attendance: { title: "Attendance", sub: "Pick a session, tap kids in — it flows into the tracker." },
     plan: { title: "The 360-Day Plan", sub: "Twelve phases from first conversation to year two." },
     sponsors: { title: "Sponsors", sub: "Who funds “Every Kid Plays.”" }
   };
@@ -89,6 +95,9 @@
       slot.innerHTML = '<button class="btn btn--ghost" data-action="sync-signups">Sync sign-ups</button>' +
         '<button class="btn btn--ghost" data-action="broadcast"><svg class="ic"><use href="#ic-phone"/></svg>Message families</button>' +
         '<button class="btn btn--primary" data-action="add-athlete"><svg class="ic"><use href="#ic-plus"/></svg>Add athlete</button>';
+    } else if (ui.view === "schedule") {
+      slot.innerHTML = (CALENDAR_ID ? '<a class="btn btn--ghost" href="https://calendar.google.com/calendar/u/0/r?cid=' + encodeURIComponent(CALENDAR_ID) + '" target="_blank" rel="noopener">Open shared calendar</a>' : "") +
+        '<button class="btn btn--primary" data-action="add-event"><svg class="ic"><use href="#ic-plus"/></svg>Add event</button>';
     } else if (ui.view === "attendance") {
       slot.innerHTML = '<button class="btn btn--primary" data-action="save-session"><svg class="ic"><use href="#ic-check"/></svg>Save session</button>';
     } else if (ui.view === "sponsors") {
@@ -101,15 +110,17 @@
     $$(".view").forEach(function (s) { s.classList.remove("is-active"); });
     $("#view-" + v).classList.add("is-active");
     closeSidebar();
-    if (v === "attendance") ui.presentDate = null;   // reload latest saved present for the date
+    if (v === "attendance") { ui.presentEvent = null; if (!ui.attEvent || !eventById(ui.attEvent)) ui.attEvent = defaultAttEvent(); }
     renderTopbar(); renderView();
     if (v === "attendance") syncAttendance(true);     // pull other devices' latest
+    if (v === "schedule") syncEvents(true);           // pull events other devices added
     $("#view-" + v).focus({ preventScroll: true });
     window.scrollTo(0, 0);
   }
   function renderView() {
     if (ui.view === "overview") renderOverview();
     else if (ui.view === "athletes") renderAthletes();
+    else if (ui.view === "schedule") renderSchedule();
     else if (ui.view === "attendance") renderAttendance();
     else if (ui.view === "plan") renderPlan();
     else if (ui.view === "sponsors") renderSponsors();
@@ -282,8 +293,159 @@
   function athleteByKey(k) { for (var i = 0; i < state.athletes.length; i++) if (athKey(state.athletes[i]) === k) return state.athletes[i]; return null; }
   function fmtDate(d) { var x = new Date(d + "T00:00:00"); return isNaN(x) ? d : ATT_MON[x.getMonth()] + " " + x.getDate(); }
   function daysAgo(d) { var a = new Date(d + "T00:00:00"), b = new Date(today() + "T00:00:00"); return Math.round((b - a) / 86400000); }
+  // ================================================================
+  //  SCHEDULE / EVENTS
+  // ================================================================
+  var WK = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  function fmtDateFull(d) { var x = new Date(d + "T00:00:00"); return isNaN(x) ? d : WK[x.getDay()] + ", " + fmtDate(d); }
+  function fmtTime(t) {
+    if (!t) return ""; var p = String(t).split(":"); var h = parseInt(p[0], 10), m = p[1] || "00";
+    if (isNaN(h)) return ""; var ap = h < 12 ? "AM" : "PM"; var h12 = h % 12; if (h12 === 0) h12 = 12;
+    return h12 + (m === "00" ? "" : ":" + m) + " " + ap;
+  }
+  function eventWhen(e) {
+    var t = e.start ? (fmtTime(e.start) + (e.end ? "–" + fmtTime(e.end) : "")) : "";
+    return fmtDateFull(e.date) + (t ? " · " + t : "");
+  }
+  function tierName(k) { for (var i = 0; i < LB.TIERS.length; i++) if (LB.TIERS[i].key === k) return LB.TIERS[i].name; return ""; }
+  function eventsSorted() { return state.events.slice().sort(function (a, b) { return (a.date + (a.start || "")).localeCompare(b.date + (b.start || "")); }); }
+  function eventById(id) { for (var i = 0; i < state.events.length; i++) if (state.events[i].id === id) return state.events[i]; return null; }
+  function defaultAttEvent() {
+    var evs = eventsSorted(); if (!evs.length) return "";
+    var td = today();
+    var todays = evs.filter(function (e) { return e.date === td; }); if (todays.length) return todays[0].id;
+    var up = evs.filter(function (e) { return e.date > td; }); if (up.length) return up[0].id;
+    return evs[evs.length - 1].id;
+  }
+
+  function renderSchedule() {
+    var host = $("#view-schedule");
+    var calNote = CALENDAR_ID
+      ? '<p class="sched-note">Every event is added to your shared Google Calendar — families who tapped “Add to calendar” see it, and any change, automatically.</p>'
+      : '<p class="sched-note sched-note--off">Events save and sync across your devices. To also push them to a calendar families can subscribe to, connect a shared Google Calendar (see setup).</p>';
+    if (!state.events.length) {
+      host.innerHTML = calNote + '<div class="empty"><img src="assets/logos/Eagle Head.png" alt="" />' +
+        '<h3>No events yet.</h3><p>Add your first session — practices, game nights, Youth Nights. You’ll take attendance against these.</p>' +
+        '<div class="empty__actions"><button class="btn btn--primary" data-action="add-event"><svg class="ic"><use href="#ic-plus"/></svg>Add an event</button></div></div>';
+      return;
+    }
+    var td = today(), evs = eventsSorted();
+    var upcoming = evs.filter(function (e) { return e.date >= td; });
+    var past = evs.filter(function (e) { return e.date < td; }).reverse();
+    function card(e) {
+      var att = sessionForEvent(e.id);
+      var chips = '<span class="ev-chip ev-chip--prog">' + esc(e.program || "All") + '</span>' +
+        (e.tier ? '<span class="ev-chip">' + esc(tierName(e.tier)) + '</span>' : "") +
+        (att ? '<span class="ev-chip ev-chip--done"><svg class="ic"><use href="#ic-check"/></svg>' + att.present.length + ' present</span>' : "");
+      return '<div class="ev-card">' +
+        '<div class="ev-card__main">' +
+          '<div class="ev-when">' + esc(eventWhen(e)) + '</div>' +
+          '<h3 class="ev-title">' + esc(e.title) + '</h3>' +
+          (e.location ? '<div class="ev-loc">' + esc(e.location) + '</div>' : "") +
+          '<div class="ev-chips">' + chips + '</div>' +
+          (e.note ? '<p class="ev-note">' + esc(e.note) + '</p>' : "") +
+        '</div>' +
+        '<div class="ev-card__actions">' +
+          '<button class="btn btn--primary btn--sm" data-action="take-attendance" data-id="' + e.id + '"><svg class="ic"><use href="#ic-attend"/></svg>Attendance</button>' +
+          '<button class="btn btn--ghost btn--sm" data-action="edit-event" data-id="' + e.id + '">Edit</button>' +
+        '</div></div>';
+    }
+    var html = calNote;
+    if (upcoming.length) html += '<div class="sched-group"><h3 class="sched-h">Upcoming</h3>' + upcoming.map(card).join("") + '</div>';
+    if (past.length) html += '<div class="sched-group"><h3 class="sched-h">Past</h3>' + past.map(card).join("") + '</div>';
+    host.innerHTML = html;
+  }
+
+  function eventForm(e) {
+    e = e || {};
+    var prog = e.program || "All";
+    var tierOpts = '<option value="">All ages / mixed</option>' + LB.TIERS.map(function (t) {
+      return '<option value="' + t.key + '"' + (e.tier === t.key ? " selected" : "") + '>' + esc(t.name) + ' (' + esc(t.grades) + ')</option>'; }).join("");
+    return '<form id="evForm">' +
+      '<div class="field"><label for="e-title">Event name</label><input id="e-title" value="' + esc(e.title || "") + '" placeholder="Grassroot session, Youth Night…" required></div>' +
+      '<div class="field"><label for="e-date">Date</label><input id="e-date" type="date" value="' + esc(e.date || today()) + '" required></div>' +
+      '<div class="field--row">' +
+        '<div class="field"><label for="e-start">Start time</label><input id="e-start" type="time" value="' + esc(e.start || "") + '"></div>' +
+        '<div class="field"><label for="e-end">End time</label><input id="e-end" type="time" value="' + esc(e.end || "") + '"></div>' +
+      '</div>' +
+      '<div class="field"><label for="e-loc">Location</label><input id="e-loc" value="' + esc(e.location || "") + '" placeholder="LB practice fields"></div>' +
+      '<div class="field"><label>Who it\'s for</label><div class="segfield">' +
+        ["All", "Boys", "Girls"].map(function (p) { return '<label><input type="radio" name="e-prog" value="' + p + '"' + (prog === p ? " checked" : "") + '><span>' + p + '</span></label>'; }).join("") +
+      '</div></div>' +
+      '<div class="field"><label for="e-tier">Age group</label><select id="e-tier">' + tierOpts + '</select></div>' +
+      '<div class="field"><label for="e-note">Note <span style="font-weight:500;color:var(--ink-3)">(optional)</span></label>' +
+        '<textarea id="e-note" placeholder="Bring water · indoor if it rains…">' + esc(e.note || "") + '</textarea></div>' +
+      '<div class="drawer__foot">' +
+        (e.id ? '<button type="button" class="btn btn--danger" data-action="delete-event" data-id="' + e.id + '">Delete</button>' : "") +
+        '<button type="submit" class="btn btn--primary">' + (e.id ? "Save event" : "Add event") + '</button>' +
+      '</div></form>';
+  }
+  function openEvent(e) {
+    showDrawer(e ? "Edit event" : "Add event", eventForm(e));
+    $("#evForm").addEventListener("submit", function (sub) {
+      sub.preventDefault();
+      var title = $("#e-title").value.trim(), date = $("#e-date").value;
+      $("#e-title").closest(".field").classList.toggle("field--invalid", !title);
+      $("#e-date").closest(".field").classList.toggle("field--invalid", !date);
+      if (!title || !date) { $(!title ? "#e-title" : "#e-date").focus(); return; }
+      var data = { title: title, date: date, start: $("#e-start").value || "", end: $("#e-end").value || "",
+        location: $("#e-loc").value.trim(),
+        program: (document.querySelector('input[name="e-prog"]:checked') || {}).value || "All",
+        tier: $("#e-tier").value || "", note: $("#e-note").value.trim(),
+        updated: new Date().toISOString(), unsynced: true };
+      var rec;
+      if (e && e.id) { var idx = state.events.findIndex(function (x) { return x.id === e.id; });
+        rec = Object.assign({}, e, data); state.events[idx] = rec; toast("Saved “" + title + ".”"); }
+      else { data.id = uid("ev"); data.calId = ""; rec = data; state.events.push(rec); toast("Added “" + title + ".”"); }
+      save(); pushEvent(rec); hideDrawer(); renderView();
+    });
+  }
+  function deleteEvent(id) {
+    var e = eventById(id); if (!e) return;
+    if (!window.confirm("Delete “" + e.title + "”? This also removes its attendance and its calendar entry.")) return;
+    state.events = state.events.filter(function (x) { return x.id !== id; });
+    state.sessions = state.sessions.filter(function (s) { return s.eventId !== id; });
+    if (ui.attEvent === id) ui.attEvent = defaultAttEvent();
+    save(); pushEventDelete(e); hideDrawer(); renderView(); toast("Event removed.");
+  }
+
+  // ---- events cross-device + calendar sync via the Sheet/Apps Script ----
+  function pushEvent(e) {
+    if (!SIGNUPS_URL || !e) return;
+    fetch(SIGNUPS_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ type: "event", id: e.id, title: e.title, date: e.date, start: e.start, end: e.end,
+        location: e.location, program: e.program, tier: e.tier, note: e.note, updated: e.updated }) })
+      .then(function () { delete e.unsynced; save(); }).catch(function () {});
+  }
+  function pushEventDelete(e) {
+    if (!SIGNUPS_URL || !e) return;
+    fetch(SIGNUPS_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ type: "event-delete", id: e.id }) }).catch(function () {});
+  }
+  function syncEvents(quiet) {
+    if (!SIGNUPS_URL) return;
+    state.events.forEach(function (e) { if (e.unsynced) pushEvent(e); });
+    fetch(SIGNUPS_URL, { method: "GET" }).then(function (r) { return r.json(); }).then(function (data) {
+      if (!data || !data.events) return;
+      var byId = {}; state.events.forEach(function (e) { byId[e.id] = e; });
+      data.events.forEach(function (row) {
+        if (!row.id) return;
+        var local = byId[row.id];
+        var remote = { id: row.id, title: row.title, date: String(row.date), start: row.start || "", end: row.end || "",
+          location: row.location || "", program: row.program || "All", tier: row.tier || "", note: row.note || "",
+          calId: row.calId || "", updated: String(row.updated || "") };
+        if (!local) byId[row.id] = remote;
+        else if (!local.unsynced && String(remote.updated) >= String(local.updated || "")) byId[row.id] = Object.assign(local, remote);
+      });
+      state.events = Object.keys(byId).map(function (id) { return byId[id]; });
+      save();
+      if (ui.view === "schedule") renderView();
+      if (ui.view === "attendance" && (!ui.attEvent || !eventById(ui.attEvent))) { ui.attEvent = defaultAttEvent(); renderView(); }
+    }).catch(function () {});
+  }
+
   function sessionsSorted() { return state.sessions.slice().sort(function (a, b) { return a.date < b.date ? 1 : (a.date > b.date ? -1 : 0); }); }
-  function sessionForDate(d) { for (var i = 0; i < state.sessions.length; i++) if (state.sessions[i].date === d) return state.sessions[i]; return null; }
+  function sessionForEvent(id) { for (var i = 0; i < state.sessions.length; i++) if (state.sessions[i].eventId === id) return state.sessions[i]; return null; }
   function lastSeenOf(k) { var best = null; state.sessions.forEach(function (s) {
     if (s.present.indexOf(k) > -1 && (!best || s.date > best)) best = s.date; }); return best; }
   function attendedCount(k) { var n = 0; state.sessions.forEach(function (s) { if (s.present.indexOf(k) > -1) n++; }); return n; }
@@ -296,8 +458,13 @@
     return '<span class="who__seen">Last seen ' + seenLabel(k) + ' · ' + attendedCount(k) + ' session' + (attendedCount(k) === 1 ? "" : "s") + '</span>';
   }
 
-  function loadPresent(date) { var s = sessionForDate(date); ui.present = {};
-    if (s) s.present.forEach(function (k) { ui.present[k] = 1; }); ui.presentDate = date; ui.attDirty = false; }
+  function loadPresent(eventId) { var s = sessionForEvent(eventId); ui.present = {};
+    if (s) s.present.forEach(function (k) { ui.present[k] = 1; }); ui.presentEvent = eventId; ui.attDirty = false; }
+  function attRoster(ev) {
+    return state.athletes.filter(function (a) {
+      return ev.program === "Boys" ? a.program === "Boys" : ev.program === "Girls" ? a.program === "Girls" : true;
+    }).sort(function (a, b) { return a.grade - b.grade || a.last.localeCompare(b.last); });
+  }
 
   function renderAttendance() {
     var host = $("#view-attendance");
@@ -308,16 +475,27 @@
         '<button class="btn btn--ghost" data-action="load-sample">Load sample roster</button></div></div>';
       return;
     }
-    if (!ui.attDate) ui.attDate = today();
-    if (ui.presentDate !== ui.attDate) loadPresent(ui.attDate);
+    if (!state.events.length) {
+      host.innerHTML = '<div class="empty"><img src="assets/logos/Eagle Head.png" alt="" />' +
+        '<h3>No sessions to take.</h3><p>Add an event on the <b>Schedule</b> first — practices, game nights — then tap kids in against it here.</p>' +
+        '<div class="empty__actions"><button class="btn btn--primary" data-action="add-event"><svg class="ic"><use href="#ic-plus"/></svg>Add an event</button></div></div>';
+      return;
+    }
+    if (!ui.attEvent || !eventById(ui.attEvent)) ui.attEvent = defaultAttEvent();
+    var ev = eventById(ui.attEvent);
+    if (ui.presentEvent !== ui.attEvent) loadPresent(ui.attEvent);
 
-    var list = pool().slice().sort(function (a, b) { return a.grade - b.grade || a.last.localeCompare(b.last); });
+    var list = attRoster(ev);
     var presentCount = list.filter(function (a) { return ui.present[athKey(a)]; }).length;
     var syncNote = SIGNUPS_URL ? '<span class="att-sync">Syncs to all your devices</span>' : '<span class="att-sync att-sync--off">This device only — connect the Sheet to sync</span>';
 
+    var options = eventsSorted().map(function (e) {
+      return '<option value="' + e.id + '"' + (e.id === ui.attEvent ? " selected" : "") + '>' + esc(fmtDate(e.date) + " · " + e.title) + '</option>'; }).join("");
+
     var head = '<div class="att-head">' +
-      '<div class="att-date"><label for="attDate">Session date</label>' +
-        '<input type="date" id="attDate" value="' + ui.attDate + '"></div>' +
+      '<div class="att-date"><label for="attEvent">Session</label>' +
+        '<select id="attEvent" class="att-eventsel">' + options + '</select>' +
+        '<div class="att-evwhen">' + esc(eventWhen(ev) + (ev.location ? " · " + ev.location : "")) + '</div></div>' +
       '<div class="att-count"><span><b class="tnum">' + presentCount + '</b> of ' + list.length + ' present</span>' +
         '<div class="att-quick"><button class="chip" data-action="att-all">All present</button>' +
           '<button class="chip" data-action="att-none">Clear</button></div></div>' +
@@ -334,34 +512,35 @@
       '</button>';
     }).join("");
 
-    var recent = sessionsSorted().slice(0, 8);
+    var recent = sessionsSorted().filter(function (s) { return s.eventId && eventById(s.eventId); }).slice(0, 8);
     var history = recent.length ? '<div class="att-history"><h3>Recent sessions</h3><div class="att-hlist">' +
       recent.map(function (s) {
-        return '<button class="att-hitem' + (s.date === ui.attDate ? " is-cur" : "") + '" data-action="att-load" data-date="' + s.date + '">' +
-          '<span class="att-hdate">' + fmtDate(s.date) + '</span><span class="att-hn tnum">' + s.present.length + ' present</span></button>';
+        var se = eventById(s.eventId);
+        return '<button class="att-hitem' + (s.eventId === ui.attEvent ? " is-cur" : "") + '" data-action="att-load" data-id="' + s.eventId + '">' +
+          '<span class="att-hdate">' + esc(fmtDate(s.date) + " · " + se.title) + '</span><span class="att-hn tnum">' + s.present.length + ' present</span></button>';
       }).join("") + '</div></div>' : "";
 
     host.innerHTML = head + '<div class="att-list">' + rows + '</div>' + history;
-    var di = $("#attDate");
-    if (di) di.addEventListener("change", function () { ui.attDate = this.value || today(); loadPresent(ui.attDate); renderAttendance(); });
+    var sel = $("#attEvent");
+    if (sel) sel.addEventListener("change", function () { ui.attEvent = this.value; loadPresent(ui.attEvent); renderAttendance(); });
   }
 
   function updateAttCount() {
-    var el = $(".att-count b"); if (!el) return;
-    el.textContent = pool().filter(function (a) { return ui.present[athKey(a)]; }).length;
+    var el = $(".att-count b"); var ev = eventById(ui.attEvent); if (!el || !ev) return;
+    el.textContent = attRoster(ev).filter(function (a) { return ui.present[athKey(a)]; }).length;
   }
 
   function saveSession() {
-    if (ui.view !== "attendance" || !state.athletes.length) return;
-    var date = ui.attDate || today();
+    if (ui.view !== "attendance" || !state.athletes.length || !ui.attEvent) return;
+    var ev = eventById(ui.attEvent); if (!ev) return;
     var present = Object.keys(ui.present);
-    var s = sessionForDate(date);
-    if (s) { s.present = present; } else { s = { id: uid("ses"), date: date, present: present }; state.sessions.push(s); }
-    s.updated = new Date().toISOString(); s.unsynced = true;
-    ui.presentDate = date; ui.attDirty = false;
+    var s = sessionForEvent(ev.id);
+    if (s) { s.present = present; } else { s = { id: uid("ses"), eventId: ev.id, date: ev.date, present: present }; state.sessions.push(s); }
+    s.date = ev.date; s.updated = new Date().toISOString(); s.unsynced = true;
+    ui.presentEvent = ev.id; ui.attDirty = false;
     var r = reconcileAttendance();
     save(); pushSession(s); renderView();
-    var msg = present.length + " present saved for " + fmtDate(date) + ".";
+    var msg = present.length + " present saved for " + ev.title + ".";
     if (r.flagged) msg += " " + r.flagged + " now at-risk (missed 2).";
     else if (r.back) msg += " " + r.back + " back to active.";
     if (SIGNUPS_URL) msg += " Syncing…";
@@ -394,8 +573,9 @@
       if (a) return { name: a.first + " " + a.last, gradYear: a.gradYear, program: a.program };
       var parts = k.split("|"); return { name: parts[0], gradYear: parts[1] || "", program: "" };
     });
+    var ev = eventById(s.eventId);
     fetch(SIGNUPS_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ type: "attendance", date: s.date, updated: s.updated, present: present }) })
+      body: JSON.stringify({ type: "attendance", eventId: s.eventId || "", event: ev ? ev.title : "", date: s.date, updated: s.updated, present: present }) })
       .then(function () { delete s.unsynced; save(); }).catch(function () {});
   }
 
@@ -404,13 +584,15 @@
     state.sessions.forEach(function (s) { if (s.unsynced) pushSession(s); });   // push local pending first
     fetch(SIGNUPS_URL, { method: "GET" }).then(function (r) { return r.json(); }).then(function (data) {
       if (!data || !data.attendance) return;
+      var keyOf = function (s) { return s.eventId ? "e:" + s.eventId : "d:" + s.date; };
       var byDate = {};
-      state.sessions.forEach(function (s) { byDate[s.date] = s; });             // local base
+      state.sessions.forEach(function (s) { byDate[keyOf(s)] = s; });            // local base
       var sheetByDate = {};
       data.attendance.forEach(function (row) {
         var k = (String(row.name) + "|" + row.gradYear).trim().toLowerCase();
-        var d = row.date;
-        if (!sheetByDate[d]) sheetByDate[d] = { id: "ses-" + d, date: d, present: [], updated: String(row.updated || "") };
+        var eid = row.eventId || "";
+        var d = eid ? "e:" + eid : "d:" + String(row.date);
+        if (!sheetByDate[d]) sheetByDate[d] = { id: "ses-" + (eid || row.date), eventId: eid, date: String(row.date), present: [], updated: String(row.updated || "") };
         if (sheetByDate[d].present.indexOf(k) === -1) sheetByDate[d].present.push(k);
         if (String(row.updated) > sheetByDate[d].updated) sheetByDate[d].updated = String(row.updated);
       });
@@ -420,7 +602,7 @@
       });
       state.sessions = Object.keys(byDate).map(function (d) { return byDate[d]; });
       reconcileAttendance(); save();
-      if (ui.view === "attendance" && !ui.attDirty) { loadPresent(ui.attDate); }
+      if (ui.view === "attendance" && !ui.attDirty) { if (!ui.attEvent || !eventById(ui.attEvent)) ui.attEvent = defaultAttEvent(); loadPresent(ui.attEvent); }
       renderView();
     }).catch(function () {});
   }
@@ -812,6 +994,10 @@
       case "filter-grad": ui.grad = act.dataset.grad; renderAthletes(); break;
       case "clear-filters": ui.status = "all"; ui.grad = "all"; ui.search = ""; renderAthletes(); break;
       case "toggle-phase": togglePhase(parseInt(act.dataset.n, 10)); break;
+      case "add-event": openEvent(null); break;
+      case "edit-event": openEvent(eventById(id)); break;
+      case "delete-event": deleteEvent(id); break;
+      case "take-attendance": ui.attEvent = id; ui.presentEvent = null; setView("attendance"); break;
       case "add-sponsor": openSponsor(null); break;
       case "edit-sponsor": openSponsor(state.sponsors.find(function (x) { return x.id === id; })); break;
       case "delete-sponsor": state.sponsors = state.sponsors.filter(function (x) { return x.id !== id; }); save(); hideDrawer(); renderView(); toast("Sponsor removed."); break;
@@ -824,9 +1010,9 @@
         ui.attDirty = true;
         act.classList.toggle("is-on"); act.setAttribute("aria-pressed", String(!!ui.present[k]));
         updateAttCount(); break;
-      case "att-all": pool().forEach(function (x) { ui.present[athKey(x)] = 1; }); ui.attDirty = true; renderAttendance(); break;
-      case "att-none": ui.present = {}; ui.presentDate = ui.attDate; ui.attDirty = true; renderAttendance(); break;
-      case "att-load": ui.attDate = act.dataset.date; loadPresent(ui.attDate); renderAttendance(); break;
+      case "att-all": var evAll = eventById(ui.attEvent); if (evAll) attRoster(evAll).forEach(function (x) { ui.present[athKey(x)] = 1; }); ui.attDirty = true; renderAttendance(); break;
+      case "att-none": ui.present = {}; ui.presentEvent = ui.attEvent; ui.attDirty = true; renderAttendance(); break;
+      case "att-load": ui.attEvent = act.dataset.id; loadPresent(ui.attEvent); renderAttendance(); break;
       case "save-session": saveSession(); break;
       case "close-drawer": hideDrawer(); break;
       case "load-sample": loadSample(); break;
@@ -840,7 +1026,7 @@
   }
   function loadSample() {
     state = JSON.parse(JSON.stringify(LB.SAMPLE)); state.seeded = true;
-    state.sessions = state.sessions || []; state.phasesDone = state.phasesDone || [];
+    state.sessions = state.sessions || []; state.phasesDone = state.phasesDone || []; state.events = state.events || [];
     save(); renderView();
     toast("Sample roster loaded.");
   }
@@ -861,5 +1047,5 @@
   // ---- boot --------------------------------------------------------
   renderTopbar();
   renderView();
-  if (SIGNUPS_URL) syncSignups(true);   // quietly pull any new sign-ups + attendance on load
+  if (SIGNUPS_URL) { syncSignups(true); syncEvents(true); }   // quietly pull new sign-ups + attendance + events on load
 })();
