@@ -469,7 +469,14 @@ function setup() {
   acc.getRange(1, 1, 1, ACCESS_HEADERS.length).setFontWeight("bold");
   acc.setFrozenRows(1);
 
-  SpreadsheetApp.getUi().alert("Ready.", "Sheets are set up. Deploy as a Web app next.", SpreadsheetApp.getUi().ButtonSet.OK);
+  // Confirmation popup only works when run from the sheet's menu; running from
+  // the editor has no UI, so don't let that throw.
+  try {
+    var ui = SpreadsheetApp.getUi();
+    ui.alert("Ready.", "Sheets are set up. Deploy as a Web app next.", ui.ButtonSet.OK);
+  } catch (e) {
+    Logger.log("Setup complete. Sheets are ready — deploy as a Web app next.");
+  }
 }
 
 function sheetOf_(name) {
