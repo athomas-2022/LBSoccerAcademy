@@ -32,17 +32,26 @@
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]; }); };
   var money = function (n) { return "$" + Number(n || 0).toLocaleString("en-US"); };
 
-  var SETTINGS_DEFAULT = { districtAthletes: 240 };
+  var SETTINGS_DEFAULT = { districtAthletes: 240, openingBalance: 0 };
   var SPONSOR_GOAL = 3000;
 
   // ---- state -------------------------------------------------------
   var state, ui = { view: "overview", prog: "all", search: "", status: "all", grad: "all", attDate: "", attEvent: "", present: {} };
 
-  function blank() { return { athletes: [], sponsors: [], phasesDone: [], sessions: [], events: [], settings: Object.assign({}, SETTINGS_DEFAULT), seeded: false }; }
+  var FIN_CATS = {
+    in: ["Sponsorship", "Donation", "Grant", "Fundraiser", "Registration/fees", "Refund received", "Interest", "Other income"],
+    out: ["Equipment & balls", "Uniforms & kit", "Field/facility rental", "Referees", "Insurance",
+      "Marketing/printing", "Website/software/domain", "Trophies & awards", "Food & water", "Travel",
+      "Scholarships/aid", "Bank & processing fees", "Supplies", "Other expense"]
+  };
+  var FIN_METHODS = ["Cash", "Check", "Card", "Bank transfer", "Online (PayPal/Venmo)", "In-kind (no cash)", "Other"];
+  var FIN_INKIND = "In-kind (no cash)";
+
+  function blank() { return { athletes: [], sponsors: [], phasesDone: [], sessions: [], events: [], finances: [], settings: Object.assign({}, SETTINGS_DEFAULT), seeded: false }; }
   function load() {
     try { var raw = localStorage.getItem(KEY); if (raw) { var d = JSON.parse(raw);
       d.settings = Object.assign({}, SETTINGS_DEFAULT, d.settings || {}); d.athletes = d.athletes || [];
-      d.sponsors = d.sponsors || []; d.phasesDone = d.phasesDone || []; d.sessions = d.sessions || []; d.events = d.events || []; return d; } }
+      d.sponsors = d.sponsors || []; d.phasesDone = d.phasesDone || []; d.sessions = d.sessions || []; d.events = d.events || []; d.finances = d.finances || []; return d; } }
     catch (e) {}
     return blank();
   }
@@ -126,7 +135,7 @@
         '<button class="side__authbtn" data-action="sign-out">Sign out</button>' +
       '</div>';
   }
-  function runBootSyncs() { if (SIGNUPS_URL) { syncSignups(true); syncEvents(true); } }
+  function runBootSyncs() { if (SIGNUPS_URL) { syncSignups(true); syncEvents(true); syncFinances(true); } }
 
   // ---- approve / remove people (owners only) ----
   function openAccess() {
@@ -210,7 +219,8 @@
     schedule: { title: "Schedule", sub: "Sessions & events — auto-added to the shared calendar families follow." },
     attendance: { title: "Attendance", sub: "Pick a session, tap kids in — it flows into the tracker." },
     plan: { title: "The 360-Day Plan", sub: "Twelve phases from first conversation to year two." },
-    sponsors: { title: "Sponsors", sub: "Who funds “Every Kid Plays.”" }
+    sponsors: { title: "Sponsors", sub: "Who funds “Every Kid Plays.”" },
+    finances: { title: "Finances", sub: "Every dollar in and out — your running ledger." }
   };
   function renderTopbar() {
     var m = VIEW_META[ui.view];
@@ -230,6 +240,9 @@
       slot.innerHTML = '<button class="btn btn--primary" data-action="save-session"><svg class="ic"><use href="#ic-check"/></svg>Save session</button>';
     } else if (ui.view === "sponsors") {
       slot.innerHTML = '<button class="btn btn--primary" data-action="add-sponsor"><svg class="ic"><use href="#ic-plus"/></svg>Add sponsor</button>';
+    } else if (ui.view === "finances") {
+      slot.innerHTML = '<button class="btn btn--ghost" data-action="fin-opening">Opening balance</button>' +
+        '<button class="btn btn--primary" data-action="add-finance"><svg class="ic"><use href="#ic-plus"/></svg>Add transaction</button>';
     }
   }
   function setView(v) {
@@ -242,6 +255,7 @@
     renderTopbar(); renderView();
     if (v === "attendance") syncAttendance(true);     // pull other devices' latest
     if (v === "schedule") syncEvents(true);           // pull events other devices added
+    if (v === "finances") syncFinances(true);         // pull ledger entries from other devices
     $("#view-" + v).focus({ preventScroll: true });
     window.scrollTo(0, 0);
   }
@@ -252,6 +266,7 @@
     else if (ui.view === "attendance") renderAttendance();
     else if (ui.view === "plan") renderPlan();
     else if (ui.view === "sponsors") renderSponsors();
+    else if (ui.view === "finances") renderFinances();
     renderNavBadge(); renderDataNote();
   }
   function renderNavBadge() {
@@ -784,6 +799,191 @@
   }
 
   // ================================================================
+  //  FINANCES — running ledger of money in / out
+  // ================================================================
+  function finById(id) { for (var i = 0; i < state.finances.length; i++) if (state.finances[i].id === id) return state.finances[i]; return null; }
+  function finInkind(t) { return t.method === FIN_INKIND; }
+  function finsSorted() {
+    return state.finances.slice().sort(function (a, b) {
+      return (b.date + (b.updated || "")).localeCompare(a.date + (a.updated || ""));
+    });
+  }
+  function finTotals() {
+    var cashIn = 0, cashOut = 0, inkind = 0;
+    state.finances.forEach(function (t) {
+      var amt = Number(t.amount) || 0;
+      if (finInkind(t)) { inkind += amt; }
+      else if (t.kind === "in") cashIn += amt;
+      else cashOut += amt;
+    });
+    var opening = Number(state.settings.openingBalance) || 0;
+    return { cashIn: cashIn, cashOut: cashOut, inkind: inkind, opening: opening, balance: opening + cashIn - cashOut };
+  }
+  function signed(t) { var amt = Number(t.amount) || 0; return (t.kind === "in" ? "+" : "−") + money(amt); }
+
+  function renderFinances() {
+    var host = $("#view-finances");
+    var t = finTotals();
+    var cards =
+      '<div class="fin-cards">' +
+        '<div class="fin-card fin-card--bal"><span class="fin-k">Balance</span><span class="fin-v tnum">' + money(t.balance) + '</span>' +
+          '<span class="fin-sub">' + (t.opening ? money(t.opening) + ' opening' : 'no opening balance set') + '</span></div>' +
+        '<div class="fin-card fin-card--in"><span class="fin-k">Money in</span><span class="fin-v tnum">' + money(t.cashIn) + '</span></div>' +
+        '<div class="fin-card fin-card--out"><span class="fin-k">Money out</span><span class="fin-v tnum">' + money(t.cashOut) + '</span></div>' +
+        (t.inkind ? '<div class="fin-card fin-card--kind"><span class="fin-k">In-kind received</span><span class="fin-v tnum">' + money(t.inkind) + '</span><span class="fin-sub">non-cash value</span></div>' : "") +
+      '</div>' +
+      (SIGNUPS_URL ? '<span class="att-sync">Synced to your Google Sheet ledger</span>' : '<span class="att-sync att-sync--off">This device only — connect the Sheet to sync</span>');
+
+    if (!state.finances.length) {
+      host.innerHTML = cards + '<div class="empty"><img src="assets/logos/Eagle Head.png" alt="" />' +
+        '<h3>No transactions yet.</h3><p>Log every dollar in and out — sponsor checks, gear, field rental, printing, referees. It builds your ledger for the books and taxes.</p>' +
+        '<div class="empty__actions"><button class="btn btn--primary" data-action="add-finance"><svg class="ic"><use href="#ic-plus"/></svg>Add a transaction</button></div></div>';
+      return;
+    }
+
+    // category breakdown (expenses + income), largest first
+    function breakdown(kind) {
+      var by = {};
+      state.finances.forEach(function (x) { if (x.kind !== kind || finInkind(x)) return; by[x.category] = (by[x.category] || 0) + (Number(x.amount) || 0); });
+      var arr = Object.keys(by).map(function (c) { return { cat: c, amt: by[c] }; }).sort(function (a, b) { return b.amt - a.amt; });
+      var max = arr.length ? arr[0].amt : 0;
+      return arr.map(function (r) {
+        return '<div class="fin-brow"><span class="fin-bcat">' + esc(r.cat) + '</span>' +
+          '<span class="fin-bbar"><i style="width:' + (max ? Math.max(4, Math.round(r.amt / max * 100)) : 0) + '%"></i></span>' +
+          '<span class="fin-bamt tnum">' + money(r.amt) + '</span></div>';
+      }).join("");
+    }
+    var outBd = breakdown("out"), inBd = breakdown("in");
+    var breakdownHtml = (outBd || inBd) ? '<div class="fin-breakdowns">' +
+      (outBd ? '<div class="fin-bd"><h3>Where it goes</h3>' + outBd + '</div>' : "") +
+      (inBd ? '<div class="fin-bd"><h3>Where it comes from</h3>' + inBd + '</div>' : "") +
+    '</div>' : "";
+
+    var filt = ui.finFilter || "all";
+    var chips = '<div class="fin-filter">' + [["all", "All"], ["in", "Money in"], ["out", "Money out"]].map(function (p) {
+      return '<button class="chip' + (filt === p[0] ? " is-on" : "") + '" data-action="fin-filter" data-f="' + p[0] + '"' + (filt === p[0] ? ' aria-pressed="true"' : "") + '>' + p[1] + '</button>';
+    }).join("") + '</div>';
+
+    var list = finsSorted().filter(function (x) { return filt === "all" || x.kind === filt; });
+    var rows = list.map(function (x) {
+      var ik = finInkind(x);
+      return '<tr data-action="edit-finance" data-id="' + x.id + '">' +
+        '<td class="fin-date tnum">' + esc(fmtDate(x.date)) + '</td>' +
+        '<td><button type="button" class="who__name" data-action="edit-finance" data-id="' + x.id + '">' + esc(x.desc || x.category) + '</button>' +
+          '<div class="fin-meta">' + esc(x.category) + (x.party ? ' · ' + esc(x.party) : "") + (x.method ? ' · ' + esc(x.method) : "") + '</div></td>' +
+        '<td class="fin-amt ' + (ik ? "is-kind" : x.kind === "in" ? "is-in" : "is-out") + ' tnum">' + (ik ? money(Number(x.amount) || 0) + ' in-kind' : signed(x)) + '</td></tr>';
+    }).join("");
+
+    host.innerHTML = cards + breakdownHtml + chips +
+      '<div class="tablewrap"><table class="roster fin-table"><thead><tr><th>Date</th><th>Transaction</th><th class="fin-amth">Amount</th></tr></thead><tbody>' +
+      rows + '</tbody></table></div>';
+  }
+
+  function financeForm(x) {
+    x = x || {};
+    var kind = x.kind || "out";
+    function cats(k) { return FIN_CATS[k].map(function (c) { return '<option value="' + esc(c) + '"' + (x.category === c ? " selected" : "") + '>' + esc(c) + '</option>'; }).join(""); }
+    var methods = FIN_METHODS.map(function (m) { return '<option value="' + esc(m) + '"' + (x.method === m ? " selected" : "") + '>' + esc(m) + '</option>'; }).join("");
+    return '<form id="finForm">' +
+      '<div class="field"><label>Type</label><div class="segfield">' +
+        '<label><input type="radio" name="f-kind" value="out"' + (kind !== "in" ? " checked" : "") + '><span>Money out</span></label>' +
+        '<label><input type="radio" name="f-kind" value="in"' + (kind === "in" ? " checked" : "") + '><span>Money in</span></label>' +
+      '</div></div>' +
+      '<div class="field--row">' +
+        '<div class="field"><label for="f-amt">Amount</label><input id="f-amt" type="number" min="0" step="0.01" value="' + (x.amount != null ? x.amount : "") + '" placeholder="0.00" required></div>' +
+        '<div class="field"><label for="f-date">Date</label><input id="f-date" type="date" value="' + esc(x.date || today()) + '" required></div>' +
+      '</div>' +
+      '<div class="field"><label for="f-cat">Category</label>' +
+        '<select id="f-cat-out"' + (kind === "in" ? ' hidden' : '') + '>' + cats("out") + '</select>' +
+        '<select id="f-cat-in"' + (kind === "in" ? '' : ' hidden') + '>' + cats("in") + '</select></div>' +
+      '<div class="field"><label for="f-desc">Description</label><input id="f-desc" value="' + esc(x.desc || "") + '" placeholder="20 size-4 balls, field rental, sponsor check…"></div>' +
+      '<div class="field--row">' +
+        '<div class="field"><label for="f-party">Paid to / from</label><input id="f-party" value="' + esc(x.party || "") + '" placeholder="Vendor or sponsor"></div>' +
+        '<div class="field"><label for="f-method">Method</label><select id="f-method">' + methods + '</select></div>' +
+      '</div>' +
+      '<div class="field"><label for="f-note">Note <span style="font-weight:500;color:var(--ink-3)">(optional)</span></label><textarea id="f-note" placeholder="Receipt #, reimbursed by…">' + esc(x.note || "") + '</textarea></div>' +
+      '<div class="drawer__foot">' +
+        (x.id ? '<button type="button" class="btn btn--danger" data-action="delete-finance" data-id="' + x.id + '">Delete</button>' : "") +
+        '<button type="submit" class="btn btn--primary">' + (x.id ? "Save" : "Add transaction") + '</button>' +
+      '</div></form>';
+  }
+  function openFinance(x) {
+    showDrawer(x ? "Edit transaction" : "Add transaction", financeForm(x));
+    var kindRadios = $$('input[name="f-kind"]');
+    function syncCatVisibility() {
+      var k = (document.querySelector('input[name="f-kind"]:checked') || {}).value || "out";
+      $("#f-cat-out").hidden = k === "in"; $("#f-cat-in").hidden = k !== "in";
+    }
+    kindRadios.forEach(function (r) { r.addEventListener("change", syncCatVisibility); });
+    $("#finForm").addEventListener("submit", function (sub) {
+      sub.preventDefault();
+      var amt = parseFloat($("#f-amt").value); var date = $("#f-date").value;
+      $("#f-amt").closest(".field").classList.toggle("field--invalid", !(amt >= 0));
+      $("#f-date").closest(".field").classList.toggle("field--invalid", !date);
+      if (!(amt >= 0) || !date) { $(!(amt >= 0) ? "#f-amt" : "#f-date").focus(); return; }
+      var kind = (document.querySelector('input[name="f-kind"]:checked') || {}).value || "out";
+      var cat = kind === "in" ? $("#f-cat-in").value : $("#f-cat-out").value;
+      var data = { date: date, kind: kind, category: cat, amount: Math.round(amt * 100) / 100,
+        method: $("#f-method").value, party: $("#f-party").value.trim(), desc: $("#f-desc").value.trim(),
+        note: $("#f-note").value.trim(), updated: new Date().toISOString(), unsynced: true };
+      var rec;
+      if (x && x.id) { var idx = state.finances.findIndex(function (y) { return y.id === x.id; });
+        rec = Object.assign({}, x, data); state.finances[idx] = rec; toast("Transaction saved."); }
+      else { data.id = uid("fin"); rec = data; state.finances.push(rec); toast((kind === "in" ? "+" : "−") + money(data.amount) + " logged."); }
+      save(); pushFinance(rec); hideDrawer(); renderView();
+    });
+  }
+  function deleteFinance(id) {
+    var x = finById(id); if (!x) return;
+    if (!window.confirm("Delete this transaction (" + signed(x) + ")?")) return;
+    state.finances = state.finances.filter(function (y) { return y.id !== id; });
+    save(); pushFinanceDelete(x); hideDrawer(); renderView(); toast("Transaction removed.");
+  }
+  function openOpeningBalance() {
+    showDrawer("Opening balance", '<form id="obForm">' +
+      '<div class="field"><label for="ob-amt">Opening / bank balance</label><input id="ob-amt" type="number" step="0.01" value="' + (Number(state.settings.openingBalance) || 0) + '">' +
+      '<p class="err" style="color:var(--ink-3);font-weight:500">Your starting cash before any transactions below — so Balance matches your real account.</p></div>' +
+      '<div class="drawer__foot"><button type="submit" class="btn btn--primary">Save</button></div></form>');
+    $("#obForm").addEventListener("submit", function (e) { e.preventDefault();
+      state.settings.openingBalance = Math.round((parseFloat($("#ob-amt").value) || 0) * 100) / 100;
+      save(); hideDrawer(); renderView(); toast("Opening balance set.");
+    });
+  }
+
+  // ---- finances cross-device sync via the Sheet ----
+  function pushFinance(x) {
+    if (!SIGNUPS_URL || !x) return;
+    apiPost({ type: "finance", id: x.id, date: x.date, kind: x.kind, category: x.category, amount: x.amount,
+      method: x.method, party: x.party, desc: x.desc, note: x.note, updated: x.updated })
+      .then(function () { delete x.unsynced; save(); }).catch(function () {});
+  }
+  function pushFinanceDelete(x) {
+    if (!SIGNUPS_URL || !x) return;
+    apiPost({ type: "finance-delete", id: x.id }).catch(function () {});
+  }
+  function syncFinances(quiet) {
+    if (!SIGNUPS_URL || (AUTH.enabled && !AUTH.ready)) return;
+    state.finances.forEach(function (x) { if (x.unsynced) pushFinance(x); });
+    apiGet().then(function (data) {
+      if (data && data.error === "auth") { relock("Session expired — sign in again."); return; }
+      if (!data || !data.finances) return;
+      var byId = {}; state.finances.forEach(function (x) { byId[x.id] = x; });
+      data.finances.forEach(function (row) {
+        if (!row.id) return;
+        var local = byId[row.id];
+        var remote = { id: row.id, date: String(row.date), kind: row.kind === "in" ? "in" : "out", category: row.category || "",
+          amount: Number(row.amount) || 0, method: row.method || "", party: row.party || "", desc: row.desc || "",
+          note: row.note || "", updated: String(row.updated || "") };
+        if (!local) byId[row.id] = remote;
+        else if (!local.unsynced && String(remote.updated) >= String(local.updated || "")) byId[row.id] = Object.assign(local, remote);
+      });
+      state.finances = Object.keys(byId).map(function (id) { return byId[id]; });
+      save();
+      if (ui.view === "finances") renderView();
+    }).catch(function () {});
+  }
+
+  // ================================================================
   //  DRAWER
   // ================================================================
   var lastFocus = null;
@@ -1129,6 +1329,11 @@
       case "add-sponsor": openSponsor(null); break;
       case "edit-sponsor": openSponsor(state.sponsors.find(function (x) { return x.id === id; })); break;
       case "delete-sponsor": state.sponsors = state.sponsors.filter(function (x) { return x.id !== id; }); save(); hideDrawer(); renderView(); toast("Sponsor removed."); break;
+      case "add-finance": openFinance(null); break;
+      case "edit-finance": openFinance(finById(id)); break;
+      case "delete-finance": deleteFinance(id); break;
+      case "fin-opening": openOpeningBalance(); break;
+      case "fin-filter": ui.finFilter = act.dataset.f; renderFinances(); break;
       case "settings": openSettings(); break;
       case "broadcast": openBroadcast(); break;
       case "sync-signups": syncSignups(false); break;
@@ -1156,7 +1361,7 @@
   }
   function loadSample() {
     state = JSON.parse(JSON.stringify(LB.SAMPLE)); state.seeded = true;
-    state.sessions = state.sessions || []; state.phasesDone = state.phasesDone || []; state.events = state.events || [];
+    state.sessions = state.sessions || []; state.phasesDone = state.phasesDone || []; state.events = state.events || []; state.finances = state.finances || [];
     save(); renderView();
     toast("Sample roster loaded.");
   }

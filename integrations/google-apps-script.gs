@@ -66,6 +66,9 @@ var SHEET_ATT     = "Attendance";
 var SHEET_EVENTS  = "Events";
 var SHEET_ACCESS  = "Access";
 var ACCESS_HEADERS = ["Email", "Name", "Added", "Added by"];
+var SHEET_FIN     = "Finances";
+var FIN_HEADERS   = ["Id", "Date", "Type", "Category", "Amount", "Method",
+                     "Paid to/from", "Description", "Note", "Updated", "Deleted"];
 var HEADERS = ["When", "Child", "Graduation class", "Program",
                "Parent", "Email", "Mobile", "Alerts", "Note", "Other sports"];
 var ATT_HEADERS = ["Date", "Event", "EventId", "Child", "Grad year", "Program", "Updated"];
@@ -138,15 +141,17 @@ function doPost(e) {
   try {
     var d = JSON.parse(e.postData.contents);
     // Dashboard writes require an approved signed-in account; website signups don't.
-    var DASH = { attendance: 1, event: 1, "event-delete": 1, "access-add": 1, "access-remove": 1 };
+    var DASH = { attendance: 1, event: 1, "event-delete": 1, finance: 1, "finance-delete": 1, "access-add": 1, "access-remove": 1 };
     if (DASH[d.type]) {
       var auth = authOf_(d.token);
       if (authEnabled_() && (!auth || !auth.approved)) return json_({ ok: false, error: "auth" });
-      if (d.type === "attendance")    return saveAttendance_(d);
-      if (d.type === "event")         return saveEvent_(d);
-      if (d.type === "event-delete")  return deleteEvent_(d);
-      if (d.type === "access-add")    return accessAdd_(d, auth);
-      if (d.type === "access-remove") return accessRemove_(d, auth);
+      if (d.type === "attendance")     return saveAttendance_(d);
+      if (d.type === "event")          return saveEvent_(d);
+      if (d.type === "event-delete")   return deleteEvent_(d);
+      if (d.type === "finance")        return saveFinance_(d);
+      if (d.type === "finance-delete") return deleteFinance_(d);
+      if (d.type === "access-add")     return accessAdd_(d, auth);
+      if (d.type === "access-remove")  return accessRemove_(d, auth);
     }
     // ---- public website signup (no auth) ----
     var sh = sheetOf_(SHEET_SIGNUPS);
@@ -218,6 +223,33 @@ function deleteEvent_(d) {
   var at = sheetOf_(SHEET_ATT);
   var av = at.getDataRange().getValues();
   for (var a = av.length - 1; a >= 1; a--) { if (String(av[a][2]) === id) at.deleteRow(a + 1); }
+  return json_({ ok: true });
+}
+
+// ================================================================
+//  FINANCES — dashboard ledger  ->  this spreadsheet
+// ================================================================
+function saveFinance_(d) {
+  var sh = sheetOf_(SHEET_FIN);
+  if (sh.getLastRow() === 0) sh.appendRow(FIN_HEADERS);
+  var id = String(d.id || "");
+  if (!id) return json_({ ok: false, error: "missing id" });
+  var vals = sh.getDataRange().getValues();
+  var rowIdx = -1;
+  for (var r = 1; r < vals.length; r++) { if (String(vals[r][0]) === id) { rowIdx = r; break; } }
+  var row = [id, String(d.date || ""), d.kind === "in" ? "in" : "out", d.category || "",
+    Number(d.amount) || 0, d.method || "", d.party || "", d.desc || "", d.note || "",
+    d.updated || new Date().toISOString(), ""];
+  if (rowIdx > -1) sh.getRange(rowIdx + 1, 1, 1, row.length).setValues([row]);
+  else sh.appendRow(row);
+  return json_({ ok: true });
+}
+function deleteFinance_(d) {
+  var id = String(d.id || "");
+  if (!id) return json_({ ok: false, error: "missing id" });
+  var sh = sheetOf_(SHEET_FIN);
+  var vals = sh.getDataRange().getValues();
+  for (var r = vals.length - 1; r >= 1; r--) { if (String(vals[r][0]) === id) sh.deleteRow(r + 1); }
   return json_({ ok: true });
 }
 
@@ -308,8 +340,16 @@ function doGet(e) {
       program: evRows[v][6], tier: evRows[v][7], note: evRows[v][8],
       calId: String(evRows[v][9] || ""), updated: String(evRows[v][10] || "") });
   }
+  var finRows = sheetOf_(SHEET_FIN).getDataRange().getValues();
+  var finances = [];
+  for (var f = 1; f < finRows.length; f++) {
+    if (!finRows[f][0]) continue;
+    finances.push({ id: String(finRows[f][0]), date: String(finRows[f][1]), kind: finRows[f][2],
+      category: finRows[f][3], amount: Number(finRows[f][4]) || 0, method: finRows[f][5],
+      party: finRows[f][6], desc: finRows[f][7], note: finRows[f][8], updated: String(finRows[f][9] || "") });
+  }
   var out = { ok: true, approved: true, owner: auth ? !!auth.owner : true,
-    signups: signups, attendance: attendance, events: events };
+    signups: signups, attendance: attendance, events: events, finances: finances };
   if (out.owner) { out.access = accessEmails_(); out.owners = owners_(); }
   return json_(out);
 }
@@ -469,6 +509,11 @@ function setup() {
   acc.getRange(1, 1, 1, ACCESS_HEADERS.length).setFontWeight("bold");
   acc.setFrozenRows(1);
 
+  var fin = ss.getSheetByName(SHEET_FIN) || ss.insertSheet(SHEET_FIN);
+  if (fin.getLastRow() === 0) fin.appendRow(FIN_HEADERS);
+  fin.getRange(1, 1, 1, FIN_HEADERS.length).setFontWeight("bold");
+  fin.setFrozenRows(1);
+
   // Confirmation popup only works when run from the sheet's menu; running from
   // the editor has no UI, so don't let that throw.
   try {
@@ -486,7 +531,8 @@ function sheetOf_(name) {
     if (name === SHEET_SIGNUPS) s.appendRow(HEADERS);
     else if (name === SHEET_ATT) s.appendRow(ATT_HEADERS);
     else if (name === SHEET_EVENTS) s.appendRow(EVENT_HEADERS);
-    else if (name === SHEET_ACCESS) s.appendRow(ACCESS_HEADERS); }
+    else if (name === SHEET_ACCESS) s.appendRow(ACCESS_HEADERS);
+    else if (name === SHEET_FIN) s.appendRow(FIN_HEADERS); }
   return s;
 }
 

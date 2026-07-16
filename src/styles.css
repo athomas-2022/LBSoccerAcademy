@@ -327,6 +327,37 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
 .ev-note{font-size:var(--fs-sm);color:var(--ink-2);font-weight:500;margin-top:.5rem;max-width:56ch}
 .ev-card__actions{display:flex;gap:.5rem;flex:0 0 auto;flex-wrap:wrap}
 
+/* finances */
+.fin-cards{display:grid;gap:.7rem;grid-template-columns:repeat(auto-fit,minmax(9.5rem,1fr));margin-bottom:.4rem}
+.fin-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:.9rem 1rem;
+  display:flex;flex-direction:column;gap:.15rem}
+.fin-k{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:800}
+.fin-v{font-size:var(--fs-2xl);font-weight:900;color:var(--ink);line-height:1.05}
+.fin-sub{font-size:var(--fs-xs);color:var(--ink-3);font-weight:600}
+.fin-card--bal{background:linear-gradient(180deg,var(--accent),var(--blue-700));border-color:transparent}
+.fin-card--bal .fin-k,.fin-card--bal .fin-sub{color:rgba(255,255,255,.75)}
+.fin-card--bal .fin-v{color:#fff}
+.fin-card--in .fin-v{color:oklch(0.48 .13 155)}
+.fin-card--out .fin-v{color:var(--danger-ink)}
+.fin-card--kind .fin-v{color:var(--accent)}
+.fin-breakdowns{display:grid;gap:1rem 2rem;grid-template-columns:1fr;margin:1.1rem 0}
+@media (min-width:46rem){.fin-breakdowns{grid-template-columns:1fr 1fr}}
+.fin-bd h3{font-size:var(--fs-sm);text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);font-weight:800;margin-bottom:.5rem}
+.fin-brow{display:grid;grid-template-columns:1fr 5rem auto;align-items:center;gap:.6rem;padding:.2rem 0}
+.fin-bcat{font-size:var(--fs-sm);color:var(--ink-2);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fin-bbar{height:7px;border-radius:5px;background:var(--surface-2);overflow:hidden}
+.fin-bbar i{display:block;height:100%;background:var(--accent);border-radius:5px}
+.fin-bamt{font-size:var(--fs-sm);font-weight:700;color:var(--ink);text-align:right}
+.fin-filter{display:flex;gap:.4rem;margin-bottom:.7rem}
+.fin-table td{vertical-align:top}
+.fin-date{color:var(--ink-3);font-weight:700;white-space:nowrap}
+.fin-meta{font-size:var(--fs-xs);color:var(--ink-3);font-weight:600;margin-top:.1rem}
+.fin-amth{text-align:right}
+.fin-amt{text-align:right;font-weight:800;white-space:nowrap}
+.fin-amt.is-in{color:oklch(0.48 .13 155)}
+.fin-amt.is-out{color:var(--danger-ink)}
+.fin-amt.is-kind{color:var(--accent);font-weight:700}
+
 /* status pill (shared) */
 .pill{display:inline-flex;align-items:center;gap:.35rem;font-size:var(--fs-xs);font-weight:700;padding:.25rem .6rem;
   border-radius:var(--r-pill);border:1px solid transparent;white-space:nowrap}
