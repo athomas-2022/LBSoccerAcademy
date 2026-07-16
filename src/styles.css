@@ -357,6 +357,13 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
 .fin-amt.is-in{color:oklch(0.48 .13 155)}
 .fin-amt.is-out{color:var(--danger-ink)}
 .fin-amt.is-kind{color:var(--accent);font-weight:700}
+.empty--mini{padding:1.4rem 1rem;text-align:center}
+.empty--mini h3{margin-bottom:.2rem}
+.fin-sponsors{margin-top:1.8rem;padding-top:1.4rem;border-top:1px solid var(--line)}
+.fin-sechead{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:.8rem}
+.fin-sech{font-size:var(--fs-xl);font-weight:800;color:var(--ink);line-height:1.1}
+.fin-sechsub{font-size:var(--fs-sm);color:var(--ink-3);font-weight:500;margin-top:.15rem;max-width:52ch}
+.fin-sechempty{color:var(--ink-3);font-size:var(--fs-sm);font-weight:500;padding:.4rem 0}
 
 /* status pill (shared) */
 .pill{display:inline-flex;align-items:center;gap:.35rem;font-size:var(--fs-xs);font-weight:700;padding:.25rem .6rem;

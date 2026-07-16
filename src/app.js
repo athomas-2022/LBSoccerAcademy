@@ -219,8 +219,7 @@
     schedule: { title: "Schedule", sub: "Sessions & events — auto-added to the shared calendar families follow." },
     attendance: { title: "Attendance", sub: "Pick a session, tap kids in — it flows into the tracker." },
     plan: { title: "The 360-Day Plan", sub: "Twelve phases from first conversation to year two." },
-    sponsors: { title: "Sponsors", sub: "Who funds “Every Kid Plays.”" },
-    finances: { title: "Finances", sub: "Every dollar in and out — your running ledger." }
+    finances: { title: "Finances", sub: "Every dollar in and out, plus your sponsors." }
   };
   function renderTopbar() {
     var m = VIEW_META[ui.view];
@@ -238,8 +237,6 @@
         '<button class="btn btn--primary" data-action="add-event"><svg class="ic"><use href="#ic-plus"/></svg>Add event</button>';
     } else if (ui.view === "attendance") {
       slot.innerHTML = '<button class="btn btn--primary" data-action="save-session"><svg class="ic"><use href="#ic-check"/></svg>Save session</button>';
-    } else if (ui.view === "sponsors") {
-      slot.innerHTML = '<button class="btn btn--primary" data-action="add-sponsor"><svg class="ic"><use href="#ic-plus"/></svg>Add sponsor</button>';
     } else if (ui.view === "finances") {
       slot.innerHTML = '<button class="btn btn--ghost" data-action="fin-opening">Opening balance</button>' +
         '<button class="btn btn--primary" data-action="add-finance"><svg class="ic"><use href="#ic-plus"/></svg>Add transaction</button>';
@@ -265,7 +262,6 @@
     else if (ui.view === "schedule") renderSchedule();
     else if (ui.view === "attendance") renderAttendance();
     else if (ui.view === "plan") renderPlan();
-    else if (ui.view === "sponsors") renderSponsors();
     else if (ui.view === "finances") renderFinances();
     renderNavBadge(); renderDataNote();
   }
@@ -772,34 +768,7 @@
   }
 
   // ================================================================
-  //  SPONSORS
-  // ================================================================
-  function renderSponsors() {
-    var host = $("#view-sponsors");
-    var total = state.sponsors.reduce(function (s, x) { return s + (Number(x.amount) || 0); }, 0);
-    var summary = '<div class="spon-summary">' +
-      '<div class="spon-total"><div class="n tnum">' + money(total) + '</div><div class="l">raised from ' + state.sponsors.length + ' sponsor' + (state.sponsors.length === 1 ? "" : "s") + '</div>' +
-        '<div class="goal">Goal ' + money(SPONSOR_GOAL) + ' · keeps the year free for families</div></div>' +
-      '</div>';
-
-    if (!state.sponsors.length) {
-      host.innerHTML = summary + '<div class="empty"><img src="assets/logos/Eagle Head.png" alt="" />' +
-        '<h3>No sponsors yet.</h3><p>Local businesses fund the gear and field costs that keep it free. Add your first.</p>' +
-        '<div class="empty__actions"><button class="btn btn--primary" data-action="add-sponsor"><svg class="ic"><use href="#ic-plus"/></svg>Add a sponsor</button>' +
-        '<button class="btn btn--ghost" data-action="load-sample">Load sample data</button></div></div>';
-      return;
-    }
-    var sorted = state.sponsors.slice().sort(function (a, b) { return (b.amount || 0) - (a.amount || 0); });
-    var rows = sorted.map(function (s) {
-      return '<tr data-action="edit-sponsor" data-id="' + s.id + '">' +
-        '<td><button type="button" class="who__name" data-action="edit-sponsor" data-id="' + s.id + '">' + esc(s.name) + '</button>' + (s.note ? '<div class="who__sports" style="text-transform:none;font-weight:500">' + esc(s.note) + '</div>' : "") + '</td>' +
-        '<td class="tnum" style="font-weight:700">' + (s.amount ? money(s.amount) : "In-kind") + '</td></tr>';
-    }).join("");
-    host.innerHTML = summary + '<div class="tablewrap"><table class="roster"><thead><tr><th>Sponsor</th><th>Amount</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
-  }
-
-  // ================================================================
-  //  FINANCES — running ledger of money in / out
+  //  FINANCES — running ledger of money in / out (+ sponsors)
   // ================================================================
   function finById(id) { for (var i = 0; i < state.finances.length; i++) if (state.finances[i].id === id) return state.finances[i]; return null; }
   function finInkind(t) { return t.method === FIN_INKIND; }
@@ -835,9 +804,10 @@
       (SIGNUPS_URL ? '<span class="att-sync">Synced to your Google Sheet ledger</span>' : '<span class="att-sync att-sync--off">This device only — connect the Sheet to sync</span>');
 
     if (!state.finances.length) {
-      host.innerHTML = cards + '<div class="empty"><img src="assets/logos/Eagle Head.png" alt="" />' +
-        '<h3>No transactions yet.</h3><p>Log every dollar in and out — sponsor checks, gear, field rental, printing, referees. It builds your ledger for the books and taxes.</p>' +
-        '<div class="empty__actions"><button class="btn btn--primary" data-action="add-finance"><svg class="ic"><use href="#ic-plus"/></svg>Add a transaction</button></div></div>';
+      host.innerHTML = cards + '<div class="empty empty--mini"><h3>No transactions yet.</h3>' +
+        '<p>Log every dollar in and out — sponsor checks, gear, field rental, printing, referees. It builds your ledger for the books and taxes.</p>' +
+        '<div class="empty__actions"><button class="btn btn--primary" data-action="add-finance"><svg class="ic"><use href="#ic-plus"/></svg>Add a transaction</button></div></div>' +
+        sponsorSection();
       return;
     }
 
@@ -876,7 +846,33 @@
 
     host.innerHTML = cards + breakdownHtml + chips +
       '<div class="tablewrap"><table class="roster fin-table"><thead><tr><th>Date</th><th>Transaction</th><th class="fin-amth">Amount</th></tr></thead><tbody>' +
-      rows + '</tbody></table></div>';
+      rows + '</tbody></table></div>' + sponsorSection();
+  }
+
+  // Sponsors now live inside Finances — a distinct section under the ledger.
+  function sponsorSection() {
+    var head = '<div class="fin-sechead"><div><h2 class="fin-sech">Sponsors</h2>' +
+      '<p class="fin-sechsub">Who funds “Every Kid Plays” — pledges &amp; support (separate from cash received above).</p></div>' +
+      '<button class="btn btn--ghost btn--sm" data-action="add-sponsor"><svg class="ic"><use href="#ic-plus"/></svg>Add sponsor</button></div>';
+    var total = state.sponsors.reduce(function (s, x) { return s + (Number(x.amount) || 0); }, 0);
+    var summary = '<div class="spon-summary"><div class="spon-total">' +
+      '<div class="n tnum">' + money(total) + '</div>' +
+      '<div class="l">pledged from ' + state.sponsors.length + ' sponsor' + (state.sponsors.length === 1 ? "" : "s") + '</div>' +
+      '<div class="goal">Goal ' + money(SPONSOR_GOAL) + ' · keeps the year free for families</div></div></div>';
+    var body;
+    if (!state.sponsors.length) {
+      body = '<p class="fin-sechempty">No sponsors yet — add the local businesses backing the program.</p>';
+    } else {
+      var sorted = state.sponsors.slice().sort(function (a, b) { return (b.amount || 0) - (a.amount || 0); });
+      var rows = sorted.map(function (s) {
+        return '<tr data-action="edit-sponsor" data-id="' + s.id + '">' +
+          '<td><button type="button" class="who__name" data-action="edit-sponsor" data-id="' + s.id + '">' + esc(s.name) + '</button>' +
+            (s.note ? '<div class="who__sports" style="text-transform:none;font-weight:500">' + esc(s.note) + '</div>' : "") + '</td>' +
+          '<td class="tnum" style="font-weight:700">' + (s.amount ? money(s.amount) : "In-kind") + '</td></tr>';
+      }).join("");
+      body = '<div class="tablewrap"><table class="roster"><thead><tr><th>Sponsor</th><th>Amount</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+    }
+    return '<div class="fin-sponsors">' + head + summary + body + '</div>';
   }
 
   function financeForm(x) {
