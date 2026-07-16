@@ -25,7 +25,7 @@
   // Authorized JavaScript origin, and paste the "...apps.googleusercontent.com"
   // id here AND into the Apps Script CONFIG.CLIENT_ID. Leave "" to disable the
   // gate (open access — only while you finish setup).
-  var GOOGLE_CLIENT_ID = "";
+  var GOOGLE_CLIENT_ID = "272844850821-4li2sup0s44gvasaub514d5qbg9nfq5p.apps.googleusercontent.com";
   var $ = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
   var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (m) {

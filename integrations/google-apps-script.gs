@@ -44,7 +44,7 @@ var CONFIG = {
   // (Manage access in the dashboard, or the "Access" sheet tab). List each
   // owner's Google email in lowercase. Leave CLIENT_ID "" to disable the gate
   // (open access — only while finishing setup).
-  CLIENT_ID:    "",
+  CLIENT_ID:    "272844850821-4li2sup0s44gvasaub514d5qbg9nfq5p.apps.googleusercontent.com",
   OWNER_EMAILS: ["athomas@liberty-benton.org"],
 
   // --- Remind auto-invite: every signup's welcome email invites them to join ---
