@@ -357,6 +357,15 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
 .fin-amt.is-in{color:oklch(0.48 .13 155)}
 .fin-amt.is-out{color:var(--danger-ink)}
 .fin-amt.is-kind{color:var(--accent);font-weight:700}
+.fin-sched-note{font-size:var(--fs-sm);color:var(--ink-2);font-weight:600;margin:-.2rem 0 .3rem}
+.fin-sched-note .u-in{color:oklch(0.48 .13 155)}
+.fin-sched-note .u-out{color:var(--danger-ink)}
+.fin-tag{display:inline-block;font-size:var(--fs-xs);font-weight:800;padding:.05rem .4rem;border-radius:var(--r-pill);
+  margin-left:.4rem;vertical-align:middle;letter-spacing:.02em}
+.fin-tag--sched{background:oklch(0.72 .12 60 / .16);color:oklch(0.52 .12 60)}
+.fin-tag--rep{background:var(--accent-weak);color:var(--accent)}
+.fin-table tr.is-sched .fin-date,.fin-table tr.is-sched .who__name{opacity:.72}
+.fin-rep-hint{font-size:var(--fs-xs);color:var(--ink-3);font-weight:600;margin:-.4rem 0 .2rem}
 .empty--mini{padding:1.4rem 1rem;text-align:center}
 .empty--mini h3{margin-bottom:.2rem}
 .fin-sponsors{margin-top:1.8rem;padding-top:1.4rem;border-top:1px solid var(--line)}

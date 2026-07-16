@@ -777,17 +777,37 @@
       return (b.date + (b.updated || "")).localeCompare(a.date + (a.updated || ""));
     });
   }
+  function finScheduled(t) { return t.date > today(); }   // future-dated = not yet counted
   function finTotals() {
-    var cashIn = 0, cashOut = 0, inkind = 0;
+    var cashIn = 0, cashOut = 0, inkind = 0, schedIn = 0, schedOut = 0;
     state.finances.forEach(function (t) {
-      var amt = Number(t.amount) || 0;
-      if (finInkind(t)) { inkind += amt; }
-      else if (t.kind === "in") cashIn += amt;
-      else cashOut += amt;
+      var amt = Number(t.amount) || 0, future = finScheduled(t);
+      if (finInkind(t)) { if (!future) inkind += amt; }
+      else if (t.kind === "in") { if (future) schedIn += amt; else cashIn += amt; }
+      else { if (future) schedOut += amt; else cashOut += amt; }
     });
     var opening = Number(state.settings.openingBalance) || 0;
-    return { cashIn: cashIn, cashOut: cashOut, inkind: inkind, opening: opening, balance: opening + cashIn - cashOut };
+    return { cashIn: cashIn, cashOut: cashOut, inkind: inkind, schedIn: schedIn, schedOut: schedOut,
+      opening: opening, balance: opening + cashIn - cashOut, hasSched: (schedIn || schedOut) > 0 };
   }
+  // date math for recurring transactions
+  function finIso(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function finAddMonths(d, m) {
+    var day = d.getDate(), nd = new Date(d.getFullYear(), d.getMonth() + m, 1);
+    var last = new Date(nd.getFullYear(), nd.getMonth() + 1, 0).getDate();
+    nd.setDate(Math.min(day, last)); return nd;
+  }
+  function finAddPeriods(dateStr, freq, n) {
+    var d = new Date(dateStr + "T00:00:00");
+    if (freq === "weekly") d.setDate(d.getDate() + 7 * n);
+    else if (freq === "biweekly") d.setDate(d.getDate() + 14 * n);
+    else if (freq === "monthly") d = finAddMonths(d, n);
+    else if (freq === "quarterly") d = finAddMonths(d, 3 * n);
+    else if (freq === "yearly") d = finAddMonths(d, 12 * n);
+    return finIso(d);
+  }
+  var FIN_FREQS = [["weekly", "Weekly"], ["biweekly", "Every 2 weeks"], ["monthly", "Monthly"], ["quarterly", "Quarterly"], ["yearly", "Yearly"]];
+  function finFreqLabel(f) { for (var i = 0; i < FIN_FREQS.length; i++) if (FIN_FREQS[i][0] === f) return FIN_FREQS[i][1]; return ""; }
   function signed(t) { var amt = Number(t.amount) || 0; return (t.kind === "in" ? "+" : "−") + money(amt); }
 
   function renderFinances() {
@@ -795,12 +815,15 @@
     var t = finTotals();
     var cards =
       '<div class="fin-cards">' +
-        '<div class="fin-card fin-card--bal"><span class="fin-k">Balance</span><span class="fin-v tnum">' + money(t.balance) + '</span>' +
+        '<div class="fin-card fin-card--bal"><span class="fin-k">Balance</span><span class="fin-v tnum">' + (t.balance < 0 ? "−" + money(-t.balance) : money(t.balance)) + '</span>' +
           '<span class="fin-sub">' + (t.opening ? money(t.opening) + ' opening' : 'no opening balance set') + '</span></div>' +
         '<div class="fin-card fin-card--in"><span class="fin-k">Money in</span><span class="fin-v tnum">' + money(t.cashIn) + '</span></div>' +
         '<div class="fin-card fin-card--out"><span class="fin-k">Money out</span><span class="fin-v tnum">' + money(t.cashOut) + '</span></div>' +
         (t.inkind ? '<div class="fin-card fin-card--kind"><span class="fin-k">In-kind received</span><span class="fin-v tnum">' + money(t.inkind) + '</span><span class="fin-sub">non-cash value</span></div>' : "") +
       '</div>' +
+      (t.hasSched ? '<p class="fin-sched-note">Scheduled (not yet in the balance): ' +
+        (t.schedIn ? '<b class="u-in">+' + money(t.schedIn) + '</b> in' : "") + (t.schedIn && t.schedOut ? ' · ' : "") +
+        (t.schedOut ? '<b class="u-out">−' + money(t.schedOut) + '</b> out' : "") + '</p>' : "") +
       (SIGNUPS_URL ? '<span class="att-sync">Synced to your Google Sheet ledger</span>' : '<span class="att-sync att-sync--off">This device only — connect the Sheet to sync</span>');
 
     if (!state.finances.length) {
@@ -836,10 +859,12 @@
 
     var list = finsSorted().filter(function (x) { return filt === "all" || x.kind === filt; });
     var rows = list.map(function (x) {
-      var ik = finInkind(x);
-      return '<tr data-action="edit-finance" data-id="' + x.id + '">' +
+      var ik = finInkind(x), sched = finScheduled(x);
+      var badges = (sched ? '<span class="fin-tag fin-tag--sched">scheduled</span>' : "") +
+        (x.series ? '<span class="fin-tag fin-tag--rep">↻ ' + esc(finFreqLabel(x.repeat) || "repeats") + '</span>' : "");
+      return '<tr class="' + (sched ? "is-sched" : "") + '" data-action="edit-finance" data-id="' + x.id + '">' +
         '<td class="fin-date tnum">' + esc(fmtDate(x.date)) + '</td>' +
-        '<td><button type="button" class="who__name" data-action="edit-finance" data-id="' + x.id + '">' + esc(x.desc || x.category) + '</button>' +
+        '<td><button type="button" class="who__name" data-action="edit-finance" data-id="' + x.id + '">' + esc(x.desc || x.category) + '</button>' + badges +
           '<div class="fin-meta">' + esc(x.category) + (x.party ? ' · ' + esc(x.party) : "") + (x.method ? ' · ' + esc(x.method) : "") + '</div></td>' +
         '<td class="fin-amt ' + (ik ? "is-kind" : x.kind === "in" ? "is-in" : "is-out") + ' tnum">' + (ik ? money(Number(x.amount) || 0) + ' in-kind' : signed(x)) + '</td></tr>';
     }).join("");
@@ -898,6 +923,13 @@
         '<div class="field"><label for="f-method">Method</label><select id="f-method">' + methods + '</select></div>' +
       '</div>' +
       '<div class="field"><label for="f-note">Note <span style="font-weight:500;color:var(--ink-3)">(optional)</span></label><textarea id="f-note" placeholder="Receipt #, reimbursed by…">' + esc(x.note || "") + '</textarea></div>' +
+      (x.id ? "" :
+        '<div class="field--row">' +
+          '<div class="field"><label for="f-repeat">Repeat</label><select id="f-repeat"><option value="">Does not repeat</option>' +
+            FIN_FREQS.map(function (f) { return '<option value="' + f[0] + '">' + f[1] + '</option>'; }).join("") + '</select></div>' +
+          '<div class="field" id="f-count-wrap" hidden><label for="f-count">How many</label><input id="f-count" type="number" min="2" max="60" value="12"></div>' +
+        '</div>' +
+        '<p class="fin-rep-hint" id="f-rep-hint" hidden></p>') +
       '<div class="drawer__foot">' +
         (x.id ? '<button type="button" class="btn btn--danger" data-action="delete-finance" data-id="' + x.id + '">Delete</button>' : "") +
         '<button type="submit" class="btn btn--primary">' + (x.id ? "Save" : "Add transaction") + '</button>' +
@@ -911,6 +943,17 @@
       $("#f-cat-out").hidden = k === "in"; $("#f-cat-in").hidden = k !== "in";
     }
     kindRadios.forEach(function (r) { r.addEventListener("change", syncCatVisibility); });
+    var repeatSel = $("#f-repeat");
+    function syncRepeat() {
+      var f = repeatSel.value, wrap = $("#f-count-wrap"), hint = $("#f-rep-hint");
+      wrap.hidden = !f;
+      if (!f) { hint.hidden = true; return; }
+      var n = Math.max(2, Math.min(60, parseInt($("#f-count").value, 10) || 12));
+      var last = finAddPeriods($("#f-date").value || today(), f, n - 1);
+      hint.hidden = false; hint.textContent = "Creates " + n + " " + finFreqLabel(f).toLowerCase() + " transactions through " + fmtDate(last) + ". Future ones show as “scheduled” until their date.";
+    }
+    if (repeatSel) { repeatSel.addEventListener("change", syncRepeat);
+      $("#f-count").addEventListener("input", syncRepeat); $("#f-date").addEventListener("change", syncRepeat); }
     $("#finForm").addEventListener("submit", function (sub) {
       sub.preventDefault();
       var amt = parseFloat($("#f-amt").value); var date = $("#f-date").value;
@@ -919,14 +962,31 @@
       if (!(amt >= 0) || !date) { $(!(amt >= 0) ? "#f-amt" : "#f-date").focus(); return; }
       var kind = (document.querySelector('input[name="f-kind"]:checked') || {}).value || "out";
       var cat = kind === "in" ? $("#f-cat-in").value : $("#f-cat-out").value;
-      var data = { date: date, kind: kind, category: cat, amount: Math.round(amt * 100) / 100,
+      var base = { date: date, kind: kind, category: cat, amount: Math.round(amt * 100) / 100,
         method: $("#f-method").value, party: $("#f-party").value.trim(), desc: $("#f-desc").value.trim(),
-        note: $("#f-note").value.trim(), updated: new Date().toISOString(), unsynced: true };
-      var rec;
-      if (x && x.id) { var idx = state.finances.findIndex(function (y) { return y.id === x.id; });
-        rec = Object.assign({}, x, data); state.finances[idx] = rec; toast("Transaction saved."); }
-      else { data.id = uid("fin"); rec = data; state.finances.push(rec); toast((kind === "in" ? "+" : "−") + money(data.amount) + " logged."); }
-      save(); pushFinance(rec); hideDrawer(); renderView();
+        note: $("#f-note").value.trim() };
+      if (x && x.id) {
+        var idx = state.finances.findIndex(function (y) { return y.id === x.id; });
+        state.finances[idx] = Object.assign({}, x, base, { updated: new Date().toISOString(), unsynced: true });
+        save(); pushFinance(state.finances[idx]); toast("Transaction saved.");
+      } else {
+        var freq = repeatSel ? repeatSel.value : "";
+        if (freq) {
+          var count = Math.max(2, Math.min(60, parseInt($("#f-count").value, 10) || 12));
+          var series = uid("ser");
+          for (var i = 0; i < count; i++) {
+            var occ = Object.assign({}, base, { id: uid("fin"), date: finAddPeriods(date, freq, i),
+              series: series, repeat: freq, updated: new Date().toISOString(), unsynced: true });
+            state.finances.push(occ); pushFinance(occ);
+          }
+          save(); toast(count + " " + finFreqLabel(freq).toLowerCase() + " transactions added.");
+        } else {
+          var rec = Object.assign({}, base, { id: uid("fin"), updated: new Date().toISOString(), unsynced: true });
+          state.finances.push(rec); save(); pushFinance(rec);
+          toast((kind === "in" ? "+" : "−") + money(base.amount) + " logged.");
+        }
+      }
+      hideDrawer(); renderView();
     });
   }
   function deleteFinance(id) {
