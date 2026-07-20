@@ -251,7 +251,7 @@ p{text-wrap:pretty}
 /* ============================================================
    MISSION & VISION
    ============================================================ */
-.mission{padding-block:var(--section-y);background:var(--paper)}
+.mission{padding-block:var(--section-y);background:#fff}
 .mission__head{max-width:56rem;margin-inline:auto;text-align:center}
 .mission__head .kicker{color:var(--lb-blue);font-size:var(--step-1)}
 .mission__statement{margin-top:1rem;font-size:var(--step-2);line-height:1.28;letter-spacing:-.015em;
@@ -355,7 +355,7 @@ p{text-wrap:pretty}
 /* ============================================================
    OVERLAY — additive to rec & travel ("in addition, not instead")
    ============================================================ */
-.overlay{padding-block:var(--section-y);background:linear-gradient(180deg,var(--paper),var(--blue-50))}
+.overlay{padding-block:var(--section-y);background:var(--blue-100)}
 .overlay__head{max-width:62rem;margin-bottom:clamp(2.2rem,4.5vw,3.4rem)}
 .overlay__head .section-title{font-size:var(--step-3)}
 .overlay__head .section-lede{margin-top:1.2rem}
@@ -418,7 +418,7 @@ p{text-wrap:pretty}
 /* ============================================================
    CALENDAR / SCHEDULE
    ============================================================ */
-.calendar{padding-block:var(--section-y);background:var(--paper)}
+.calendar{padding-block:var(--section-y);background:#fff}
 .calendar__head{max-width:60rem}
 .calendar__head .section-lede{margin-top:1.2rem}
 .calendar__cta{margin-top:clamp(1.6rem,3vw,2.2rem)}
@@ -427,7 +427,7 @@ p{text-wrap:pretty}
    ALERTS — text + email band
    ============================================================ */
 .alerts{padding-block:var(--section-y);color:#fff;
-  background:linear-gradient(200deg,var(--lb-blue),var(--blue-950))}
+  background:linear-gradient(200deg,var(--lb-blue),var(--blue-800))}
 .alerts__box{display:grid;gap:clamp(1.6rem,4vw,3rem);align-items:center;grid-template-columns:1fr}
 @media (min-width:52rem){.alerts__box{grid-template-columns:1.5fr 1fr}}
 .alerts__copy .section-title{margin-top:.5rem;font-size:var(--step-3)}
