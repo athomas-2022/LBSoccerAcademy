@@ -70,7 +70,7 @@ var SHEET_FIN     = "Finances";
 var FIN_HEADERS   = ["Id", "Date", "Type", "Category", "Amount", "Method",
                      "Paid to/from", "Description", "Note", "Updated", "Deleted"];
 var HEADERS = ["When", "Child", "Graduation class", "Program",
-               "Parent", "Email", "Mobile", "Alerts", "Note", "Other sports"];
+               "Parent", "Email", "Mobile", "Alerts", "Note", "Other sports", "Shirt size"];
 var ATT_HEADERS = ["Date", "Event", "EventId", "Child", "Grad year", "Program", "Updated"];
 var EVENT_HEADERS = ["Id", "Title", "Date", "Start", "End", "Location",
                      "Program", "Tier", "Note", "CalendarEventId", "Updated", "Deleted"];
@@ -158,7 +158,7 @@ function doPost(e) {
     sh.appendRow([
       new Date(), d.childName || "", d.gradClass || "", d.program || "",
       d.parentName || "", d.email || "", d.phone || "",
-      d.alerts ? "yes" : "no", d.note || "", d.sports || ""
+      d.alerts ? "yes" : "no", d.note || "", d.sports || "", d.shirt || ""
     ]);
     if (d.email) sendWelcome_(d);
     notifyOffice_(d);
@@ -320,7 +320,8 @@ function doGet(e) {
     signups.push({
       when: String(rows[r][0]), child: rows[r][1], gradClass: rows[r][2],
       program: rows[r][3], parent: rows[r][4], email: rows[r][5],
-      phone: rows[r][6], alerts: rows[r][7], note: rows[r][8], sports: rows[r][9] || ""
+      phone: rows[r][6], alerts: rows[r][7], note: rows[r][8], sports: rows[r][9] || "",
+      shirt: rows[r][10] || ""
     });
   }
   var att = sheetOf_(SHEET_ATT).getDataRange().getValues();
@@ -378,6 +379,7 @@ function notifyOffice_(d) {
     "Child: " + (d.childName || ""),
     "Graduation class: " + (d.gradClass || ""),
     "Program: " + (d.program || ""),
+    d.shirt ? "Shirt size: " + d.shirt : "",
     d.sports ? "Other sports: " + d.sports : "",
     "Parent: " + (d.parentName || ""),
     "Email: " + (d.email || ""),
@@ -482,6 +484,7 @@ function setup() {
   var ss = SpreadsheetApp.getActive();
   var s = ss.getSheetByName(SHEET_SIGNUPS) || ss.insertSheet(SHEET_SIGNUPS);
   if (s.getLastRow() === 0) s.appendRow(HEADERS);
+  else s.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);   // refresh header (adds new columns)
   s.getRange(1, 1, 1, HEADERS.length).setFontWeight("bold");
   s.setFrozenRows(1);
 
