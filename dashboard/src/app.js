@@ -48,6 +48,8 @@
   var FIN_INKIND = "In-kind (no cash)";
 
   var TEAM_LEVELS = ["Rec", "Travel", "Club", "School", "Other"];
+  var SHIRT_SIZES = ["Youth XS", "Youth S", "Youth M", "Youth L", "Youth XL", "Adult S", "Adult M", "Adult L", "Adult XL"];
+  function shortSize(s) { return String(s || "").replace("Youth ", "Y").replace("Adult ", "A"); }
 
   function blank() { return { athletes: [], sponsors: [], phasesDone: [], sessions: [], events: [], finances: [], teams: [], settings: Object.assign({}, SETTINGS_DEFAULT), seeded: false }; }
   function load() {
@@ -407,7 +409,8 @@
       return '<tr data-action="edit" data-id="' + a.id + '"' + (a.status === "atrisk" ? ' class="is-risk"' : "") + '>' +
         '<td><div class="who"><span class="avatar ' + (a.program === "Girls" ? "g" : "") + '">' + esc(initials(a)) + '</span>' +
           '<span><button type="button" class="who__name" data-action="edit" data-id="' + a.id + '">' + esc(a.first + " " + a.last) + '</button>' +
-          (a.sports && a.sports.length ? '<span class="who__sports">' + esc(a.sports.join(", ")) + '</span>' : "") + seenChip(a) + '</span></div></td>' +
+          (a.sports && a.sports.length ? '<span class="who__sports">' + esc(a.sports.join(", ")) + '</span>' : "") + seenChip(a) +
+          (a.shirt ? '<span class="who__shirt" title="Shirt size">' + esc(shortSize(a.shirt)) + '</span>' : "") + '</span></div></td>' +
         '<td class="tnum">' + LB.GRADE_LABELS[a.grade] + '</td>' +
         '<td class="tnum">' + a.gradYear + '</td>' +
         '<td><span class="prog-tag ' + (a.program === "Girls" ? "g" : "b") + '">' + esc(a.program) + '</span></td>' +
@@ -421,7 +424,13 @@
       : '<div class="empty"><h3>No matches.</h3><p>No athletes fit these filters. Try clearing them.</p>' +
         '<div class="empty__actions"><button class="btn btn--ghost" data-action="clear-filters">Clear filters</button></div></div>';
 
-    host.innerHTML = map + toolbar + table;
+    var everyone = pool(), sizes = {}, withSize = 0;
+    everyone.forEach(function (a) { if (a.shirt) { sizes[a.shirt] = (sizes[a.shirt] || 0) + 1; withSize++; } });
+    var tally = withSize ? '<div class="shirt-tally"><span class="shirt-tally__h">Shirt order</span>' +
+      SHIRT_SIZES.filter(function (s) { return sizes[s]; }).map(function (s) { return '<span class="shirt-pill">' + esc(shortSize(s)) + ' <b>×' + sizes[s] + '</b></span>'; }).join("") +
+      '<span class="shirt-tally__n">' + withSize + ' of ' + everyone.length + ' sized</span></div>' : "";
+
+    host.innerHTML = map + toolbar + tally + table;
     var s = $("#athSearch");
     if (s) s.addEventListener("input", function () { ui.search = this.value; var pos = this.selectionStart;
       renderAthletes(); var s2 = $("#athSearch"); if (s2) { s2.focus(); try { s2.setSelectionRange(pos, pos); } catch (e) {} } });
@@ -1227,6 +1236,9 @@
   function gradeOptions(sel) {
     return LB.GRADE_LABELS.map(function (g, i) { return '<option value="' + i + '"' + (i === sel ? " selected" : "") + '>' + g + (i === 0 ? "" : " grade") + '</option>'; }).join("");
   }
+  function shirtOptions(sel) {
+    return '<option value="">—</option>' + SHIRT_SIZES.map(function (s) { return '<option value="' + s + '"' + (sel === s ? " selected" : "") + '>' + s + '</option>'; }).join("");
+  }
   function athleteForm(a) {
     a = a || {};
     var st = a.status || "prospect";
@@ -1245,8 +1257,11 @@
           '<label><input type="radio" name="f-prog" value="Girls"' + (a.program === "Girls" ? " checked" : "") + '><span>Girls</span></label>' +
         '</div></div>' +
       '</div>' +
-      '<div class="field"><label for="f-sports">Sports <span style="font-weight:500;color:var(--ink-3)">(comma-separated)</span></label>' +
-        '<input id="f-sports" value="' + esc((a.sports || []).join(", ")) + '" placeholder="Soccer, Basketball…"></div>' +
+      '<div class="field--row">' +
+        '<div class="field"><label for="f-sports">Sports <span style="font-weight:500;color:var(--ink-3)">(comma-separated)</span></label>' +
+          '<input id="f-sports" value="' + esc((a.sports || []).join(", ")) + '" placeholder="Soccer, Basketball…"></div>' +
+        '<div class="field field--narrow"><label for="f-shirt">Shirt size</label><select id="f-shirt">' + shirtOptions(a.shirt) + '</select></div>' +
+      '</div>' +
       '<div class="field--row">' +
         '<div class="field"><label for="f-email">Parent email <span style="font-weight:500;color:var(--ink-3)">(for alerts)</span></label>' +
           '<input id="f-email" type="email" value="' + esc(a.email || "") + '" placeholder="name@email.com"></div>' +
@@ -1278,13 +1293,14 @@
       var status = (document.querySelector('input[name="f-status"]:checked') || {}).value || "prospect";
       var sports = $("#f-sports").value.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
       var email = $("#f-email").value.trim(), phone = $("#f-phone").value.trim();
+      var shirt = $("#f-shirt").value;
       var note = $("#f-note").value.trim();
       if (a && a.id) {
         var idx = state.athletes.findIndex(function (x) { return x.id === a.id; });
-        state.athletes[idx] = Object.assign({}, a, { first: first, last: last, grade: grade, gradYear: LB.gradYearFor(grade), program: prog, status: status, sports: sports, email: email, phone: phone, note: note, updated: today() });
+        state.athletes[idx] = Object.assign({}, a, { first: first, last: last, grade: grade, gradYear: LB.gradYearFor(grade), program: prog, status: status, sports: sports, email: email, phone: phone, shirt: shirt, note: note, updated: today() });
         toast("Saved " + first + " " + last + ".");
       } else {
-        state.athletes.push({ id: uid("a"), first: first, last: last, grade: grade, gradYear: LB.gradYearFor(grade), program: prog, status: status, sports: sports, email: email, phone: phone, note: note, updated: today() });
+        state.athletes.push({ id: uid("a"), first: first, last: last, grade: grade, gradYear: LB.gradYearFor(grade), program: prog, status: status, sports: sports, email: email, phone: phone, shirt: shirt, note: note, updated: today() });
         toast("Added " + first + " " + last + " to the map.");
       }
       save(); hideDrawer(); renderView();
@@ -1418,7 +1434,7 @@
     return { id: uid("a"), first: first, last: last, grade: grade, gradYear: gradYear,
       program: (s.program === "Girls" ? "Girls" : "Boys"), status: "active",
       sports: sports, email: String(s.email || ""), phone: String(s.phone || ""),
-      note: String(s.note || ""), updated: today() };
+      shirt: String(s.shirt || ""), note: String(s.note || ""), updated: today() };
   }
 
   function syncSignups(quiet) {
