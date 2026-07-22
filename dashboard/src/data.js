@@ -17,7 +17,7 @@ var STATUSES = {
 
 var TIERS = [
   { key: "grassroot", name: "Grassroot Eagles", grades: "K–2", focus: "Fun, coordination, ball love" },
-  { key: "academy",   name: "Eagles Academy",   grades: "3–5", focus: "Real skill: dribbling, passing, 1v1" },
+  { key: "academy",   name: "Rising Eagles",   grades: "3–5", focus: "Real skill: dribbling, passing, 1v1" },
   { key: "nextxi",    name: "Next XI Eagles",   grades: "6–8", focus: "Our system: shape, patterns, set pieces" }
 ];
 
