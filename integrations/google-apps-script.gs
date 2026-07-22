@@ -70,7 +70,8 @@ var SHEET_FIN     = "Finances";
 var FIN_HEADERS   = ["Id", "Date", "Type", "Category", "Amount", "Method",
                      "Paid to/from", "Description", "Note", "Updated", "Deleted"];
 var HEADERS = ["When", "Child", "Graduation class", "Program",
-               "Parent", "Email", "Mobile", "Alerts", "Note", "Other sports", "Shirt size"];
+               "Parent", "Email", "Mobile", "Alerts", "Note", "Other sports", "Shirt size",
+               "Role", "Team"];
 var ATT_HEADERS = ["Date", "Event", "EventId", "Child", "Grad year", "Program", "Updated"];
 var EVENT_HEADERS = ["Id", "Title", "Date", "Start", "End", "Location",
                      "Program", "Tier", "Note", "CalendarEventId", "Updated", "Deleted"];
@@ -158,7 +159,8 @@ function doPost(e) {
     sh.appendRow([
       new Date(), d.childName || "", d.gradClass || "", d.program || "",
       d.parentName || "", d.email || "", d.phone || "",
-      d.alerts ? "yes" : "no", d.note || "", d.sports || "", d.shirt || ""
+      d.alerts ? "yes" : "no", d.note || "", d.sports || "", d.shirt || "",
+      d.role || "", d.team || ""
     ]);
     if (d.email) sendWelcome_(d);
     notifyOffice_(d);
@@ -321,7 +323,7 @@ function doGet(e) {
       when: String(rows[r][0]), child: rows[r][1], gradClass: rows[r][2],
       program: rows[r][3], parent: rows[r][4], email: rows[r][5],
       phone: rows[r][6], alerts: rows[r][7], note: rows[r][8], sports: rows[r][9] || "",
-      shirt: rows[r][10] || ""
+      shirt: rows[r][10] || "", role: rows[r][11] || "", team: rows[r][12] || ""
     });
   }
   var att = sheetOf_(SHEET_ATT).getDataRange().getValues();
@@ -364,9 +366,18 @@ function sendWelcome_(d) {
        "\nThat's how you'll get session reminders and urgent weather/cancellation " +
        "alerts on your phone. Do it once and you're set.\n\n")
     : "";
+  var lead;
+  if (d.role === "Coach")
+    lead = "Thanks for stepping up to coach with the " + CONFIG.PROGRAM_NAME +
+           ". We'll be in touch about the next Eagles Way coach clinic and getting you the session-plan library.";
+  else if (d.role === "Sponsor / partner")
+    lead = "Thank you for supporting the " + CONFIG.PROGRAM_NAME +
+           ". We'll follow up on how your support keeps it free for every kid in the district.";
+  else
+    lead = (d.childName || "Your child") + " is signed up for the " + CONFIG.PROGRAM_NAME + ".";
   var body =
     "Hi " + (d.parentName || "there") + ",\n\n" +
-    (d.childName || "Your child") + " is signed up for the " + CONFIG.PROGRAM_NAME + ".\n\n" +
+    lead + "\n\n" +
     join +
     "Questions? Just reply to this email.\n\n— " + CONFIG.PROGRAM_NAME;
   MailApp.sendEmail({ to: d.email, subject: subject, body: body,
@@ -374,14 +385,15 @@ function sendWelcome_(d) {
 }
 
 function notifyOffice_(d) {
-  var subject = "New signup: " + (d.childName || "?") + " (" + (d.program || "?") + ")";
+  var subject = "New signup: " + (d.parentName || d.childName || "?") + (d.role ? " — " + d.role : "");
   var body = [
-    "Child: " + (d.childName || ""),
-    "Graduation class: " + (d.gradClass || ""),
-    "Program: " + (d.program || ""),
+    d.role ? "Role: " + d.role : "",
+    d.team ? "Team: " + d.team : "",
+    d.childName ? "Child: " + d.childName : "",
+    d.gradClass ? "Graduation class: " + d.gradClass : "",
+    d.program ? "Program: " + d.program : "",
     d.shirt ? "Shirt size: " + d.shirt : "",
-    d.sports ? "Other sports: " + d.sports : "",
-    "Parent: " + (d.parentName || ""),
+    "Name: " + (d.parentName || ""),
     "Email: " + (d.email || ""),
     "Mobile: " + (d.phone || ""),
     "Alerts OK: " + (d.alerts ? "yes" : "no"),

@@ -154,6 +154,19 @@
   var statusEl = $("#regStatus");
   var submitBtn = $("#regSubmit");
 
+  // Role toggle: parent-only fields appear only when "A parent" is chosen.
+  function syncRole() {
+    if (!form) return;
+    var r = (form.querySelector('input[name="role"]:checked') || {}).value || "";
+    $$("[data-role-only]", form).forEach(function (el) {
+      el.hidden = el.getAttribute("data-role-only") !== r;
+    });
+  }
+  if (form) {
+    $$('input[name="role"]', form).forEach(function (r) { r.addEventListener("change", syncRole); });
+    syncRole();
+  }
+
   var setStatus = function (msg, kind) {
     if (!statusEl) return;
     statusEl.textContent = msg;
@@ -181,9 +194,7 @@
       var required = [
         form.querySelector("#parentName"),
         form.querySelector("#email"),
-        form.querySelector("#phone"),
-        form.querySelector("#childName"),
-        form.querySelector("#gradClass")
+        form.querySelector("#phone")
       ];
       var firstBad = null;
       required.forEach(function (input) {
@@ -191,12 +202,12 @@
         markField(input, bad);
         if (bad && !firstBad) firstBad = input;
       });
-      var program = form.querySelector('input[name="program"]:checked');
-      if (!program) {
-        markField(form.querySelector('input[name="program"]'), true);
-        if (!firstBad) firstBad = form.querySelector('input[name="program"]');
+      var role = form.querySelector('input[name="role"]:checked');
+      if (!role) {
+        markField(form.querySelector('input[name="role"]'), true);
+        if (!firstBad) firstBad = form.querySelector('input[name="role"]');
       } else {
-        markField(form.querySelector('input[name="program"]'), false);
+        markField(form.querySelector('input[name="role"]'), false);
       }
 
       if (firstBad) {
@@ -205,16 +216,19 @@
         return;
       }
 
+      var program = form.querySelector('input[name="program"]:checked');
       var data = {
+        role: role.value,
         parentName: form.parentName.value.trim(),
         email: form.email.value.trim(),
         phone: form.phone.value.trim(),
         alerts: true,                 // every signup is enrolled in text + email alerts
+        team: form.team.value.trim(),
         childName: form.childName.value.trim(),
         gradClass: form.gradClass.value,
-        program: program.value,
+        program: program ? program.value : "",
         shirt: form.shirt.value,
-        sports: form.sports.value.trim(),
+        sports: "",
         note: form.note.value.trim()
       };
 
@@ -230,8 +244,8 @@
           headers: { "Content-Type": "text/plain;charset=utf-8" },
           body: JSON.stringify(data)
         }).then(function () {
-          form.reset();
-          setStatus("You're in! We'll be in touch with your child's group. Go Eagles!", "ok");
+          form.reset(); syncRole();
+          setStatus("You're in! We'll be in touch soon. Go Eagles!", "ok");
           showJoinStep();
         }).catch(function () {
           openMailto(data);
@@ -259,22 +273,34 @@
   }
 
   function openMailto(d) {
-    var isSponsor = d.program === "Sponsor / partner";
-    var subject = isSponsor
-      ? "LB Soccer Academy — sponsorship interest"
-      : "LB Soccer Academy signup — " + d.childName + " (" + d.gradClass + ")";
-    var lines = isSponsor
-      ? ["Hi — I'd like to help keep kids playing.", "",
-         "Name: " + d.parentName, "Email: " + d.email,
-         d.phone ? "Phone: " + d.phone : "",
-         d.note ? "Note: " + d.note : "", "", "Thanks!"]
-      : ["Hi — I'd like to sign my child up for the LB Soccer Academy.", "",
-         "Child: " + d.childName, "Graduation class: " + d.gradClass, "Program: " + d.program,
-         d.shirt ? "Shirt size: " + d.shirt : "",
-         d.sports ? "Other sports/activities: " + d.sports : "",
-         "Parent/guardian: " + d.parentName, "Email: " + d.email,
-         "Mobile: " + d.phone, "Add us to text + email alerts: yes",
-         d.note ? "Notes: " + d.note : "", "", "Thank you!"];
+    var role = d.role || "";
+    var subject, lines;
+    if (role === "Sponsor / partner") {
+      subject = "LB Soccer Academy — sponsorship interest";
+      lines = ["Hi — I'd like to help keep the program free.", "",
+        "Name: " + d.parentName, "Email: " + d.email,
+        d.phone ? "Phone: " + d.phone : "",
+        d.team ? "Business: " + d.team : "",
+        d.note ? "Note: " + d.note : "", "", "Thanks!"];
+    } else if (role === "Coach") {
+      subject = "LB Soccer Academy — Eagles-Affiliated Coach interest";
+      lines = ["Hi — I'd like to become an Eagles-Affiliated Coach.", "",
+        "Name: " + d.parentName, "Email: " + d.email, "Mobile: " + d.phone,
+        d.team ? "Team I coach: " + d.team : "",
+        "Add me to clinic + alert messages: yes",
+        d.note ? "Notes: " + d.note : "", "", "Thank you!"];
+    } else {
+      subject = "LB Soccer Academy signup — " + (d.childName || d.parentName);
+      lines = ["Hi — I'd like to get my kid the Eagles Way.", "",
+        d.childName ? "Child: " + d.childName : "",
+        d.gradClass ? "Graduation class: " + d.gradClass : "",
+        d.program ? "Program: " + d.program : "",
+        d.team ? "Their team: " + d.team : "",
+        d.shirt ? "Shirt size: " + d.shirt : "",
+        "Parent/guardian: " + d.parentName, "Email: " + d.email,
+        "Mobile: " + d.phone, "Add us to clinic + alert messages: yes",
+        d.note ? "Notes: " + d.note : "", "", "Thank you!"];
+    }
     var body = lines.filter(function (l) { return l !== ""; }).join("\n");
     var gmail = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(CONTACT_EMAIL) +
       "&su=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);

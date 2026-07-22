@@ -388,6 +388,10 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
 .team-chips{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:.35rem}
 .team-chip{font-size:var(--fs-xs);font-weight:700;padding:.15rem .55rem;border-radius:var(--r-pill);
   border:1px solid var(--line-2);color:var(--ink-2);background:var(--surface-2)}
+.team-chip--good{background:var(--good-weak);color:var(--lb-blue);border-color:var(--blue-200)}
+.team-chip--warn{background:oklch(0.85 .12 85 / .18);color:oklch(0.47 .10 75);border-color:oklch(0.75 .12 85 / .45)}
+.team-chip--neutral{background:var(--surface-2);color:var(--ink-3);border-color:var(--line-2)}
+.team-clinic{color:var(--ink-3);font-weight:600}
 .team-actions{display:flex;gap:.4rem;flex-wrap:wrap}
 .team-coach{font-size:var(--fs-sm);color:var(--ink-2);font-weight:500;margin-top:.7rem}
 .team-coach b{color:var(--ink)}

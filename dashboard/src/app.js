@@ -48,6 +48,13 @@
   var FIN_INKIND = "In-kind (no cash)";
 
   var TEAM_LEVELS = ["Rec", "Travel", "Club", "School", "Other"];
+  // Where a coach sits in the affiliation funnel: prospect -> invited -> affiliated.
+  var AFFIL = [
+    { key: "affiliated", label: "Affiliated", tone: "good", help: "Trained in the Eagles Way and coaching it." },
+    { key: "invited", label: "Invited", tone: "warn", help: "Asked to a clinic — not yet trained." },
+    { key: "prospect", label: "Prospect", tone: "neutral", help: "A coach we want to bring in." }
+  ];
+  function affilOf(k) { for (var i = 0; i < AFFIL.length; i++) if (AFFIL[i].key === k) return AFFIL[i]; return AFFIL[2]; }
   var SHIRT_SIZES = ["Youth XS", "Youth S", "Youth M", "Youth L", "Youth XL", "Adult S", "Adult M", "Adult L", "Adult XL"];
   function shortSize(s) { return String(s || "").replace("Youth ", "Y").replace("Adult ", "A"); }
 
@@ -220,8 +227,8 @@
   var VIEW_META = {
     overview: { title: "Overview", sub: "The whole pipeline at a glance." },
     athletes: { title: "Athletes", sub: "Every athletic kid, K–8, by graduation year." },
-    teams: { title: "Teams", sub: "Local teams already playing — recruit their kids into the academy." },
-    schedule: { title: "Schedule", sub: "Sessions & events — auto-added to the shared calendar families follow." },
+    teams: { title: "Coaches", sub: "The district's coaches — train them in the Eagles Way and every kid on their roster benefits." },
+    schedule: { title: "Schedule", sub: "Coach clinics, touchpoints & showcases — auto-added to the shared calendar." },
     attendance: { title: "Attendance", sub: "Pick a session, tap kids in — it flows into the tracker." },
     plan: { title: "The 360-Day Plan", sub: "Twelve phases from first conversation to year two." },
     finances: { title: "Finances", sub: "Every dollar in and out, plus your sponsors." }
@@ -238,7 +245,7 @@
         '<button class="btn btn--ghost" data-action="broadcast"><svg class="ic"><use href="#ic-phone"/></svg>Message families</button>' +
         '<button class="btn btn--primary" data-action="add-athlete"><svg class="ic"><use href="#ic-plus"/></svg>Add athlete</button>';
     } else if (ui.view === "teams") {
-      slot.innerHTML = '<button class="btn btn--primary" data-action="add-team"><svg class="ic"><use href="#ic-plus"/></svg>Add team</button>';
+      slot.innerHTML = '<button class="btn btn--primary" data-action="add-team"><svg class="ic"><use href="#ic-plus"/></svg>Add coach</button>';
     } else if (ui.view === "schedule") {
       slot.innerHTML = (CALENDAR_ID ? '<a class="btn btn--ghost" href="https://calendar.google.com/calendar/u/0/r?cid=' + encodeURIComponent(CALENDAR_ID) + '" target="_blank" rel="noopener">Open shared calendar</a>' : "") +
         '<button class="btn btn--primary" data-action="add-event"><svg class="ic"><use href="#ic-plus"/></svg>Add event</button>';
@@ -480,24 +487,33 @@
     var host = $("#view-teams");
     var teamCount = state.teams.length;
     var playerCount = state.teams.reduce(function (n, t) { return n + (t.players ? t.players.length : 0); }, 0);
-    var summary = '<div class="team-summary"><div class="team-stat"><b class="tnum">' + teamCount + '</b> team' + (teamCount === 1 ? "" : "s") +
-      '</div><div class="team-stat"><b class="tnum">' + playerCount + '</b> kids on rosters</div>' +
-      '<p class="team-lede">Teams already playing rec, travel, club or school ball — your funnel into the academy.</p></div>';
+    var affCount = state.teams.filter(function (t) { return t.affiliation === "affiliated"; }).length;
+    var summary = '<div class="team-summary">' +
+      '<div class="team-stat"><b class="tnum">' + teamCount + '</b> coach' + (teamCount === 1 ? "" : "es") + '</div>' +
+      '<div class="team-stat"><b class="tnum">' + affCount + '</b> affiliated</div>' +
+      '<div class="team-stat"><b class="tnum">' + playerCount + '</b> kids reached</div>' +
+      '<p class="team-lede">Every rec, travel, club and school coach in the district. Train them in the Eagles Way and it reaches every kid on their roster — no extra sessions for the kids.</p></div>';
 
     if (!teamCount) {
       host.innerHTML = summary + '<div class="empty"><img src="../assets/logos/Eagle Head.png" alt="" />' +
-        '<h3>No teams yet.</h3><p>Add a local rec, travel, club or school team — its coach and roster. Then pull those kids into Athletes as prospects with one tap.</p>' +
-        '<div class="empty__actions"><button class="btn btn--primary" data-action="add-team"><svg class="ic"><use href="#ic-plus"/></svg>Add a team</button></div></div>';
+        '<h3>No coaches yet.</h3><p>Add a rec, travel, club or school coach — their team and roster. Track them from prospect to invited to Eagles-Affiliated, and pull their kids into Athletes with one tap.</p>' +
+        '<div class="empty__actions"><button class="btn btn--primary" data-action="add-team"><svg class="ic"><use href="#ic-plus"/></svg>Add a coach</button></div></div>';
       return;
     }
-    var cards = state.teams.slice().sort(function (a, b) { return a.name.localeCompare(b.name); }).map(function (t) {
+    var affRank = { affiliated: 0, invited: 1, prospect: 2 };
+    var cards = state.teams.slice().sort(function (a, b) {
+      return (affRank[a.affiliation] || 2) - (affRank[b.affiliation] || 2) || a.name.localeCompare(b.name);
+    }).map(function (t) {
       var players = t.players || [], matched = teamMatched(t);
-      var chips = '<span class="team-chip">' + esc(t.level || "Team") + '</span>' +
+      var aff = affilOf(t.affiliation);
+      var chips = '<span class="team-chip team-chip--' + aff.tone + '">' + esc(aff.label) + '</span>' +
+        '<span class="team-chip">' + esc(t.level || "Team") + '</span>' +
         '<span class="team-chip">' + esc(t.program || "Coed") + '</span>' +
         (t.ageGroup ? '<span class="team-chip">' + esc(t.ageGroup) + '</span>' : "");
       var coach = t.coach ? '<div class="team-coach"><b>Coach ' + esc(t.coach) + '</b>' +
         (t.coachEmail ? ' · <a href="mailto:' + esc(t.coachEmail) + '">' + esc(t.coachEmail) + '</a>' : "") +
-        (t.coachPhone ? ' · <a href="tel:' + esc(t.coachPhone) + '">' + esc(t.coachPhone) + '</a>' : "") + '</div>' : "";
+        (t.coachPhone ? ' · <a href="tel:' + esc(t.coachPhone) + '">' + esc(t.coachPhone) + '</a>' : "") +
+        (t.clinic ? ' · <span class="team-clinic">last clinic ' + esc(fmtDate(t.clinic)) + '</span>' : "") + '</div>' : "";
       var roster = players.length ? '<div class="team-roster">' + players.map(function (p) {
         return '<span class="team-player">' + esc(p.name) + (p.grade != null ? ' <i>' + (p.grade === 0 ? "K" : LB.GRADE_LABELS[p.grade]) + '</i>' : "") + '</span>';
       }).join("") + '</div>' : '<p class="team-empty">No players added yet.</p>';
@@ -521,7 +537,9 @@
   function teamForm(t) {
     t = t || {};
     var prog = t.program || "Coed";
+    var curAffil = t.affiliation || "prospect";
     var levels = TEAM_LEVELS.map(function (l) { return '<option value="' + l + '"' + (t.level === l ? " selected" : "") + '>' + l + '</option>'; }).join("");
+    var affilOpts = AFFIL.map(function (a) { return '<option value="' + a.key + '"' + (curAffil === a.key ? " selected" : "") + '>' + a.label + '</option>'; }).join("");
     return '<form id="teamForm">' +
       '<div class="field"><label for="t-name">Team name</label><input id="t-name" value="' + esc(t.name || "") + '" placeholder="Findlay FC Red, LB Rec 3rd grade…" required></div>' +
       '<div class="field--row">' +
@@ -531,6 +549,10 @@
         '</div></div>' +
       '</div>' +
       '<div class="field"><label for="t-age">Age group <span style="font-weight:500;color:var(--ink-3)">(optional)</span></label><input id="t-age" value="' + esc(t.ageGroup || "") + '" placeholder="U10 · 3rd–4th grade"></div>' +
+      '<div class="field--row">' +
+        '<div class="field"><label for="t-affil">Affiliation</label><select id="t-affil">' + affilOpts + '</select></div>' +
+        '<div class="field"><label for="t-clinic">Last clinic <span style="font-weight:500;color:var(--ink-3)">(optional)</span></label><input id="t-clinic" type="date" value="' + esc(t.clinic || "") + '"></div>' +
+      '</div>' +
       '<fieldset class="field"><legend>Coach</legend>' +
         '<input id="t-coach" value="' + esc(t.coach || "") + '" placeholder="Coach name" style="margin-bottom:.5rem">' +
         '<div class="field--row" style="margin:0">' +
@@ -546,14 +568,15 @@
       '</div></form>';
   }
   function openTeam(t) {
-    showDrawer(t ? "Edit team" : "Add team", teamForm(t));
+    showDrawer(t ? "Edit coach" : "Add coach", teamForm(t));
     $("#teamForm").addEventListener("submit", function (sub) {
       sub.preventDefault();
       var name = $("#t-name").value.trim();
       $("#t-name").closest(".field").classList.toggle("field--invalid", !name);
       if (!name) { $("#t-name").focus(); return; }
       var data = { name: name, level: $("#t-level").value, program: (document.querySelector('input[name="t-prog"]:checked') || {}).value || "Coed",
-        ageGroup: $("#t-age").value.trim(), coach: $("#t-coach").value.trim(), coachEmail: $("#t-cemail").value.trim(),
+        ageGroup: $("#t-age").value.trim(), affiliation: $("#t-affil").value, clinic: $("#t-clinic").value || "",
+        coach: $("#t-coach").value.trim(), coachEmail: $("#t-cemail").value.trim(),
         coachPhone: $("#t-cphone").value.trim(), players: parseRoster($("#t-roster").value), note: $("#t-note").value.trim(),
         updated: today() };
       if (t && t.id) { var idx = state.teams.findIndex(function (x) { return x.id === t.id; });
@@ -564,9 +587,9 @@
   }
   function deleteTeam(id) {
     var t = teamById(id); if (!t) return;
-    if (!window.confirm("Delete the team “" + t.name + "”? (Any players you already imported into Athletes stay.)")) return;
+    if (!window.confirm("Remove “" + t.name + "”" + (t.coach ? " (coach " + t.coach + ")" : "") + "? (Any players you already imported into Athletes stay.)")) return;
     state.teams = state.teams.filter(function (x) { return x.id !== id; });
-    save(); hideDrawer(); renderView(); toast("Team removed.");
+    save(); hideDrawer(); renderView(); toast("Coach removed.");
   }
   function importTeam(id) {
     var t = teamById(id); if (!t) return;
@@ -640,7 +663,7 @@
       : '<p class="sched-note sched-note--off">Events save and sync across your devices. To also push them to a calendar families can subscribe to, connect a shared Google Calendar (see setup).</p>';
     if (!state.events.length) {
       host.innerHTML = calNote + '<div class="empty"><img src="../assets/logos/Eagle Head.png" alt="" />' +
-        '<h3>No events yet.</h3><p>Add your first session — practices, game nights, Youth Nights. You’ll take attendance against these.</p>' +
+        '<h3>No events yet.</h3><p>Add your first date — a coach clinic, a monthly touchpoint, or a Play-with-the-Eagles showcase. You’ll take attendance against these.</p>' +
         '<div class="empty__actions"><button class="btn btn--primary" data-action="add-event"><svg class="ic"><use href="#ic-plus"/></svg>Add an event</button></div></div>';
       return;
     }
@@ -677,7 +700,7 @@
     var tierOpts = '<option value="">All ages / mixed</option>' + LB.TIERS.map(function (t) {
       return '<option value="' + t.key + '"' + (e.tier === t.key ? " selected" : "") + '>' + esc(t.name) + ' (' + esc(t.grades) + ')</option>'; }).join("");
     return '<form id="evForm">' +
-      '<div class="field"><label for="e-title">Event name</label><input id="e-title" value="' + esc(e.title || "") + '" placeholder="Grassroot session, Youth Night…" required></div>' +
+      '<div class="field"><label for="e-title">Event name</label><input id="e-title" value="' + esc(e.title || "") + '" placeholder="Fall coach clinic, monthly touchpoint, showcase…" required></div>' +
       '<div class="field"><label for="e-date">Date</label><input id="e-date" type="date" value="' + esc(e.date || today()) + '" required></div>' +
       '<div class="field--row">' +
         '<div class="field"><label for="e-start">Start time</label><input id="e-start" type="time" value="' + esc(e.start || "") + '"></div>' +

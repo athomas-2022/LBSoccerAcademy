@@ -414,6 +414,10 @@ p{text-wrap:pretty}
   display:grid;align-content:center;border-color:transparent}
 .std--names p{color:oklch(0.95 .02 255);font-size:var(--step-1);line-height:1.4}
 .std--names strong{color:var(--sky)}
+.standard__cta{margin-top:clamp(1.8rem,3.5vw,2.6rem);display:flex;flex-wrap:wrap;align-items:center;gap:.9rem 1.4rem}
+.standard__cta-note{color:var(--ink-soft);font-weight:500;font-size:.95rem;max-width:34rem}
+/* role-gated signup fields — hidden until the matching role is chosen */
+.reg-form [data-role-only][hidden]{display:none}
 
 /* ============================================================
    CALENDAR / SCHEDULE
@@ -422,6 +426,12 @@ p{text-wrap:pretty}
 .calendar__head{max-width:60rem}
 .calendar__head .section-lede{margin-top:1.2rem}
 .calendar__cta{margin-top:clamp(1.6rem,3vw,2.2rem)}
+.clinic-cadence{list-style:none;margin:clamp(1.4rem,3vw,2rem) 0 0;padding:0;display:grid;gap:.7rem;max-width:62rem}
+.clinic-cadence li{display:grid;grid-template-columns:minmax(9rem,12rem) 1fr;gap:.3rem 1.2rem;align-items:baseline;
+  padding:.9rem 1.1rem;background:var(--paper);border:1px solid var(--hairline);border-radius:var(--r-lg);box-shadow:var(--shadow-sm)}
+.clinic-cadence__k{font-family:var(--font-display);text-transform:uppercase;letter-spacing:.01em;color:var(--lb-blue);font-size:1rem}
+.clinic-cadence__v{color:var(--ink-soft);font-weight:500}
+@media (max-width:34rem){.clinic-cadence li{grid-template-columns:1fr;gap:.15rem}}
 
 /* ============================================================
    ALERTS — text + email band
