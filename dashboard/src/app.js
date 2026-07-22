@@ -36,7 +36,8 @@
   var SPONSOR_GOAL = 3000;
 
   // ---- state -------------------------------------------------------
-  var state, ui = { view: "overview", prog: "all", search: "", status: "all", grad: "all", attDate: "", attEvent: "", present: {} };
+  var state, ui = { view: "overview", prog: "all", search: "", status: "all", grad: "all", attDate: "", attEvent: "", present: {},
+    resType: "all", resAge: "all", resTopic: "all", resSearch: "" };
 
   var FIN_CATS = {
     in: ["Sponsorship", "Donation", "Grant", "Fundraiser", "Registration/fees", "Refund received", "Interest", "Other income"],
@@ -58,11 +59,40 @@
   var SHIRT_SIZES = ["Youth XS", "Youth S", "Youth M", "Youth L", "Youth XL", "Adult S", "Adult M", "Adult L", "Adult XL"];
   function shortSize(s) { return String(s || "").replace("Youth ", "Y").replace("Adult ", "A"); }
 
-  function blank() { return { athletes: [], sponsors: [], phasesDone: [], sessions: [], events: [], finances: [], teams: [], settings: Object.assign({}, SETTINGS_DEFAULT), seeded: false }; }
+  // ---- Training library: videos + guides for coaches ----
+  var RES_TYPES = [
+    { key: "video", label: "Video", icon: "ic-play" },
+    { key: "guide", label: "Guide", icon: "ic-doc" },
+    { key: "plan",  label: "Session plan", icon: "ic-plan" },
+    { key: "link",  label: "Link", icon: "ic-link" }
+  ];
+  var RES_AGES = [ { key: "grassroot", label: "K–2" }, { key: "academy", label: "3–5" }, { key: "nextxi", label: "6–8" }, { key: "all", label: "All ages" } ];
+  var RES_TOPICS = ["Ball mastery", "Dribbling", "1v1 / moves", "Passing & receiving", "First touch", "Shooting & finishing",
+    "Small-sided games", "Defending", "Goalkeeping", "Team shape", "Set pieces", "Warmups", "Fun & games", "Session plans", "Coaching basics"];
+  function resType(k) { for (var i = 0; i < RES_TYPES.length; i++) if (RES_TYPES[i].key === k) return RES_TYPES[i]; return RES_TYPES[0]; }
+  function resAge(k) { for (var i = 0; i < RES_AGES.length; i++) if (RES_AGES[i].key === k) return RES_AGES[i]; return null; }
+  function ytId(u) { var m = String(u || "").match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/)|youtu\.be\/)([\w-]{6,})/); return m ? m[1] : ""; }
+  function vimeoId(u) { var m = String(u || "").match(/vimeo\.com\/(?:video\/)?(\d+)/); return m ? m[1] : ""; }
+  function resEmbed(u) { var y = ytId(u); if (y) return "https://www.youtube-nocookie.com/embed/" + y + "?rel=0&autoplay=1";
+    var v = vimeoId(u); if (v) return "https://player.vimeo.com/video/" + v + "?autoplay=1"; return ""; }
+  function resThumb(r) { var y = ytId(r.url || ""); return y ? "https://i.ytimg.com/vi/" + y + "/hqdefault.jpg" : ""; }
+  var EWAY_URL = "https://lbsocceracademy.org/#eaglesway";
+  var STARTER_RESOURCES = [
+    { title: "The Eagles Way — full curriculum", type: "guide", url: EWAY_URL, ages: ["all"], topics: ["Coaching basics", "Session plans"], duration: "", desc: "The complete K–8 coaching curriculum: the Standard, the session shape, and what to teach by age band.", note: "Starter" },
+    { title: "The Standard — six non-negotiables", type: "guide", url: EWAY_URL, ages: ["all"], topics: ["Coaching basics"], duration: "", desc: "Touches · Brave · Play · Youngest · System · every kid known by name — the rules every affiliated coach carries.", note: "Starter" },
+    { title: "The Eagles session shape (4 beats)", type: "plan", url: EWAY_URL, ages: ["all"], topics: ["Session plans", "Warmups"], duration: "", desc: "Arrival ball-mastery → skill of the day → small-sided games → free scrimmage. The repeatable template for any age.", note: "Starter" },
+    { title: "Grassroot K–2 — sample session", type: "plan", url: EWAY_URL, ages: ["grassroot"], topics: ["Dribbling", "Fun & games", "Session plans"], duration: "", desc: "Traffic & turns: dribble a maze, freeze, change direction, then swarm-of-tiny-goals 1v1s. Fun is the curriculum.", note: "Starter" },
+    { title: "Academy 3–5 — sample session", type: "plan", url: EWAY_URL, ages: ["academy"], topics: ["1v1 / moves", "Small-sided games", "Session plans"], duration: "", desc: "Take them on: warm up a 1v1 move, rep vs a passive then live defender, then 2v2 with a bonus point for beating your player.", note: "Starter" },
+    { title: "Next XI 6–8 — sample session", type: "plan", url: EWAY_URL, ages: ["nextxi"], topics: ["Team shape", "Session plans"], duration: "", desc: "Out of the back: rondo to keep the ball, 4v4+2 building from the keeper, then a game rewarding a clean build through the thirds.", note: "Starter" },
+    { title: "Example — ball-mastery warmup clip", type: "video", url: "https://www.youtube.com/results?search_query=youth+soccer+ball+mastery+warmup", ages: ["grassroot", "academy"], topics: ["Ball mastery", "Warmups"], duration: "", desc: "Replace with your own clip — paste any YouTube or Vimeo link and it plays right here in the dashboard.", note: "Example — replace with your clip" },
+    { title: "Example — 1v1 moves to teach", type: "video", url: "https://www.youtube.com/results?search_query=soccer+1v1+moves+for+kids", ages: ["academy", "nextxi"], topics: ["1v1 / moves", "Dribbling"], duration: "", desc: "Example placeholder. Add a real YouTube/Vimeo link and coaches watch it without leaving the dashboard.", note: "Example — replace with your clip" }
+  ];
+
+  function blank() { return { athletes: [], sponsors: [], phasesDone: [], sessions: [], events: [], finances: [], teams: [], resources: [], settings: Object.assign({}, SETTINGS_DEFAULT), seeded: false }; }
   function load() {
     try { var raw = localStorage.getItem(KEY); if (raw) { var d = JSON.parse(raw);
       d.settings = Object.assign({}, SETTINGS_DEFAULT, d.settings || {}); d.athletes = d.athletes || [];
-      d.sponsors = d.sponsors || []; d.phasesDone = d.phasesDone || []; d.sessions = d.sessions || []; d.events = d.events || []; d.finances = d.finances || []; d.teams = d.teams || []; return d; } }
+      d.sponsors = d.sponsors || []; d.phasesDone = d.phasesDone || []; d.sessions = d.sessions || []; d.events = d.events || []; d.finances = d.finances || []; d.teams = d.teams || []; d.resources = d.resources || []; return d; } }
     catch (e) {}
     return blank();
   }
@@ -146,7 +176,7 @@
         '<button class="side__authbtn" data-action="sign-out">Sign out</button>' +
       '</div>';
   }
-  function runBootSyncs() { if (SIGNUPS_URL) { syncSignups(true); syncEvents(true); syncFinances(true); } }
+  function runBootSyncs() { if (SIGNUPS_URL) { syncSignups(true); syncEvents(true); syncFinances(true); syncResources(true); } }
 
   // ---- approve / remove people (owners only) ----
   function openAccess() {
@@ -228,6 +258,7 @@
     overview: { title: "Overview", sub: "The whole pipeline at a glance." },
     athletes: { title: "Athletes", sub: "Every athletic kid, K–8, by graduation year." },
     teams: { title: "Coaches", sub: "The district's coaches — train them in the Eagles Way and every kid on their roster benefits." },
+    training: { title: "Training Library", sub: "Videos, drills & guides for every Eagles-Affiliated coach." },
     schedule: { title: "Schedule", sub: "Coach clinics, touchpoints & showcases — auto-added to the shared calendar." },
     attendance: { title: "Attendance", sub: "Pick a session, tap kids in — it flows into the tracker." },
     plan: { title: "The 360-Day Plan", sub: "Twelve phases from first conversation to year two." },
@@ -246,6 +277,8 @@
         '<button class="btn btn--primary" data-action="add-athlete"><svg class="ic"><use href="#ic-plus"/></svg>Add athlete</button>';
     } else if (ui.view === "teams") {
       slot.innerHTML = '<button class="btn btn--primary" data-action="add-team"><svg class="ic"><use href="#ic-plus"/></svg>Add coach</button>';
+    } else if (ui.view === "training") {
+      slot.innerHTML = '<button class="btn btn--primary" data-action="add-resource"><svg class="ic"><use href="#ic-plus"/></svg>Add resource</button>';
     } else if (ui.view === "schedule") {
       slot.innerHTML = (CALENDAR_ID ? '<a class="btn btn--ghost" href="https://calendar.google.com/calendar/u/0/r?cid=' + encodeURIComponent(CALENDAR_ID) + '" target="_blank" rel="noopener">Open shared calendar</a>' : "") +
         '<button class="btn btn--primary" data-action="add-event"><svg class="ic"><use href="#ic-plus"/></svg>Add event</button>';
@@ -267,6 +300,7 @@
     if (v === "attendance") syncAttendance(true);     // pull other devices' latest
     if (v === "schedule") syncEvents(true);           // pull events other devices added
     if (v === "finances") syncFinances(true);         // pull ledger entries from other devices
+    if (v === "training") syncResources(true);        // pull the shared library
     $("#view-" + v).focus({ preventScroll: true });
     window.scrollTo(0, 0);
   }
@@ -274,6 +308,7 @@
     if (ui.view === "overview") renderOverview();
     else if (ui.view === "athletes") renderAthletes();
     else if (ui.view === "teams") renderTeams();
+    else if (ui.view === "training") renderTraining();
     else if (ui.view === "schedule") renderSchedule();
     else if (ui.view === "attendance") renderAttendance();
     else if (ui.view === "plan") renderPlan();
@@ -1239,6 +1274,187 @@
   }
 
   // ================================================================
+  //  TRAINING LIBRARY — videos + guides for coaches (shared, synced)
+  // ================================================================
+  function resById(id) { for (var i = 0; i < state.resources.length; i++) if (state.resources[i].id === id) return state.resources[i]; return null; }
+  function filteredResources() {
+    var q = (ui.resSearch || "").trim().toLowerCase();
+    return state.resources.filter(function (r) {
+      if (ui.resType && ui.resType !== "all" && r.type !== ui.resType) return false;
+      if (ui.resAge && ui.resAge !== "all" && (r.ages || []).indexOf(ui.resAge) === -1) return false;
+      if (ui.resTopic && ui.resTopic !== "all" && (r.topics || []).indexOf(ui.resTopic) === -1) return false;
+      if (q) { var hay = (r.title + " " + (r.desc || "") + " " + (r.topics || []).join(" ")).toLowerCase(); if (hay.indexOf(q) === -1) return false; }
+      return true;
+    }).sort(function (a, b) { return (a.type === "video" ? 0 : 1) - (b.type === "video" ? 0 : 1) || String(a.title).localeCompare(String(b.title)); });
+  }
+  function resCard(r) {
+    var ty = resType(r.type), isVideo = r.type === "video";
+    var thumb = resThumb(r), act = isVideo ? "play-resource" : "open-resource";
+    var thumbHtml = isVideo
+      ? '<div class="res-thumb' + (thumb ? "" : " res-thumb--plain") + '"' + (thumb ? ' style="background-image:url(\'' + esc(thumb) + '\')"' : "") + '>' +
+          '<span class="res-play"><svg class="ic"><use href="#ic-play"/></svg></span>' +
+          '<span class="res-dur">' + (r.duration ? esc(r.duration) : "Video") + '</span></div>'
+      : '<div class="res-thumb res-thumb--doc res-thumb--' + esc(r.type) + '"><svg class="ic res-typeic"><use href="#' + ty.icon + '"/></svg>' +
+          '<span class="res-dur">' + esc(ty.label) + (r.duration ? " · " + esc(r.duration) : "") + '</span></div>';
+    var ages = (r.ages || []).map(function (a) { var o = resAge(a); return o ? '<span class="res-age res-age--' + esc(a) + '">' + o.label + '</span>' : ""; }).join("");
+    var topics = (r.topics || []).slice(0, 3).map(function (t) { return '<span class="res-topic">' + esc(t) + '</span>'; }).join("");
+    return '<article class="res-card" data-action="' + act + '" data-id="' + r.id + '">' +
+      thumbHtml +
+      '<div class="res-body">' +
+        (ages ? '<div class="res-ages">' + ages + '</div>' : "") +
+        '<h3 class="res-title">' + esc(r.title) + '</h3>' +
+        (r.desc ? '<p class="res-desc">' + esc(r.desc) + '</p>' : "") +
+        (topics ? '<div class="res-topics">' + topics + '</div>' : "") +
+        (r.note && /example/i.test(r.note) ? '<p class="res-flag">' + esc(r.note) + '</p>' : "") +
+        '<div class="res-actions">' +
+          '<button class="btn btn--primary btn--sm" data-action="' + act + '" data-id="' + r.id + '"><svg class="ic"><use href="#' + (isVideo ? "ic-play" : "ic-link") + '"/></svg>' + (isVideo ? "Watch" : "Open") + '</button>' +
+          '<button class="btn btn--ghost btn--sm" data-action="edit-resource" data-id="' + r.id + '">Edit</button>' +
+        '</div>' +
+      '</div></article>';
+  }
+  function renderTraining() {
+    var host = $("#view-training");
+    var syncNote = SIGNUPS_URL ? '<span class="att-sync">Shared with every signed-in coach</span>' : '<span class="att-sync att-sync--off">This device only — connect the Sheet to share with coaches</span>';
+    if (!state.resources.length) {
+      host.innerHTML = '<div class="empty"><img src="../assets/logos/Eagle Head.png" alt="" />' +
+        '<h3>Build your coaching library.</h3><p>Collect the videos, drills, and session plans your coaches should use — YouTube &amp; Vimeo links play right here, guides and PDFs open in a tab. Everything you add is shared with every coach.</p>' +
+        '<div class="empty__actions"><button class="btn btn--primary" data-action="add-resource"><svg class="ic"><use href="#ic-plus"/></svg>Add a resource</button>' +
+        '<button class="btn btn--ghost" data-action="load-starter-resources">Load the starter library</button></div></div>';
+      return;
+    }
+    var count = state.resources.length, vids = state.resources.filter(function (r) { return r.type === "video"; }).length;
+    var summary = '<div class="team-summary"><div class="team-stat"><b class="tnum">' + count + '</b> resource' + (count === 1 ? "" : "s") + '</div>' +
+      '<div class="team-stat"><b class="tnum">' + vids + '</b> video' + (vids === 1 ? "" : "s") + '</div>' +
+      '<p class="team-lede">Everything your coaches need to run the Eagles Way — videos play in-app, guides &amp; plans open in a tab. ' + syncNote + '</p></div>';
+
+    var typeChips = '<div class="filterset">' + [["all", "All"]].concat(RES_TYPES.map(function (t) { return [t.key, t.label]; })).map(function (p) {
+      return '<button class="chip' + ((ui.resType || "all") === p[0] ? " is-on" : "") + '" data-action="res-type" data-v="' + esc(p[0]) + '" aria-pressed="' + ((ui.resType || "all") === p[0]) + '">' + esc(p[1]) + '</button>';
+    }).join("") + '</div>';
+    var ageChips = '<div class="filterset">' + [["all", "All ages"]].concat(RES_AGES.filter(function (a) { return a.key !== "all"; }).map(function (a) { return [a.key, a.label]; })).map(function (p) {
+      return '<button class="chip' + ((ui.resAge || "all") === p[0] ? " is-on" : "") + '" data-action="res-age" data-v="' + esc(p[0]) + '" aria-pressed="' + ((ui.resAge || "all") === p[0]) + '">' + esc(p[1]) + '</button>';
+    }).join("") + '</div>';
+    var topicOpts = '<option value="all">All topics</option>' + RES_TOPICS.map(function (t) { return '<option value="' + esc(t) + '"' + ((ui.resTopic || "all") === t ? " selected" : "") + '>' + esc(t) + '</option>'; }).join("");
+    var toolbar = '<div class="res-toolbar">' +
+      '<div class="search"><svg class="ic"><use href="#ic-search"/></svg><input type="search" id="resSearch" placeholder="Search title, topic…" value="' + esc(ui.resSearch || "") + '" aria-label="Search resources"></div>' +
+      '<select id="resTopic" class="res-topicsel" aria-label="Filter by topic">' + topicOpts + '</select>' +
+      '</div><div class="res-filters">' + typeChips + ageChips + '</div>';
+
+    var list = filteredResources();
+    var grid = list.length ? '<div class="res-grid">' + list.map(resCard).join("") + '</div>'
+      : '<div class="empty empty--mini"><h3>No matches.</h3><p>Nothing fits these filters yet.</p>' +
+        '<div class="empty__actions"><button class="btn btn--ghost" data-action="res-type" data-v="all">Clear filters</button></div></div>';
+
+    host.innerHTML = summary + toolbar + grid;
+    var s = $("#resSearch");
+    if (s) s.addEventListener("input", function () { ui.resSearch = this.value; var pos = this.selectionStart;
+      renderTraining(); var s2 = $("#resSearch"); if (s2) { s2.focus(); try { s2.setSelectionRange(pos, pos); } catch (e) {} } });
+    var tp = $("#resTopic");
+    if (tp) tp.addEventListener("change", function () { ui.resTopic = this.value; renderTraining(); });
+  }
+
+  function resourceForm(r) {
+    r = r || {};
+    var type = r.type || "video";
+    var typeSeg = RES_TYPES.map(function (t) { return '<label><input type="radio" name="r-type" value="' + t.key + '"' + (type === t.key ? " checked" : "") + '><span>' + t.label + '</span></label>'; }).join("");
+    var ageBoxes = RES_AGES.map(function (a) { return '<label class="res-check"><input type="checkbox" name="r-age" value="' + a.key + '"' + ((r.ages || []).indexOf(a.key) > -1 ? " checked" : "") + '><span>' + a.label + '</span></label>'; }).join("");
+    var topicBoxes = RES_TOPICS.map(function (t) { return '<label class="res-check"><input type="checkbox" name="r-topic" value="' + esc(t) + '"' + ((r.topics || []).indexOf(t) > -1 ? " checked" : "") + '><span>' + esc(t) + '</span></label>'; }).join("");
+    return '<form id="resForm">' +
+      '<div class="field"><label for="r-title">Title</label><input id="r-title" value="' + esc(r.title || "") + '" placeholder="Ball-mastery warmup, Grassroot session plan…" required></div>' +
+      '<div class="field"><label>Type</label><div class="segfield segfield--wrap">' + typeSeg + '</div></div>' +
+      '<div class="field"><label for="r-url">Link</label><input id="r-url" value="' + esc(r.url || "") + '" placeholder="YouTube / Vimeo link, or a PDF / Google Doc URL" required>' +
+        '<p class="cast-hint">YouTube &amp; Vimeo links play inside the dashboard. Anything else opens in a new tab.</p></div>' +
+      '<div class="field"><label for="r-dur">Length <span style="font-weight:500;color:var(--ink-3)">(optional)</span></label><input id="r-dur" value="' + esc(r.duration || "") + '" placeholder="6 min · 1 page"></div>' +
+      '<fieldset class="field"><legend>Age groups</legend><div class="res-checks">' + ageBoxes + '</div></fieldset>' +
+      '<fieldset class="field"><legend>Topics</legend><div class="res-checks">' + topicBoxes + '</div></fieldset>' +
+      '<div class="field"><label for="r-desc">Description <span style="font-weight:500;color:var(--ink-3)">(optional)</span></label><textarea id="r-desc" placeholder="What it covers and how to use it…">' + esc(r.desc || "") + '</textarea></div>' +
+      '<div class="drawer__foot">' +
+        (r.id ? '<button type="button" class="btn btn--danger" data-action="delete-resource" data-id="' + r.id + '">Delete</button>' : "") +
+        '<button type="submit" class="btn btn--primary">' + (r.id ? "Save resource" : "Add resource") + '</button>' +
+      '</div></form>';
+  }
+  function openResource(r) {
+    showDrawer(r ? "Edit resource" : "Add resource", resourceForm(r));
+    $("#resForm").addEventListener("submit", function (sub) {
+      sub.preventDefault();
+      var title = $("#r-title").value.trim(), url = $("#r-url").value.trim();
+      $("#r-title").closest(".field").classList.toggle("field--invalid", !title);
+      $("#r-url").closest(".field").classList.toggle("field--invalid", !url);
+      if (!title || !url) { $(!title ? "#r-title" : "#r-url").focus(); return; }
+      var type = (document.querySelector('input[name="r-type"]:checked') || {}).value || "video";
+      var ages = $$('input[name="r-age"]:checked').map(function (c) { return c.value; });
+      var topics = $$('input[name="r-topic"]:checked').map(function (c) { return c.value; });
+      var data = { title: title, type: type, url: url, duration: $("#r-dur").value.trim(),
+        ages: ages, topics: topics, desc: $("#r-desc").value.trim(), note: (r && r.note) || "",
+        updated: new Date().toISOString(), unsynced: true };
+      var rec;
+      if (r && r.id) { var idx = state.resources.findIndex(function (x) { return x.id === r.id; });
+        rec = Object.assign({}, r, data); state.resources[idx] = rec; toast("Saved “" + title + ".”"); }
+      else { data.id = uid("res"); rec = data; state.resources.push(rec); toast("Added “" + title + ".”"); }
+      save(); pushResource(rec); hideDrawer(); renderView();
+    });
+  }
+  function deleteResource(id) {
+    var r = resById(id); if (!r) return;
+    if (!window.confirm("Delete “" + r.title + "” from the library?")) return;
+    state.resources = state.resources.filter(function (x) { return x.id !== id; });
+    save(); pushResourceDelete(r); hideDrawer(); renderView(); toast("Resource removed.");
+  }
+  function loadStarterResources() {
+    var added = 0;
+    STARTER_RESOURCES.forEach(function (s) {
+      if (state.resources.some(function (x) { return x.title === s.title; })) return;
+      var rec = Object.assign({}, s, { id: uid("res"), ages: s.ages.slice(), topics: s.topics.slice(), updated: new Date().toISOString(), unsynced: true });
+      state.resources.push(rec); pushResource(rec); added++;
+    });
+    save(); renderView();
+    toast(added + " starter resource" + (added === 1 ? "" : "s") + " added.");
+  }
+
+  // ---- video / resource player ----
+  function openPlayer(r) {
+    if (!r) return;
+    var emb = resEmbed(r.url || "");
+    if (!emb) { if (r.url) window.open(r.url, "_blank", "noopener"); return; }   // not embeddable -> open the link
+    $("#playerTitle").textContent = r.title || "Video";
+    $("#playerExt").href = r.url || "#";
+    $("#playerFrame").innerHTML = '<iframe src="' + esc(emb) + '" title="' + esc(r.title || "Video") + '" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>';
+    var p = $("#player"); p.hidden = false; requestAnimationFrame(function () { p.classList.add("is-open"); });
+  }
+  function closePlayer() { var p = $("#player"); if (!p || p.hidden) return; p.classList.remove("is-open");
+    setTimeout(function () { p.hidden = true; $("#playerFrame").innerHTML = ""; }, 200); }
+
+  // ---- resources cross-device sync via the Sheet ----
+  function pushResource(r) {
+    if (!SIGNUPS_URL || !r) return;
+    apiPost({ type: "resource", id: r.id, title: r.title, kind: r.type, ages: (r.ages || []).join(","),
+      topics: (r.topics || []).join(","), url: r.url, duration: r.duration, desc: r.desc, note: r.note, updated: r.updated })
+      .then(function () { delete r.unsynced; save(); }).catch(function () {});
+  }
+  function pushResourceDelete(r) { if (!SIGNUPS_URL || !r) return; apiPost({ type: "resource-delete", id: r.id }).catch(function () {}); }
+  function syncResources(quiet) {
+    if (!SIGNUPS_URL || (AUTH.enabled && !AUTH.ready)) return;
+    state.resources.forEach(function (r) { if (r.unsynced) pushResource(r); });
+    apiGet().then(function (data) {
+      if (data && data.error === "auth") { relock("Session expired — sign in again."); return; }
+      if (!data || !data.resources) return;
+      var splitList = function (s) { return String(s || "").split(",").map(function (x) { return x.trim(); }).filter(Boolean); };
+      var byId = {}; state.resources.forEach(function (r) { byId[r.id] = r; });
+      data.resources.forEach(function (row) {
+        if (!row.id) return;
+        var local = byId[row.id];
+        var remote = { id: row.id, title: row.title || "", type: row.type || "video", url: row.url || "",
+          duration: row.duration || "", ages: splitList(row.ages), topics: splitList(row.topics),
+          desc: row.desc || "", note: row.note || "", updated: String(row.updated || "") };
+        if (!local) byId[row.id] = remote;
+        else if (!local.unsynced && String(remote.updated) >= String(local.updated || "")) byId[row.id] = Object.assign(local, remote);
+      });
+      state.resources = Object.keys(byId).map(function (id) { return byId[id]; });
+      save();
+      if (ui.view === "training") renderView();
+    }).catch(function () {});
+  }
+
+  // ================================================================
   //  DRAWER
   // ================================================================
   var lastFocus = null;
@@ -1582,6 +1798,15 @@
       case "edit-team": openTeam(teamById(id)); break;
       case "delete-team": deleteTeam(id); break;
       case "import-team": importTeam(id); break;
+      case "add-resource": openResource(null); break;
+      case "edit-resource": openResource(resById(id)); break;
+      case "delete-resource": deleteResource(id); break;
+      case "play-resource": openPlayer(resById(id)); break;
+      case "open-resource": var rr = resById(id); if (rr && rr.url) window.open(rr.url, "_blank", "noopener"); break;
+      case "load-starter-resources": loadStarterResources(); break;
+      case "res-type": ui.resType = act.dataset.v; if (act.dataset.v === "all") { ui.resAge = "all"; ui.resTopic = "all"; ui.resSearch = ""; } renderTraining(); break;
+      case "res-age": ui.resAge = act.dataset.v; renderTraining(); break;
+      case "close-player": closePlayer(); break;
       case "reached": setStatus(id, "active"); break;
       case "status": e.stopPropagation(); openStatusPop(act, id); break;
       case "filter-status": ui.status = act.dataset.status; renderAthletes(); break;
@@ -1627,7 +1852,7 @@
   }
   function loadSample() {
     state = JSON.parse(JSON.stringify(LB.SAMPLE)); state.seeded = true;
-    state.sessions = state.sessions || []; state.phasesDone = state.phasesDone || []; state.events = state.events || []; state.finances = state.finances || []; state.teams = state.teams || [];
+    state.sessions = state.sessions || []; state.phasesDone = state.phasesDone || []; state.events = state.events || []; state.finances = state.finances || []; state.teams = state.teams || []; state.resources = state.resources || [];
     save(); renderView();
     toast("Sample roster loaded.");
   }
@@ -1642,7 +1867,7 @@
   var authOther = $("#authOther"); if (authOther) authOther.addEventListener("click", signOut);
   $("#drawerClose").addEventListener("click", hideDrawer);
   $("#scrim").addEventListener("click", function () { hideDrawer(); closeSidebar(); });
-  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closePop(); if ($("#drawer") && !$("#drawer").hidden) hideDrawer(); closeSidebar(); } });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closePop(); closePlayer(); if ($("#drawer") && !$("#drawer").hidden) hideDrawer(); closeSidebar(); } });
   window.addEventListener("scroll", closePop, { passive: true });
   window.addEventListener("resize", closePop);
 

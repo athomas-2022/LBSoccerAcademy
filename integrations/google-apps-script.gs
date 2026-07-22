@@ -69,6 +69,9 @@ var ACCESS_HEADERS = ["Email", "Name", "Added", "Added by"];
 var SHEET_FIN     = "Finances";
 var FIN_HEADERS   = ["Id", "Date", "Type", "Category", "Amount", "Method",
                      "Paid to/from", "Description", "Note", "Updated", "Deleted"];
+var SHEET_RES     = "Resources";
+var RES_HEADERS   = ["Id", "Title", "Type", "Ages", "Topics", "Url",
+                     "Duration", "Description", "Note", "Updated", "Deleted"];
 var HEADERS = ["When", "Child", "Graduation class", "Program",
                "Parent", "Email", "Mobile", "Alerts", "Note", "Other sports", "Shirt size",
                "Role", "Team"];
@@ -142,7 +145,8 @@ function doPost(e) {
   try {
     var d = JSON.parse(e.postData.contents);
     // Dashboard writes require an approved signed-in account; website signups don't.
-    var DASH = { attendance: 1, event: 1, "event-delete": 1, finance: 1, "finance-delete": 1, "access-add": 1, "access-remove": 1 };
+    var DASH = { attendance: 1, event: 1, "event-delete": 1, finance: 1, "finance-delete": 1,
+                 resource: 1, "resource-delete": 1, "access-add": 1, "access-remove": 1 };
     if (DASH[d.type]) {
       var auth = authOf_(d.token);
       if (authEnabled_() && (!auth || !auth.approved)) return json_({ ok: false, error: "auth" });
@@ -151,6 +155,8 @@ function doPost(e) {
       if (d.type === "event-delete")   return deleteEvent_(d);
       if (d.type === "finance")        return saveFinance_(d);
       if (d.type === "finance-delete") return deleteFinance_(d);
+      if (d.type === "resource")        return saveResource_(d);
+      if (d.type === "resource-delete") return deleteResource_(d);
       if (d.type === "access-add")     return accessAdd_(d, auth);
       if (d.type === "access-remove")  return accessRemove_(d, auth);
     }
@@ -255,6 +261,32 @@ function deleteFinance_(d) {
   return json_({ ok: true });
 }
 
+// ================================================================
+//  TRAINING LIBRARY — coach videos & guides (shared across coaches)
+// ================================================================
+function saveResource_(d) {
+  var sh = sheetOf_(SHEET_RES);
+  if (sh.getLastRow() === 0) sh.appendRow(RES_HEADERS);
+  var id = String(d.id || "");
+  if (!id) return json_({ ok: false, error: "missing id" });
+  var vals = sh.getDataRange().getValues();
+  var rowIdx = -1;
+  for (var r = 1; r < vals.length; r++) { if (String(vals[r][0]) === id) { rowIdx = r; break; } }
+  var row = [id, d.title || "", d.kind || "video", d.ages || "", d.topics || "", d.url || "",
+    d.duration || "", d.desc || "", d.note || "", d.updated || new Date().toISOString(), ""];
+  if (rowIdx > -1) sh.getRange(rowIdx + 1, 1, 1, row.length).setValues([row]);
+  else sh.appendRow(row);
+  return json_({ ok: true });
+}
+function deleteResource_(d) {
+  var id = String(d.id || "");
+  if (!id) return json_({ ok: false, error: "missing id" });
+  var sh = sheetOf_(SHEET_RES);
+  var vals = sh.getDataRange().getValues();
+  for (var r = vals.length - 1; r >= 1; r--) { if (String(vals[r][0]) === id) sh.deleteRow(r + 1); }
+  return json_({ ok: true });
+}
+
 // ---- Google Calendar helpers ----
 function calendar_() {
   if (!CONFIG.CALENDAR_ID) return null;
@@ -351,8 +383,17 @@ function doGet(e) {
       category: finRows[f][3], amount: Number(finRows[f][4]) || 0, method: finRows[f][5],
       party: finRows[f][6], desc: finRows[f][7], note: finRows[f][8], updated: String(finRows[f][9] || "") });
   }
+  var resRows = sheetOf_(SHEET_RES).getDataRange().getValues();
+  var resources = [];
+  for (var rr = 1; rr < resRows.length; rr++) {
+    if (!resRows[rr][0]) continue;
+    resources.push({ id: String(resRows[rr][0]), title: resRows[rr][1], type: resRows[rr][2] || "video",
+      ages: String(resRows[rr][3] || ""), topics: String(resRows[rr][4] || ""), url: resRows[rr][5] || "",
+      duration: resRows[rr][6] || "", desc: resRows[rr][7] || "", note: resRows[rr][8] || "",
+      updated: String(resRows[rr][9] || "") });
+  }
   var out = { ok: true, approved: true, owner: auth ? !!auth.owner : true,
-    signups: signups, attendance: attendance, events: events, finances: finances };
+    signups: signups, attendance: attendance, events: events, finances: finances, resources: resources };
   if (out.owner) { out.access = accessEmails_(); out.owners = owners_(); }
   return json_(out);
 }
@@ -529,6 +570,11 @@ function setup() {
   fin.getRange(1, 1, 1, FIN_HEADERS.length).setFontWeight("bold");
   fin.setFrozenRows(1);
 
+  var res = ss.getSheetByName(SHEET_RES) || ss.insertSheet(SHEET_RES);
+  if (res.getLastRow() === 0) res.appendRow(RES_HEADERS);
+  res.getRange(1, 1, 1, RES_HEADERS.length).setFontWeight("bold");
+  res.setFrozenRows(1);
+
   // Confirmation popup only works when run from the sheet's menu; running from
   // the editor has no UI, so don't let that throw.
   try {
@@ -547,7 +593,8 @@ function sheetOf_(name) {
     else if (name === SHEET_ATT) s.appendRow(ATT_HEADERS);
     else if (name === SHEET_EVENTS) s.appendRow(EVENT_HEADERS);
     else if (name === SHEET_ACCESS) s.appendRow(ACCESS_HEADERS);
-    else if (name === SHEET_FIN) s.appendRow(FIN_HEADERS); }
+    else if (name === SHEET_FIN) s.appendRow(FIN_HEADERS);
+    else if (name === SHEET_RES) s.appendRow(RES_HEADERS); }
   return s;
 }
 
