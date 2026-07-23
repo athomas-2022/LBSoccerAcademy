@@ -568,6 +568,15 @@ p{text-wrap:pretty}
   color:oklch(0.88 .03 255);font-weight:500;max-width:46ch}
 .register__sponsor strong{color:#fff}
 
+/* ---- Contact / feedback ---- */
+.feedback{padding-block:var(--section-y);color:#fff;position:relative;overflow:hidden;
+  background:radial-gradient(120% 130% at 15% 10%,var(--blue-700),var(--blue-950) 72%)}
+.feedback::after{content:"";position:absolute;right:-6%;bottom:-18%;width:min(40vw,440px);aspect-ratio:1;
+  background:no-repeat center/contain url("assets/logos/Block LB - white.png");opacity:.05;pointer-events:none}
+.feedback__grid{display:grid;gap:clamp(2rem,5vw,4rem);grid-template-columns:1fr;align-items:start;position:relative}
+.feedback__intro .section-lede{margin-top:1.1rem;max-width:44ch}
+.feedback__direct{margin-top:1.4rem;font-weight:600;color:oklch(0.9 .04 255)}
+
 .reg-form{background:#fff;color:var(--ink);border-radius:var(--r-lg);padding:clamp(1.5rem,3.5vw,2.3rem);
   box-shadow:var(--shadow-lg);display:grid;gap:1.1rem}
 .reg-form__row{display:grid;gap:1.1rem;grid-template-columns:1fr;align-items:start}
@@ -653,6 +662,7 @@ p{text-wrap:pretty}
   .why__grid{grid-template-columns:1.15fr .85fr}
   .faq__grid{grid-template-columns:.8fr 1.2fr}
   .register__grid{grid-template-columns:1fr 1.05fr}
+  .feedback__grid{grid-template-columns:1fr 1.05fr}
 }
 @media (min-width:1100px){
   .why__stats{gap:1.1rem}

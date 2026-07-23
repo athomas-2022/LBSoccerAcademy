@@ -694,7 +694,7 @@
   <div class="wrap faq__grid">
     <div class="faq__head">
       <h2 id="faq-h" class="section-title">Questions,<br />answered.</h2>
-      <p class="section-lede">The things coaches and families ask most. Still wondering something? <a href="#register" class="link-blue">Just ask us.</a></p>
+      <p class="section-lede">The things coaches and families ask most. Still wondering something? <a href="#contact" class="link-blue">Just ask us.</a></p>
     </div>
     <div class="faq__list">
       <details class="qa" open>
@@ -732,6 +732,55 @@
     </div>
   </div>
 </section>
+
+<!-- ============ CONTACT / FEEDBACK ============ -->
+<section class="feedback" id="contact" aria-labelledby="fb-h">
+  <div class="wrap feedback__grid">
+    <div class="feedback__intro">
+      <p class="kicker kicker--sky">We're listening</p>
+      <h2 id="fb-h" class="section-title section-title--light">Questions or concerns?</h2>
+      <p class="section-lede section-lede--light">
+        Coach, parent, or neighbor — if something's unclear, or something's not sitting right,
+        tell us. We read every message and we'll get back to you. No wrong questions.
+      </p>
+      <p class="feedback__direct">
+        Rather just email? Write us at
+        <a class="link-sky" href="https://mail.google.com/mail/?view=cm&amp;fs=1&amp;to=athomas@Liberty-Benton.org&amp;su=LB%20Soccer%20Academy" target="_blank" rel="noopener">athomas@Liberty-Benton.org</a>.
+      </p>
+    </div>
+
+    <form class="reg-form" id="fbForm" novalidate>
+      <fieldset class="field field--choice">
+        <legend>What's this about? <span class="req" aria-hidden="true">*</span></legend>
+        <div class="choice-row">
+          <label class="choice"><input type="radio" name="fbType" value="Question" required /><span>A question</span></label>
+          <label class="choice"><input type="radio" name="fbType" value="Complaint" /><span>A complaint</span></label>
+          <label class="choice"><input type="radio" name="fbType" value="Suggestion" /><span>A suggestion</span></label>
+        </div>
+      </fieldset>
+
+      <div class="reg-form__row">
+        <div class="field">
+          <label for="fbName">Your name <span class="field__opt">(optional)</span></label>
+          <input id="fbName" name="fbName" type="text" autocomplete="name" />
+        </div>
+        <div class="field">
+          <label for="fbEmail">Email <span class="field__opt">(if you'd like a reply)</span></label>
+          <input id="fbEmail" name="fbEmail" type="email" inputmode="email" autocomplete="email" />
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="fbMsg">Your message <span class="req" aria-hidden="true">*</span></label>
+        <textarea id="fbMsg" name="fbMsg" rows="4" required placeholder="Tell us what's on your mind…"></textarea>
+      </div>
+
+      <button class="btn btn--blue btn--lg btn--block" type="submit">Send it</button>
+      <p class="reg-form__status" id="fbStatus" role="status" aria-live="polite"></p>
+      <p class="reg-form__fineprint">Opens a pre-filled email to the program so nothing gets lost.</p>
+    </form>
+  </div>
+</section>
 </main>
 
 <!-- ============ FOOTER ============ -->
@@ -759,6 +808,7 @@
         <a href="#sponsors">Become a sponsor</a>
         <a href="#gear">Gear closet</a>
         <a href="#faq">FAQ</a>
+        <a href="#contact">Questions &amp; complaints</a>
       </div>
       <div>
         <h3>Reach us</h3>

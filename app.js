@@ -319,4 +319,38 @@
     // Google subscribe link — adds the shared calendar so future changes sync.
     btn.href = "https://calendar.google.com/calendar/u/0/r?cid=" + encodeURIComponent(id);
   })();
+
+  // ---- Questions / complaints: send as a pre-filled email ----------
+  (function feedback() {
+    var form = $("#fbForm");
+    if (!form) return;
+    var statusEl = $("#fbStatus");
+    function setFb(msg, kind) {
+      if (!statusEl) return;
+      statusEl.textContent = msg;
+      statusEl.setAttribute("data-kind", kind || "");
+    }
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      var type = (form.querySelector('input[name="fbType"]:checked') || {}).value || "";
+      var name = $("#fbName").value.trim();
+      var email = $("#fbEmail").value.trim();
+      var msg = $("#fbMsg").value.trim();
+      $("#fbMsg").closest(".field").classList.toggle("field--invalid", !msg);
+      if (!type) { setFb("Pick a question, complaint, or suggestion first.", "err"); return; }
+      if (!msg) { setFb("Add a short message so we know how to help.", "err"); $("#fbMsg").focus(); return; }
+      var subject = "LB Soccer Academy — " + type + (name ? " from " + name : "");
+      var body = [msg, "", "—", "Type: " + type,
+        name ? "Name: " + name : "",
+        email ? "Reply to: " + email : "(no reply email given)"]
+        .filter(function (l) { return l !== ""; }).join("\n");
+      var gmail = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(CONTACT_EMAIL) +
+        "&su=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+      var win = window.open(gmail, "_blank", "noopener");
+      if (!win) window.location.href = "mailto:" + CONTACT_EMAIL +
+        "?subject=" + encodeURIComponent(subject) + "&body=" + encodeURIComponent(body);
+      setFb("Opening your email — just hit send and it's on its way. Thank you!", "ok");
+      form.reset();
+    });
+  })();
 })();
