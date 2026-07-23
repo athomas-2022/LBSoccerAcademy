@@ -16,9 +16,9 @@ var STATUSES = {
 };
 
 var TIERS = [
-  { key: "grassroot", name: "Grassroot Eagles", grades: "K–2", focus: "Fun, coordination, ball love" },
-  { key: "academy",   name: "Rising Eagles",   grades: "3–5", focus: "Real skill: dribbling, passing, 1v1" },
-  { key: "nextxi",    name: "Next XI Eagles",   grades: "6–8", focus: "Our system: shape, patterns, set pieces" }
+  { key: "grassroot", name: "Grassroot Eagles", grades: "K–2", ages: "U6–U8",  focus: "Fun, coordination, ball love" },
+  { key: "academy",   name: "Rising Eagles",   grades: "3–5", ages: "U9–U11", focus: "Real skill: dribbling, passing, 1v1" },
+  { key: "nextxi",    name: "Next XI Eagles",   grades: "6–8", ages: "U12–U15", focus: "Our system: shape, patterns, set pieces" }
 ];
 
 /* The 360-day launch plan — 12 phases (Playbook Part 4). */

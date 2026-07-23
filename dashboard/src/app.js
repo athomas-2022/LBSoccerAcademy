@@ -733,7 +733,7 @@
     e = e || {};
     var prog = e.program || "All";
     var tierOpts = '<option value="">All ages / mixed</option>' + LB.TIERS.map(function (t) {
-      return '<option value="' + t.key + '"' + (e.tier === t.key ? " selected" : "") + '>' + esc(t.name) + ' (' + esc(t.grades) + ')</option>'; }).join("");
+      return '<option value="' + t.key + '"' + (e.tier === t.key ? " selected" : "") + '>' + esc(t.name) + ' (' + esc(t.grades) + ' · ' + esc(t.ages) + ')</option>'; }).join("");
     return '<form id="evForm">' +
       '<div class="field"><label for="e-title">Event name</label><input id="e-title" value="' + esc(e.title || "") + '" placeholder="Fall coach clinic, monthly touchpoint, showcase…" required></div>' +
       '<div class="field"><label for="e-date">Date</label><input id="e-date" type="date" value="' + esc(e.date || today()) + '" required></div>' +
