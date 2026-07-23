@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Adding Content to the Training Library — LB Soccer Academy</title>
+<style>
+  :root{
+    --blue:#003DA5; --navy:#0A2540; --red:#C8102E;
+    --ink:#16233D; --ink-2:#48566E; --ink-3:#7A879E;
+    --line:#E2E8F2; --tint:#F4F7FC; --tint-2:#EAF1FB; --paper:#fff;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{
+    margin:0; color:var(--ink); background:var(--paper);
+    font:15px/1.55 -apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:760px;margin:0 auto;padding:0 26px 40px}
+
+  /* ---- Masthead ---- */
+  .mast{
+    display:flex;align-items:center;gap:18px;
+    background:linear-gradient(120deg,var(--blue),#0A2E78);
+    color:#fff;border-radius:16px;padding:22px 26px;margin:26px 0 8px;
+  }
+  .mast img{width:64px;height:64px;flex:0 0 auto;filter:drop-shadow(0 3px 8px rgba(0,0,0,.35))}
+  .mast .eyebrow{font-size:11.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#Bcd4f5;margin:0 0 3px}
+  .mast h1{margin:0;font-size:25px;line-height:1.12;letter-spacing:-.01em;font-weight:800;text-wrap:balance}
+  .mast p{margin:5px 0 0;font-size:13.5px;color:#DCE8FB;font-weight:500}
+
+  /* ---- Lede callout ---- */
+  .lede{
+    display:flex;gap:12px;align-items:flex-start;
+    background:var(--tint-2);border:1px solid #CFE0F7;border-left:4px solid var(--blue);
+    border-radius:12px;padding:14px 16px;margin:18px 0 6px;
+  }
+  .lede .tag{font-size:22px;line-height:1;flex:0 0 auto}
+  .lede p{margin:0;font-size:14px;color:var(--navy)}
+  .lede b{color:var(--blue)}
+
+  /* ---- Sections ---- */
+  h2{
+    font-size:16.5px;font-weight:800;letter-spacing:-.01em;color:var(--navy);
+    margin:26px 0 12px;padding-bottom:7px;border-bottom:2px solid var(--line);
+  }
+  h2 .n{color:var(--red);margin-right:6px}
+
+  /* ---- Numbered steps ---- */
+  .steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+  .steps li{
+    display:flex;gap:13px;align-items:flex-start;
+    background:var(--tint);border:1px solid var(--line);border-radius:11px;padding:11px 14px;
+  }
+  .steps .num{
+    flex:0 0 auto;width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;
+    font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;margin-top:1px;
+  }
+  .steps .b{font-weight:700;color:var(--navy)}
+  .steps small{color:var(--ink-3);font-weight:600}
+  .steps p{margin:2px 0 0;font-size:13.5px;color:var(--ink-2)}
+
+  /* ---- Table ---- */
+  table{width:100%;border-collapse:collapse;margin-top:6px;font-size:13px}
+  th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+  thead th{background:var(--navy);color:#fff;font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;font-weight:700}
+  thead th:first-child{border-top-left-radius:9px}
+  thead th:last-child{border-top-right-radius:9px}
+  tbody tr:nth-child(even){background:var(--tint)}
+  td .k{font-weight:700;color:var(--navy)}
+  .play{display:inline-block;background:#DCFCE7;color:#166534;font-weight:700;font-size:11px;padding:1px 7px;border-radius:20px}
+  .tab{display:inline-block;background:#FEF3C7;color:#92400E;font-weight:700;font-size:11px;padding:1px 7px;border-radius:20px}
+
+  /* ---- Tip boxes ---- */
+  .tips{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+  .tip{border:1px solid var(--line);border-radius:11px;padding:12px 15px;background:var(--paper)}
+  .tip.good{border-left:4px solid #16A34A;background:#F3FBF5}
+  .tip.warn{border-left:4px solid #D97706;background:#FFFBEB}
+  .tip h3{margin:0 0 3px;font-size:13.5px;font-weight:800;color:var(--navy)}
+  .tip p{margin:0;font-size:13px;color:var(--ink-2)}
+
+  /* ---- Footer ---- */
+  .foot{
+    margin-top:28px;padding-top:14px;border-top:2px solid var(--line);
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;
+    font-size:12px;color:var(--ink-3);
+  }
+  .foot b{color:var(--blue)}
+  .foot .go{font-weight:800;color:var(--navy);letter-spacing:.02em}
+
+  a{color:var(--blue);text-decoration:none;font-weight:600}
+
+  @page{size:Letter;margin:14mm}
+  @media print{
+    .page{max-width:none;padding:0}
+    .mast{margin-top:0}
+    .steps li,.tip,tr,.lede{break-inside:avoid}
+    h2{break-after:avoid}
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header class="mast">
+    <img src="../assets/logos/Crest.png" alt="LB Soccer Academy crest" />
+    <div>
+      <p class="eyebrow">LB Soccer Academy · Coach's Dashboard</p>
+      <h1>Adding Content to the Training Library</h1>
+      <p>A quick guide for coaches &amp; staff — how to get videos, drills, and guides into the dashboard.</p>
+    </div>
+  </header>
+
+  <div class="lede">
+    <span class="tag">📎</span>
+    <p><b>First, the key idea:</b> the Training Library is <b>link-based, not a file uploader.</b>
+    You host the content somewhere (YouTube, Vimeo, Google Drive, Google Docs) and paste the
+    <b>link</b>. The dashboard then plays it inline or opens it in a new tab. There is no
+    "upload a file" button — and that's on purpose: it keeps the library fast and nothing gets lost.</p>
+  </div>
+
+  <h2><span class="n">1.</span>Add a resource — step by step</h2>
+  <ol class="steps">
+    <li><span class="num">1</span><div>
+      <span class="b">Open the dashboard &amp; sign in.</span>
+      <p>Go to <a href="https://lbsocceracademy.org/dashboard/">lbsocceracademy.org/dashboard/</a> and sign in with an approved Google account.</p>
+    </div></li>
+    <li><span class="num">2</span><div>
+      <span class="b">Click “Training” in the left sidebar.</span>
+      <p>This opens the Training Library view with all current videos, guides, and session plans.</p>
+    </div></li>
+    <li><span class="num">3</span><div>
+      <span class="b">Click “Add resource” (top-right).</span>
+      <p>A form slides in from the side.</p>
+    </div></li>
+    <li><span class="num">4</span><div>
+      <span class="b">Fill in the form.</span>
+      <p><b>Title</b> and <b>Link</b> are required. <b>Type</b> = Video, Guide, Session plan, or Link.
+      Then optionally add <b>Length</b> (“6 min · 1 page”), tick the <b>Age groups</b>
+      (K–2 · U6–U8, 3–5 · U9–U11, 6–8 · U12–U15, or All ages), tick <b>Topics</b>, and write a short <b>Description</b>.</p>
+    </div></li>
+    <li><span class="num">5</span><div>
+      <span class="b">Click “Add resource.”</span>
+      <p>The card appears in the library right away. To change it later, click the card and choose Edit or Delete.</p>
+    </div></li>
+  </ol>
+
+  <h2><span class="n">2.</span>Where to put the actual file</h2>
+  <p style="margin:0 0 4px;font-size:13.5px;color:var(--ink-2)">The <b>Link</b> field needs a URL. Host the file first, then paste its share link:</p>
+  <table>
+    <thead>
+      <tr><th>Your content</th><th>Best home</th><th>What coaches see</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="k">A video</span></td>
+        <td><b>YouTube or Vimeo</b><br><small>“Unlisted” is fine — no need to make it public</small></td>
+        <td><span class="play">Plays inside</span> the dashboard in a pop-up player</td>
+      </tr>
+      <tr>
+        <td><span class="k">A PDF / drill sheet</span></td>
+        <td><b>Google Drive</b><br><small>set sharing to “Anyone with the link”</small></td>
+        <td><span class="tab">Opens in new tab</span> when clicked</td>
+      </tr>
+      <tr>
+        <td><span class="k">A session plan</span></td>
+        <td><b>Google Docs</b> share link</td>
+        <td><span class="tab">Opens in new tab</span></td>
+      </tr>
+      <tr>
+        <td><span class="k">Any web page</span></td>
+        <td>the page's URL</td>
+        <td><span class="tab">Opens in new tab</span></td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="margin:9px 0 0;font-size:12.5px;color:var(--ink-3)">Only <b>YouTube</b> and <b>Vimeo</b> links embed and play in-dashboard. Everything else opens externally — which is perfectly fine for PDFs and docs.</p>
+
+  <h2><span class="n">3.</span>Good to know</h2>
+  <div class="tips">
+    <div class="tip good">
+      <h3>Start from the examples</h3>
+      <p>The library ships with 8 starter entries (the Eagles Way guides + sample sessions). If it's empty, click <b>“Load starter resources”</b> to drop them in — then copy their format for your own.</p>
+    </div>
+    <div class="tip warn">
+      <h3>Sharing across all coaches (the sync)</h3>
+      <p>Resources save to your browser instantly and are built to sync to a <b>Resources</b> tab in the program's Google Sheet, so every signed-in coach sees the same library. That sync only works once the Apps Script backend has been re-deployed and its <b>setup()</b> run. Until then, entries live only on the device that added them.</p>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>The LB Soccer Academy · <b>lbsocceracademy.org</b></span>
+    <span class="go">Go Eagles.</span>
+  </div>
+
+</div>
+</body>
+</html>
