@@ -570,7 +570,10 @@ p{text-wrap:pretty}
 .register::after{content:"";position:absolute;left:-6%;bottom:-18%;width:min(40vw,440px);aspect-ratio:1;
   background:no-repeat center/contain url("assets/logos/Block LB - white.png");opacity:.05;pointer-events:none}
 .register__grid{display:grid;gap:clamp(2rem,5vw,4rem);grid-template-columns:1fr;align-items:start;position:relative}
-.register__pitch .section-title{font-size:var(--step-3)}
+.register__solo{position:relative;max-width:640px;margin-inline:auto;display:grid;gap:clamp(1.5rem,4vw,2.5rem)}
+.register__head{text-align:center}
+.register__head .register__lede{margin-inline:auto}
+.register__pitch .section-title,.register__head .section-title{font-size:var(--step-3)}
 .register__lede{margin-top:1.1rem;color:oklch(0.93 .03 255);font-weight:500;font-size:var(--step-1);max-width:44ch}
 .register__reassure{list-style:none;padding:0;margin:1.5rem 0;display:grid;gap:.6rem;max-width:40ch}
 .register__reassure li{display:flex;gap:.6rem;align-items:center;font-weight:600;color:oklch(0.95 .02 255)}
