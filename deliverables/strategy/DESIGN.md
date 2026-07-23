@@ -149,7 +149,7 @@ Intentional, athletic, quick. Ease-out (quart/expo), no bounce, no elastic.
 - **Buttons:** primary = solid `--lb-blue` / white text (on light) or white / blue text (on
   blue); pill or `--radius-md`. Clear hover (lighten/darken one ramp step) + pressed
   (`--lb-blue-deep`) + focus-visible ring. Tap target ≥ 44px.
-- **Tier tag** (Grassroot Eagles · Eagles Academy · Next XI Eagles): pill, Octin or Montserrat-
+- **Tier tag** (Grassroot Eagles · Rising Eagles · Next XI Eagles): pill, Octin or Montserrat-
   SemiBold label, blue family. The pathway is a recurring motif — treat the four rungs
   (→ Varsity) as a first-class component, not a card grid.
 - **Sponsor tier** (Friend $100 → Champion $1,000+): a real value ladder, ascending weight —
