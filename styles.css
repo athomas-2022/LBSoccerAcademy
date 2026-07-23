@@ -486,21 +486,6 @@ p{text-wrap:pretty}
 @media (max-width:34rem){.clinic-cadence li{grid-template-columns:1fr;gap:.15rem}}
 
 /* ============================================================
-   ALERTS — text + email band
-   ============================================================ */
-.alerts{padding-block:var(--section-y);color:#fff;
-  background:linear-gradient(200deg,var(--lb-blue),var(--blue-800))}
-.alerts__box{display:grid;gap:clamp(1.6rem,4vw,3rem);align-items:center;grid-template-columns:1fr}
-@media (min-width:52rem){.alerts__box{grid-template-columns:1.5fr 1fr}}
-.alerts__copy .section-title{margin-top:.5rem;font-size:var(--step-3)}
-.alerts__copy .section-lede{margin-top:1rem}
-.alerts__cta{background:oklch(1 0 0 / .08);border:1px solid oklch(1 0 0 / .16);border-radius:var(--r-lg);
-  padding:clamp(1.4rem,3vw,1.9rem);box-shadow:var(--shadow-md)}
-.alerts__code{margin-top:.9rem;text-align:center;color:oklch(0.92 .03 255);font-weight:500}
-.alerts__code b{color:#fff;font-weight:800}
-.alerts__fine{margin-top:.9rem;text-align:center;font-size:.78rem;color:oklch(0.85 .03 255);font-weight:500}
-
-/* ============================================================
    SPONSORS — drenched blue value ladder
    ============================================================ */
 .sponsors{padding-block:var(--section-y);color:#fff;position:relative;overflow:hidden;

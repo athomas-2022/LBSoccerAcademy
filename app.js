@@ -319,26 +319,4 @@
     // Google subscribe link — adds the shared calendar so future changes sync.
     btn.href = "https://calendar.google.com/calendar/u/0/r?cid=" + encodeURIComponent(id);
   })();
-
-  // ---- Text + email alerts: join button ----------------------------
-  (function alerts() {
-    var btn = $("#remindJoin");
-    if (!btn) return;
-    var url = (REMIND_JOIN_URL || "").trim();
-    var code = (REMIND_CLASS_CODE || "").trim().replace(/^@/, "");
-    if (url) {
-      btn.href = url;
-    } else {
-      // No alert service connected yet — let families raise a hand by email.
-      btn.href = "https://mail.google.com/mail/?view=cm&fs=1&to=" + encodeURIComponent(CONTACT_EMAIL) +
-        "&su=" + encodeURIComponent("LB Soccer Academy — sign me up for alerts") +
-        "&body=" + encodeURIComponent("Please add me to text and email alerts.\n\nName:\nMobile:\nChild:\n");
-      btn.removeAttribute("target");
-    }
-    var codeEl = $("#remindCode");
-    if (code && codeEl) {
-      codeEl.querySelector("b").textContent = "@" + code;
-      codeEl.hidden = false;
-    }
-  })();
 })();
