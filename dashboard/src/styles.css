@@ -292,6 +292,15 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
 .att-name{display:block;font-weight:700;color:var(--ink);line-height:1.2}
 .att-meta{display:block;font-size:var(--fs-xs);color:var(--ink-3);font-weight:600;margin-top:.05rem}
 @media (pointer:coarse){.att-row{padding:.9rem .85rem}.att-check{width:30px;height:30px}}
+/* clinic-attendance checklist rows (drawer) */
+.att-check-row{display:flex;align-items:center;gap:.7rem;width:100%;cursor:pointer;position:relative;
+  background:var(--surface);border:1.5px solid var(--line);border-radius:var(--r-md);padding:.7rem .8rem;
+  transition:background .12s,border-color .12s}
+.att-check-row:hover{border-color:var(--ink-3)}
+.att-check-row input{position:absolute;opacity:0;width:0;height:0;pointer-events:none}
+.att-check-row.is-on{background:var(--accent-weak);border-color:var(--accent)}
+.att-check-row.is-on .att-check{background:var(--accent);border-color:var(--accent);color:#fff}
+@media (pointer:coarse){.att-check-row{padding:.9rem .85rem}}
 
 .att-history{margin-top:1.6rem}
 .att-history h3{font-size:var(--fs-sm);text-transform:uppercase;letter-spacing:.05em;color:var(--ink-3);font-weight:800;margin-bottom:.6rem}
