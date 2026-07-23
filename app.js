@@ -275,14 +275,7 @@
   function openMailto(d) {
     var role = d.role || "";
     var subject, lines;
-    if (role === "Sponsor / partner") {
-      subject = "LB Soccer Academy — sponsorship interest";
-      lines = ["Hi — I'd like to help keep the program free.", "",
-        "Name: " + d.parentName, "Email: " + d.email,
-        d.phone ? "Phone: " + d.phone : "",
-        d.team ? "Business: " + d.team : "",
-        d.note ? "Note: " + d.note : "", "", "Thanks!"];
-    } else if (role === "Coach") {
+    if (role === "Coach") {
       subject = "LB Soccer Academy — Eagles-Affiliated Coach interest";
       lines = ["Hi — I'd like to become an Eagles-Affiliated Coach.", "",
         "Name: " + d.parentName, "Email: " + d.email, "Mobile: " + d.phone,
