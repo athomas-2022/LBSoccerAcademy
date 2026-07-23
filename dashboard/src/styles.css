@@ -472,9 +472,18 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
 @media (max-width:640px){ .player{padding:0} .player__box{width:100%;border-radius:0;height:100%;display:flex;flex-direction:column}
   .player__frame{flex:1;aspect-ratio:auto} }
 .team-actions{display:flex;gap:.4rem;flex-wrap:wrap}
-.team-coach{font-size:var(--fs-sm);color:var(--ink-2);font-weight:500;margin-top:.7rem}
+.team-coaches{margin-top:.7rem;display:grid;gap:.25rem}
+.team-coach{font-size:var(--fs-sm);color:var(--ink-2);font-weight:500}
 .team-coach b{color:var(--ink)}
 .team-coach a{color:var(--accent);font-weight:600}
+.team-coaches .team-clinic{font-size:var(--fs-xs);margin-top:.15rem}
+/* multi-coach editor rows (team drawer) */
+.coach-row{border:1px solid var(--line);border-radius:var(--r-md);padding:.6rem;margin-bottom:.5rem;background:var(--surface-2,var(--surface))}
+.coach-row__top{display:flex;gap:.5rem;align-items:center}
+.coach-row__top .c-name{flex:1 1 auto}
+.coach-row__contact{margin:.4rem 0 0}
+.coach-del{flex:0 0 auto;color:var(--danger);padding:.4rem .6rem}
+#addCoach{margin-top:.2rem}
 .team-rosterhead{display:flex;justify-content:space-between;align-items:baseline;gap:.6rem;margin-top:.8rem;
   font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.04em;color:var(--ink-3);font-weight:800}
 .team-matched{color:oklch(0.48 .13 155);text-transform:none;letter-spacing:0}

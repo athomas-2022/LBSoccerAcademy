@@ -475,6 +475,12 @@
   function rosterToText(players) {
     return (players || []).map(function (p) { return p.name + (p.grade != null ? ", " + (p.grade === 0 ? "K" : p.grade) : ""); }).join("\n");
   }
+  // A team can have several coaches. Normalize legacy single-coach records.
+  function teamCoaches(t) {
+    if (t.coaches && t.coaches.length) return t.coaches;
+    if (t.coach) return [{ name: t.coach, email: t.coachEmail || "", phone: t.coachPhone || "" }];
+    return [];
+  }
   // how many of a team's players already exist as academy athletes
   function teamMatched(t) {
     var prog = t.program === "Girls" ? "Girls" : "Boys";
@@ -491,11 +497,12 @@
   function renderTeams() {
     var host = $("#view-teams");
     var teamCount = state.teams.length;
+    var coachCount = allCoaches().length;
     var playerCount = state.teams.reduce(function (n, t) { return n + (t.players ? t.players.length : 0); }, 0);
     var affCount = state.teams.filter(function (t) { return t.affiliation === "affiliated"; }).length;
     var summary = '<div class="team-summary">' +
-      '<div class="team-stat"><b class="tnum">' + teamCount + '</b> coach' + (teamCount === 1 ? "" : "es") + '</div>' +
-      '<div class="team-stat"><b class="tnum">' + affCount + '</b> affiliated</div>' +
+      '<div class="team-stat"><b class="tnum">' + coachCount + '</b> coach' + (coachCount === 1 ? "" : "es") + '</div>' +
+      '<div class="team-stat"><b class="tnum">' + teamCount + '</b> team' + (teamCount === 1 ? "" : "s") + ' · ' + affCount + ' affiliated</div>' +
       '<div class="team-stat"><b class="tnum">' + playerCount + '</b> kids reached</div>' +
       '<p class="team-lede">Every rec, travel, club and school coach in the district. Train them in the Eagles Way and it reaches every kid on their roster — no extra sessions for the kids.</p></div>';
 
@@ -515,10 +522,13 @@
         '<span class="team-chip">' + esc(t.level || "Team") + '</span>' +
         '<span class="team-chip">' + esc(t.program || "Coed") + '</span>' +
         (t.ageGroup ? '<span class="team-chip">' + esc(t.ageGroup) + '</span>' : "");
-      var coach = t.coach ? '<div class="team-coach"><b>Coach ' + esc(t.coach) + '</b>' +
-        (t.coachEmail ? ' · <a href="mailto:' + esc(t.coachEmail) + '">' + esc(t.coachEmail) + '</a>' : "") +
-        (t.coachPhone ? ' · <a href="tel:' + esc(t.coachPhone) + '">' + esc(t.coachPhone) + '</a>' : "") +
-        (t.clinic ? ' · <span class="team-clinic">last clinic ' + esc(fmtDate(t.clinic)) + '</span>' : "") + '</div>' : "";
+      var cs = teamCoaches(t);
+      var coach = cs.length ? '<div class="team-coaches">' + cs.map(function (c) {
+        return '<div class="team-coach"><b>Coach ' + esc(c.name) + '</b>' +
+          (c.email ? ' · <a href="mailto:' + esc(c.email) + '">' + esc(c.email) + '</a>' : "") +
+          (c.phone ? ' · <a href="tel:' + esc(c.phone) + '">' + esc(c.phone) + '</a>' : "") + '</div>';
+      }).join("") +
+        (t.clinic ? '<div class="team-clinic">last clinic ' + esc(fmtDate(t.clinic)) + '</div>' : "") + '</div>' : "";
       var roster = players.length ? '<div class="team-roster">' + players.map(function (p) {
         return '<span class="team-player">' + esc(p.name) + (p.grade != null ? ' <i>' + (p.grade === 0 ? "K" : LB.GRADE_LABELS[p.grade]) + '</i>' : "") + '</span>';
       }).join("") + '</div>' : '<p class="team-empty">No players added yet.</p>';
@@ -539,9 +549,21 @@
     host.innerHTML = summary + '<div class="team-list">' + cards + '</div>';
   }
 
+  function coachRowHtml(c) {
+    c = c || {};
+    return '<div class="coach-row">' +
+      '<div class="coach-row__top">' +
+        '<input class="c-name" value="' + esc(c.name || "") + '" placeholder="Coach name">' +
+        '<button type="button" class="btn btn--ghost btn--sm coach-del" aria-label="Remove coach">✕</button></div>' +
+      '<div class="field--row coach-row__contact">' +
+        '<input class="c-email" type="email" value="' + esc(c.email || "") + '" placeholder="coach@email.com">' +
+        '<input class="c-phone" type="tel" value="' + esc(c.phone || "") + '" placeholder="419-555-0100">' +
+      '</div></div>';
+  }
   function teamForm(t) {
     t = t || {};
     var prog = t.program || "Coed";
+    var coachRows = teamCoaches(t); if (!coachRows.length) coachRows = [{}];
     var curAffil = t.affiliation || "prospect";
     var levels = TEAM_LEVELS.map(function (l) { return '<option value="' + l + '"' + (t.level === l ? " selected" : "") + '>' + l + '</option>'; }).join("");
     var affilOpts = AFFIL.map(function (a) { return '<option value="' + a.key + '"' + (curAffil === a.key ? " selected" : "") + '>' + a.label + '</option>'; }).join("");
@@ -558,12 +580,10 @@
         '<div class="field"><label for="t-affil">Affiliation</label><select id="t-affil">' + affilOpts + '</select></div>' +
         '<div class="field"><label for="t-clinic">Last clinic <span style="font-weight:500;color:var(--ink-3)">(optional)</span></label><input id="t-clinic" type="date" value="' + esc(t.clinic || "") + '"></div>' +
       '</div>' +
-      '<fieldset class="field"><legend>Coach</legend>' +
-        '<input id="t-coach" value="' + esc(t.coach || "") + '" placeholder="Coach name" style="margin-bottom:.5rem">' +
-        '<div class="field--row" style="margin:0">' +
-          '<input id="t-cemail" type="email" value="' + esc(t.coachEmail || "") + '" placeholder="coach@email.com">' +
-          '<input id="t-cphone" type="tel" value="' + esc(t.coachPhone || "") + '" placeholder="419-555-0100">' +
-        '</div></fieldset>' +
+      '<fieldset class="field"><legend>Coaches</legend>' +
+        '<div id="coachRows">' + coachRows.map(coachRowHtml).join("") + '</div>' +
+        '<button type="button" class="btn btn--ghost btn--sm" id="addCoach"><svg class="ic"><use href="#ic-plus"/></svg>Add another coach</button>' +
+      '</fieldset>' +
       '<div class="field"><label for="t-roster">Roster <span style="font-weight:500;color:var(--ink-3)">(one player per line — optionally add a grade: “Jack Smith, 4”)</span></label>' +
         '<textarea id="t-roster" rows="7" placeholder="Jack Smith, 4&#10;Ava Jones, 3&#10;Liam Carter">' + esc(rosterToText(t.players)) + '</textarea></div>' +
       '<div class="field"><label for="t-note">Note <span style="font-weight:500;color:var(--ink-3)">(optional)</span></label><textarea id="t-note" placeholder="Coach open to a joint session · plays Saturdays…">' + esc(t.note || "") + '</textarea></div>' +
@@ -574,15 +594,32 @@
   }
   function openTeam(t) {
     showDrawer(t ? "Edit coach" : "Add coach", teamForm(t));
+    $("#addCoach").addEventListener("click", function () {
+      $("#coachRows").insertAdjacentHTML("beforeend", coachRowHtml(null));
+      var names = $$("#coachRows .c-name"); if (names.length) names[names.length - 1].focus();
+    });
+    $("#coachRows").addEventListener("click", function (e) {
+      var del = e.target.closest(".coach-del"); if (!del) return;
+      var rows = $$("#coachRows .coach-row");
+      if (rows.length > 1) del.closest(".coach-row").remove();
+      else { var row = del.closest(".coach-row");
+        row.querySelector(".c-name").value = ""; row.querySelector(".c-email").value = ""; row.querySelector(".c-phone").value = ""; }
+    });
     $("#teamForm").addEventListener("submit", function (sub) {
       sub.preventDefault();
       var name = $("#t-name").value.trim();
       $("#t-name").closest(".field").classList.toggle("field--invalid", !name);
       if (!name) { $("#t-name").focus(); return; }
+      var coaches = $$("#coachRows .coach-row").map(function (row) {
+        return { name: row.querySelector(".c-name").value.trim(),
+          email: row.querySelector(".c-email").value.trim(),
+          phone: row.querySelector(".c-phone").value.trim() };
+      }).filter(function (c) { return c.name; });
       var data = { name: name, level: $("#t-level").value, program: (document.querySelector('input[name="t-prog"]:checked') || {}).value || "Coed",
         ageGroup: $("#t-age").value.trim(), affiliation: $("#t-affil").value, clinic: $("#t-clinic").value || "",
-        coach: $("#t-coach").value.trim(), coachEmail: $("#t-cemail").value.trim(),
-        coachPhone: $("#t-cphone").value.trim(), players: parseRoster($("#t-roster").value), note: $("#t-note").value.trim(),
+        coaches: coaches,
+        coach: coaches.length ? coaches[0].name : "", coachEmail: coaches.length ? coaches[0].email : "", coachPhone: coaches.length ? coaches[0].phone : "",
+        players: parseRoster($("#t-roster").value), note: $("#t-note").value.trim(),
         updated: today() };
       if (t && t.id) { var idx = state.teams.findIndex(function (x) { return x.id === t.id; });
         state.teams[idx] = Object.assign({}, t, data); toast("Saved " + name + "."); }
@@ -670,7 +707,7 @@
     var past = evs.filter(function (e) { return e.date < td; }).reverse();
     function card(e) {
       var att = sessionForEvent(e.id);
-      var attN = att ? att.present.length : 0, coachN = state.teams.length;
+      var attN = att ? att.present.length : 0, coachN = allCoaches().length;
       var chips = '<span class="ev-chip ev-chip--prog">' + esc(e.program || "All") + '</span>' +
         (e.tier ? '<span class="ev-chip">' + esc(tierName(e.tier)) + '</span>' : "") +
         (att ? '<span class="ev-chip ev-chip--done"><svg class="ic"><use href="#ic-check"/></svg>' + attN + (coachN ? '/' + coachN : "") + ' coaches</span>' : "");
@@ -785,15 +822,27 @@
   function sessionsSorted() { return state.sessions.slice().sort(function (a, b) { return a.date < b.date ? 1 : (a.date > b.date ? -1 : 0); }); }
   function sessionForEvent(id) { for (var i = 0; i < state.sessions.length; i++) if (state.sessions[i].eventId === id) return state.sessions[i]; return null; }
 
-  // A coach is a "team" record (t.name = team, t.coach = the person). We key
-  // attendance by "<coach or team name>|<team id>" so the name round-trips
-  // through the shared Sheet while the id keeps each coach unique.
-  function coachLabel(t) { return t.coach ? t.coach : t.name; }
-  function coachKey(t) { return (coachLabel(t) + "|" + t.id).trim().toLowerCase(); }
-  function coachByKey(k) { return teamById(String(k).split("|").pop()); }
-  function coachRoster() {
-    return state.teams.slice().sort(function (a, b) { return coachLabel(a).localeCompare(coachLabel(b)); });
+  // Every coach across every team, flattened into one attendance roster.
+  // We key each coach "<coach name>|<team id>" so the name round-trips
+  // through the shared Sheet while the team id keeps it unique.
+  function allCoaches() {
+    var out = [];
+    state.teams.forEach(function (t) {
+      teamCoaches(t).forEach(function (c) {
+        var name = (c.name || "").trim(); if (!name) return;
+        out.push({ name: name, teamId: t.id, teamName: t.name, level: t.level || "", program: t.program || "" });
+      });
+    });
+    return out;
   }
+  function coachKey(c) { return (c.name + "|" + c.teamId).trim().toLowerCase(); }
+  function coachByKey(k) {
+    k = String(k).toLowerCase();
+    var all = allCoaches();
+    for (var i = 0; i < all.length; i++) if (coachKey(all[i]) === k) return all[i];
+    return null;
+  }
+  function coachRoster() { return allCoaches().sort(function (a, b) { return a.name.localeCompare(b.name); }); }
 
   function openClinicAttendance(eventId) {
     var ev = eventById(eventId); if (!ev) return;
@@ -807,13 +856,13 @@
     var s = sessionForEvent(eventId);
     var present = {}; if (s) s.present.forEach(function (k) { present[k] = 1; });
     var roster = coachRoster();
-    var rows = roster.map(function (t) {
-      var k = coachKey(t), on = !!present[k];
+    var rows = roster.map(function (c) {
+      var k = coachKey(c), on = !!present[k];
       return '<label class="att-check-row' + (on ? " is-on" : "") + '">' +
         '<input type="checkbox" class="clinic-att-box" data-k="' + esc(k) + '"' + (on ? " checked" : "") + '>' +
         '<span class="att-check"><svg class="ic"><use href="#ic-check"/></svg></span>' +
-        '<span class="att-who"><span class="att-name">' + esc(coachLabel(t)) + '</span>' +
-          '<span class="att-meta">' + esc(t.name) + (t.level ? " · " + esc(t.level) : "") + '</span></span>' +
+        '<span class="att-who"><span class="att-name">' + esc(c.name) + '</span>' +
+          '<span class="att-meta">' + esc(c.teamName) + (c.level ? " · " + esc(c.level) : "") + '</span></span>' +
       '</label>';
     }).join("");
     var syncNote = SIGNUPS_URL ? '<span class="att-sync">Syncs to all your devices</span>' : '<span class="att-sync att-sync--off">This device only — connect the Sheet to sync</span>';
@@ -849,8 +898,8 @@
   function pushSession(s) {
     if (!SIGNUPS_URL) return;
     var present = s.present.map(function (k) {
-      var t = coachByKey(k);
-      if (t) return { name: coachLabel(t), gradYear: t.id, program: t.program || "" };
+      var c = coachByKey(k);
+      if (c) return { name: c.name, gradYear: c.teamId, program: c.program || "" };
       var parts = String(k).split("|"); return { name: parts[0], gradYear: parts[1] || "", program: "" };
     });
     var ev = eventById(s.eventId);
