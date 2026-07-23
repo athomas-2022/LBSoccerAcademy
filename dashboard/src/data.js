@@ -88,14 +88,7 @@ var SAMPLE = {
     A("Caleb", "Ortiz", 5, "Boys", ["Football", "Track"], "prospect", "PE teacher says the best athlete in 5th grade. Convert him."),
     A("Zoe", "Parker", 8, "Girls", ["Soccer"], "active", "Next XI leader — bring her to Youth Nights as a role model.")
   ],
-  sponsors: [
-    { id: "sp-1", name: "Findlay Family Dental", amount: 1000, note: "PA shout-outs; framed thanks delivered." },
-    { id: "sp-2", name: "Eagle Auto & Tire", amount: 500, note: "Banner up at the field." },
-    { id: "sp-3", name: "Rise & Grind Coffee", amount: 250, note: "Covering a kid's season." },
-    { id: "sp-4", name: "Benton Hardware", amount: 250, note: "" },
-    { id: "sp-5", name: "Liberty Insurance Group", amount: 100, note: "" },
-    { id: "sp-6", name: "Northgate Sporting Goods", amount: 0, note: "In-kind: 20 pairs of cleats for the gear closet." }
-  ],
+  sponsors: [],
   phasesDone: [1, 2, 3, 4],
   settings: { districtAthletes: 240 }
 };

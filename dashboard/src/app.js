@@ -32,21 +32,11 @@
     return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]; }); };
   var money = function (n) { return "$" + Number(n || 0).toLocaleString("en-US"); };
 
-  var SETTINGS_DEFAULT = { districtAthletes: 240, openingBalance: 0 };
-  var SPONSOR_GOAL = 3000;
+  var SETTINGS_DEFAULT = { districtAthletes: 240 };
 
   // ---- state -------------------------------------------------------
   var state, ui = { view: "overview", prog: "all", search: "", status: "all", grad: "all", attDate: "", attEvent: "", present: {},
     resType: "all", resAge: "all", resTopic: "all", resSearch: "" };
-
-  var FIN_CATS = {
-    in: ["Sponsorship", "Donation", "Grant", "Fundraiser", "Registration/fees", "Refund received", "Interest", "Other income"],
-    out: ["Equipment & balls", "Uniforms & kit", "Field/facility rental", "Referees", "Insurance",
-      "Marketing/printing", "Website/software/domain", "Trophies & awards", "Food & water", "Travel",
-      "Scholarships/aid", "Bank & processing fees", "Supplies", "Other expense"]
-  };
-  var FIN_METHODS = ["Cash", "Check", "Card", "Bank transfer", "Online (PayPal/Venmo)", "In-kind (no cash)", "Other"];
-  var FIN_INKIND = "In-kind (no cash)";
 
   var TEAM_LEVELS = ["Rec", "Travel", "Club", "School", "Other"];
   // Where a coach sits in the affiliation funnel: prospect -> invited -> affiliated.
@@ -176,7 +166,7 @@
         '<button class="side__authbtn" data-action="sign-out">Sign out</button>' +
       '</div>';
   }
-  function runBootSyncs() { if (SIGNUPS_URL) { syncSignups(true); syncEvents(true); syncFinances(true); syncResources(true); } }
+  function runBootSyncs() { if (SIGNUPS_URL) { syncSignups(true); syncEvents(true); syncResources(true); } }
 
   // ---- approve / remove people (owners only) ----
   function openAccess() {
@@ -238,9 +228,7 @@
       touched: t, active: active, atrisk: atrisk, lost: lost,
       capture: dist > 0 ? Math.round(t / dist * 100) : 0,
       retention: t > 0 ? Math.round((active + atrisk) / t * 100) : 0,
-      activeShare: dist > 0 ? Math.round(active / dist * 100) : 0,
-      sponsorTotal: state.sponsors.reduce(function (s, x) { return s + (Number(x.amount) || 0); }, 0),
-      sponsorCount: state.sponsors.length
+      activeShare: dist > 0 ? Math.round(active / dist * 100) : 0
     };
   }
   function initials(a) { return (a.first[0] || "") + (a.last[0] || ""); }
@@ -261,8 +249,7 @@
     training: { title: "Training Library", sub: "Videos, drills & guides for every Eagles-Affiliated coach." },
     schedule: { title: "Schedule", sub: "Coach clinics, touchpoints & showcases — auto-added to the shared calendar." },
     attendance: { title: "Attendance", sub: "Pick a session, tap kids in — it flows into the tracker." },
-    plan: { title: "The 360-Day Plan", sub: "Twelve phases from first conversation to year two." },
-    finances: { title: "Finances", sub: "Every dollar in and out, plus your sponsors." }
+    plan: { title: "The 360-Day Plan", sub: "Twelve phases from first conversation to year two." }
   };
   function renderTopbar() {
     var m = VIEW_META[ui.view];
@@ -284,9 +271,6 @@
         '<button class="btn btn--primary" data-action="add-event"><svg class="ic"><use href="#ic-plus"/></svg>Add event</button>';
     } else if (ui.view === "attendance") {
       slot.innerHTML = '<button class="btn btn--primary" data-action="save-session"><svg class="ic"><use href="#ic-check"/></svg>Save session</button>';
-    } else if (ui.view === "finances") {
-      slot.innerHTML = '<button class="btn btn--ghost" data-action="fin-opening">Opening balance</button>' +
-        '<button class="btn btn--primary" data-action="add-finance"><svg class="ic"><use href="#ic-plus"/></svg>Add transaction</button>';
     }
   }
   function setView(v) {
@@ -299,7 +283,6 @@
     renderTopbar(); renderView();
     if (v === "attendance") syncAttendance(true);     // pull other devices' latest
     if (v === "schedule") syncEvents(true);           // pull events other devices added
-    if (v === "finances") syncFinances(true);         // pull ledger entries from other devices
     if (v === "training") syncResources(true);        // pull the shared library
     $("#view-" + v).focus({ preventScroll: true });
     window.scrollTo(0, 0);
@@ -312,7 +295,6 @@
     else if (ui.view === "schedule") renderSchedule();
     else if (ui.view === "attendance") renderAttendance();
     else if (ui.view === "plan") renderPlan();
-    else if (ui.view === "finances") renderFinances();
     renderNavBadge(); renderDataNote();
   }
   function renderNavBadge() {
@@ -321,7 +303,7 @@
   }
   function renderDataNote() {
     var note = $("#dataNote");
-    if (!state.athletes.length && !state.sponsors.length) { note.innerHTML = ""; return; }
+    if (!state.athletes.length) { note.innerHTML = ""; return; }
     note.innerHTML = (state.seeded ? "Showing sample data. " : "") +
       '<button data-action="clear">Clear all data</button>';
   }
@@ -332,7 +314,7 @@
   function renderOverview() {
     var n = numbers();
     var host = $("#view-overview");
-    if (!state.athletes.length && !state.sponsors.length) { host.innerHTML = firstRunEmpty(); return; }
+    if (!state.athletes.length) { host.innerHTML = firstRunEmpty(); return; }
 
     var pct = function (v) { return Math.max(0, Math.min(100, v)); };
     var board =
@@ -340,7 +322,6 @@
         scoreCell("Capture rate", n.capture + '<small>%</small>', "touched " + n.touched + " of ~" + state.settings.districtAthletes + " kids", pct(n.capture), true) +
         scoreCell("Retention", n.retention + '<small>%</small>', n.active + " active · " + n.atrisk + " at risk", pct(n.retention), true) +
         scoreCell("Active players", String(n.active), "playing right now, K–8", pct(n.activeShare), true) +
-        scoreCell("Sponsor dollars", money(n.sponsorTotal), "from " + n.sponsorCount + " sponsor" + (n.sponsorCount === 1 ? "" : "s"), pct(n.sponsorTotal / SPONSOR_GOAL * 100), false) +
       '</div>';
 
     var atrisk = pool().filter(function (a) { return a.status === "atrisk"; });
@@ -361,7 +342,6 @@
           miniRow("Capture rate", n.capture + "%", n.capture, false) +
           miniRow("Retention", n.retention + "%", n.retention, false) +
           miniRow("At risk", n.atrisk + " of " + n.touched, n.touched ? Math.round(n.atrisk / n.touched * 100) : 0, true) +
-          miniRow("Sponsor goal", money(n.sponsorTotal) + " / " + money(SPONSOR_GOAL), Math.min(100, Math.round(n.sponsorTotal / SPONSOR_GOAL * 100)), false) +
         '</div></div></section>';
 
     host.innerHTML = board + '<div class="overview-grid">' + riskPanel + sideCol + '</div>';
@@ -1002,278 +982,6 @@
   }
 
   // ================================================================
-  //  FINANCES — running ledger of money in / out (+ sponsors)
-  // ================================================================
-  function finById(id) { for (var i = 0; i < state.finances.length; i++) if (state.finances[i].id === id) return state.finances[i]; return null; }
-  function finInkind(t) { return t.method === FIN_INKIND; }
-  function finsSorted() {
-    return state.finances.slice().sort(function (a, b) {
-      return (b.date + (b.updated || "")).localeCompare(a.date + (a.updated || ""));
-    });
-  }
-  function finScheduled(t) { return t.date > today(); }   // future-dated = not yet counted
-  function finTotals() {
-    var cashIn = 0, cashOut = 0, inkind = 0, schedIn = 0, schedOut = 0;
-    state.finances.forEach(function (t) {
-      var amt = Number(t.amount) || 0, future = finScheduled(t);
-      if (finInkind(t)) { if (!future) inkind += amt; }
-      else if (t.kind === "in") { if (future) schedIn += amt; else cashIn += amt; }
-      else { if (future) schedOut += amt; else cashOut += amt; }
-    });
-    var opening = Number(state.settings.openingBalance) || 0;
-    return { cashIn: cashIn, cashOut: cashOut, inkind: inkind, schedIn: schedIn, schedOut: schedOut,
-      opening: opening, balance: opening + cashIn - cashOut, hasSched: (schedIn || schedOut) > 0 };
-  }
-  // date math for recurring transactions
-  function finIso(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
-  function finAddMonths(d, m) {
-    var day = d.getDate(), nd = new Date(d.getFullYear(), d.getMonth() + m, 1);
-    var last = new Date(nd.getFullYear(), nd.getMonth() + 1, 0).getDate();
-    nd.setDate(Math.min(day, last)); return nd;
-  }
-  function finAddPeriods(dateStr, freq, n) {
-    var d = new Date(dateStr + "T00:00:00");
-    if (freq === "weekly") d.setDate(d.getDate() + 7 * n);
-    else if (freq === "biweekly") d.setDate(d.getDate() + 14 * n);
-    else if (freq === "monthly") d = finAddMonths(d, n);
-    else if (freq === "quarterly") d = finAddMonths(d, 3 * n);
-    else if (freq === "yearly") d = finAddMonths(d, 12 * n);
-    return finIso(d);
-  }
-  var FIN_FREQS = [["weekly", "Weekly"], ["biweekly", "Every 2 weeks"], ["monthly", "Monthly"], ["quarterly", "Quarterly"], ["yearly", "Yearly"]];
-  function finFreqLabel(f) { for (var i = 0; i < FIN_FREQS.length; i++) if (FIN_FREQS[i][0] === f) return FIN_FREQS[i][1]; return ""; }
-  function signed(t) { var amt = Number(t.amount) || 0; return (t.kind === "in" ? "+" : "−") + money(amt); }
-
-  function renderFinances() {
-    var host = $("#view-finances");
-    var t = finTotals();
-    var cards =
-      '<div class="fin-cards">' +
-        '<div class="fin-card fin-card--bal"><span class="fin-k">Balance</span><span class="fin-v tnum">' + (t.balance < 0 ? "−" + money(-t.balance) : money(t.balance)) + '</span>' +
-          '<span class="fin-sub">' + (t.opening ? money(t.opening) + ' opening' : 'no opening balance set') + '</span></div>' +
-        '<div class="fin-card fin-card--in"><span class="fin-k">Money in</span><span class="fin-v tnum">' + money(t.cashIn) + '</span></div>' +
-        '<div class="fin-card fin-card--out"><span class="fin-k">Money out</span><span class="fin-v tnum">' + money(t.cashOut) + '</span></div>' +
-        (t.inkind ? '<div class="fin-card fin-card--kind"><span class="fin-k">In-kind received</span><span class="fin-v tnum">' + money(t.inkind) + '</span><span class="fin-sub">non-cash value</span></div>' : "") +
-      '</div>' +
-      (t.hasSched ? '<p class="fin-sched-note">Scheduled (not yet in the balance): ' +
-        (t.schedIn ? '<b class="u-in">+' + money(t.schedIn) + '</b> in' : "") + (t.schedIn && t.schedOut ? ' · ' : "") +
-        (t.schedOut ? '<b class="u-out">−' + money(t.schedOut) + '</b> out' : "") + '</p>' : "") +
-      (SIGNUPS_URL ? '<span class="att-sync">Synced to your Google Sheet ledger</span>' : '<span class="att-sync att-sync--off">This device only — connect the Sheet to sync</span>');
-
-    if (!state.finances.length) {
-      host.innerHTML = cards + '<div class="empty empty--mini"><h3>No transactions yet.</h3>' +
-        '<p>Log every dollar in and out — sponsor checks, gear, field rental, printing, referees. It builds your ledger for the books and taxes.</p>' +
-        '<div class="empty__actions"><button class="btn btn--primary" data-action="add-finance"><svg class="ic"><use href="#ic-plus"/></svg>Add a transaction</button></div></div>' +
-        sponsorSection();
-      return;
-    }
-
-    // category breakdown (expenses + income), largest first
-    function breakdown(kind) {
-      var by = {};
-      state.finances.forEach(function (x) { if (x.kind !== kind || finInkind(x)) return; by[x.category] = (by[x.category] || 0) + (Number(x.amount) || 0); });
-      var arr = Object.keys(by).map(function (c) { return { cat: c, amt: by[c] }; }).sort(function (a, b) { return b.amt - a.amt; });
-      var max = arr.length ? arr[0].amt : 0;
-      return arr.map(function (r) {
-        return '<div class="fin-brow"><span class="fin-bcat">' + esc(r.cat) + '</span>' +
-          '<span class="fin-bbar"><i style="width:' + (max ? Math.max(4, Math.round(r.amt / max * 100)) : 0) + '%"></i></span>' +
-          '<span class="fin-bamt tnum">' + money(r.amt) + '</span></div>';
-      }).join("");
-    }
-    var outBd = breakdown("out"), inBd = breakdown("in");
-    var breakdownHtml = (outBd || inBd) ? '<div class="fin-breakdowns">' +
-      (outBd ? '<div class="fin-bd"><h3>Where it goes</h3>' + outBd + '</div>' : "") +
-      (inBd ? '<div class="fin-bd"><h3>Where it comes from</h3>' + inBd + '</div>' : "") +
-    '</div>' : "";
-
-    var filt = ui.finFilter || "all";
-    var chips = '<div class="fin-filter">' + [["all", "All"], ["in", "Money in"], ["out", "Money out"]].map(function (p) {
-      return '<button class="chip' + (filt === p[0] ? " is-on" : "") + '" data-action="fin-filter" data-f="' + p[0] + '"' + (filt === p[0] ? ' aria-pressed="true"' : "") + '>' + p[1] + '</button>';
-    }).join("") + '</div>';
-
-    var list = finsSorted().filter(function (x) { return filt === "all" || x.kind === filt; });
-    var rows = list.map(function (x) {
-      var ik = finInkind(x), sched = finScheduled(x);
-      var badges = (sched ? '<span class="fin-tag fin-tag--sched">scheduled</span>' : "") +
-        (x.series ? '<span class="fin-tag fin-tag--rep">↻ ' + esc(finFreqLabel(x.repeat) || "repeats") + '</span>' : "");
-      return '<tr class="' + (sched ? "is-sched" : "") + '" data-action="edit-finance" data-id="' + x.id + '">' +
-        '<td class="fin-date tnum">' + esc(fmtDate(x.date)) + '</td>' +
-        '<td><button type="button" class="who__name" data-action="edit-finance" data-id="' + x.id + '">' + esc(x.desc || x.category) + '</button>' + badges +
-          '<div class="fin-meta">' + esc(x.category) + (x.party ? ' · ' + esc(x.party) : "") + (x.method ? ' · ' + esc(x.method) : "") + '</div></td>' +
-        '<td class="fin-amt ' + (ik ? "is-kind" : x.kind === "in" ? "is-in" : "is-out") + ' tnum">' + (ik ? money(Number(x.amount) || 0) + ' in-kind' : signed(x)) + '</td></tr>';
-    }).join("");
-
-    host.innerHTML = cards + breakdownHtml + chips +
-      '<div class="tablewrap"><table class="roster fin-table"><thead><tr><th>Date</th><th>Transaction</th><th class="fin-amth">Amount</th></tr></thead><tbody>' +
-      rows + '</tbody></table></div>' + sponsorSection();
-  }
-
-  // Sponsors now live inside Finances — a distinct section under the ledger.
-  function sponsorSection() {
-    var head = '<div class="fin-sechead"><div><h2 class="fin-sech">Sponsors</h2>' +
-      '<p class="fin-sechsub">Who funds “Every Kid Plays” — pledges &amp; support (separate from cash received above).</p></div>' +
-      '<button class="btn btn--ghost btn--sm" data-action="add-sponsor"><svg class="ic"><use href="#ic-plus"/></svg>Add sponsor</button></div>';
-    var total = state.sponsors.reduce(function (s, x) { return s + (Number(x.amount) || 0); }, 0);
-    var summary = '<div class="spon-summary"><div class="spon-total">' +
-      '<div class="n tnum">' + money(total) + '</div>' +
-      '<div class="l">pledged from ' + state.sponsors.length + ' sponsor' + (state.sponsors.length === 1 ? "" : "s") + '</div>' +
-      '<div class="goal">Goal ' + money(SPONSOR_GOAL) + ' · keeps the year free for families</div></div></div>';
-    var body;
-    if (!state.sponsors.length) {
-      body = '<p class="fin-sechempty">No sponsors yet — add the local businesses backing the program.</p>';
-    } else {
-      var sorted = state.sponsors.slice().sort(function (a, b) { return (b.amount || 0) - (a.amount || 0); });
-      var rows = sorted.map(function (s) {
-        return '<tr data-action="edit-sponsor" data-id="' + s.id + '">' +
-          '<td><button type="button" class="who__name" data-action="edit-sponsor" data-id="' + s.id + '">' + esc(s.name) + '</button>' +
-            (s.note ? '<div class="who__sports" style="text-transform:none;font-weight:500">' + esc(s.note) + '</div>' : "") + '</td>' +
-          '<td class="tnum" style="font-weight:700">' + (s.amount ? money(s.amount) : "In-kind") + '</td></tr>';
-      }).join("");
-      body = '<div class="tablewrap"><table class="roster"><thead><tr><th>Sponsor</th><th>Amount</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
-    }
-    return '<div class="fin-sponsors">' + head + summary + body + '</div>';
-  }
-
-  function financeForm(x) {
-    x = x || {};
-    var kind = x.kind || "out";
-    function cats(k) { return FIN_CATS[k].map(function (c) { return '<option value="' + esc(c) + '"' + (x.category === c ? " selected" : "") + '>' + esc(c) + '</option>'; }).join(""); }
-    var methods = FIN_METHODS.map(function (m) { return '<option value="' + esc(m) + '"' + (x.method === m ? " selected" : "") + '>' + esc(m) + '</option>'; }).join("");
-    return '<form id="finForm">' +
-      '<div class="field"><label>Type</label><div class="segfield">' +
-        '<label><input type="radio" name="f-kind" value="out"' + (kind !== "in" ? " checked" : "") + '><span>Money out</span></label>' +
-        '<label><input type="radio" name="f-kind" value="in"' + (kind === "in" ? " checked" : "") + '><span>Money in</span></label>' +
-      '</div></div>' +
-      '<div class="field--row">' +
-        '<div class="field"><label for="f-amt">Amount</label><input id="f-amt" type="number" min="0" step="0.01" value="' + (x.amount != null ? x.amount : "") + '" placeholder="0.00" required></div>' +
-        '<div class="field"><label for="f-date">Date</label><input id="f-date" type="date" value="' + esc(x.date || today()) + '" required></div>' +
-      '</div>' +
-      '<div class="field"><label for="f-cat">Category</label>' +
-        '<select id="f-cat-out"' + (kind === "in" ? ' hidden' : '') + '>' + cats("out") + '</select>' +
-        '<select id="f-cat-in"' + (kind === "in" ? '' : ' hidden') + '>' + cats("in") + '</select></div>' +
-      '<div class="field"><label for="f-desc">Description</label><input id="f-desc" value="' + esc(x.desc || "") + '" placeholder="20 size-4 balls, field rental, sponsor check…"></div>' +
-      '<div class="field--row">' +
-        '<div class="field"><label for="f-party">Paid to / from</label><input id="f-party" value="' + esc(x.party || "") + '" placeholder="Vendor or sponsor"></div>' +
-        '<div class="field"><label for="f-method">Method</label><select id="f-method">' + methods + '</select></div>' +
-      '</div>' +
-      '<div class="field"><label for="f-note">Note <span style="font-weight:500;color:var(--ink-3)">(optional)</span></label><textarea id="f-note" placeholder="Receipt #, reimbursed by…">' + esc(x.note || "") + '</textarea></div>' +
-      (x.id ? "" :
-        '<div class="field--row">' +
-          '<div class="field"><label for="f-repeat">Repeat</label><select id="f-repeat"><option value="">Does not repeat</option>' +
-            FIN_FREQS.map(function (f) { return '<option value="' + f[0] + '">' + f[1] + '</option>'; }).join("") + '</select></div>' +
-          '<div class="field" id="f-count-wrap" hidden><label for="f-count">How many</label><input id="f-count" type="number" min="2" max="60" value="12"></div>' +
-        '</div>' +
-        '<p class="fin-rep-hint" id="f-rep-hint" hidden></p>') +
-      '<div class="drawer__foot">' +
-        (x.id ? '<button type="button" class="btn btn--danger" data-action="delete-finance" data-id="' + x.id + '">Delete</button>' : "") +
-        '<button type="submit" class="btn btn--primary">' + (x.id ? "Save" : "Add transaction") + '</button>' +
-      '</div></form>';
-  }
-  function openFinance(x) {
-    showDrawer(x ? "Edit transaction" : "Add transaction", financeForm(x));
-    var kindRadios = $$('input[name="f-kind"]');
-    function syncCatVisibility() {
-      var k = (document.querySelector('input[name="f-kind"]:checked') || {}).value || "out";
-      $("#f-cat-out").hidden = k === "in"; $("#f-cat-in").hidden = k !== "in";
-    }
-    kindRadios.forEach(function (r) { r.addEventListener("change", syncCatVisibility); });
-    var repeatSel = $("#f-repeat");
-    function syncRepeat() {
-      var f = repeatSel.value, wrap = $("#f-count-wrap"), hint = $("#f-rep-hint");
-      wrap.hidden = !f;
-      if (!f) { hint.hidden = true; return; }
-      var n = Math.max(2, Math.min(60, parseInt($("#f-count").value, 10) || 12));
-      var last = finAddPeriods($("#f-date").value || today(), f, n - 1);
-      hint.hidden = false; hint.textContent = "Creates " + n + " " + finFreqLabel(f).toLowerCase() + " transactions through " + fmtDate(last) + ". Future ones show as “scheduled” until their date.";
-    }
-    if (repeatSel) { repeatSel.addEventListener("change", syncRepeat);
-      $("#f-count").addEventListener("input", syncRepeat); $("#f-date").addEventListener("change", syncRepeat); }
-    $("#finForm").addEventListener("submit", function (sub) {
-      sub.preventDefault();
-      var amt = parseFloat($("#f-amt").value); var date = $("#f-date").value;
-      $("#f-amt").closest(".field").classList.toggle("field--invalid", !(amt >= 0));
-      $("#f-date").closest(".field").classList.toggle("field--invalid", !date);
-      if (!(amt >= 0) || !date) { $(!(amt >= 0) ? "#f-amt" : "#f-date").focus(); return; }
-      var kind = (document.querySelector('input[name="f-kind"]:checked') || {}).value || "out";
-      var cat = kind === "in" ? $("#f-cat-in").value : $("#f-cat-out").value;
-      var base = { date: date, kind: kind, category: cat, amount: Math.round(amt * 100) / 100,
-        method: $("#f-method").value, party: $("#f-party").value.trim(), desc: $("#f-desc").value.trim(),
-        note: $("#f-note").value.trim() };
-      if (x && x.id) {
-        var idx = state.finances.findIndex(function (y) { return y.id === x.id; });
-        state.finances[idx] = Object.assign({}, x, base, { updated: new Date().toISOString(), unsynced: true });
-        save(); pushFinance(state.finances[idx]); toast("Transaction saved.");
-      } else {
-        var freq = repeatSel ? repeatSel.value : "";
-        if (freq) {
-          var count = Math.max(2, Math.min(60, parseInt($("#f-count").value, 10) || 12));
-          var series = uid("ser");
-          for (var i = 0; i < count; i++) {
-            var occ = Object.assign({}, base, { id: uid("fin"), date: finAddPeriods(date, freq, i),
-              series: series, repeat: freq, updated: new Date().toISOString(), unsynced: true });
-            state.finances.push(occ); pushFinance(occ);
-          }
-          save(); toast(count + " " + finFreqLabel(freq).toLowerCase() + " transactions added.");
-        } else {
-          var rec = Object.assign({}, base, { id: uid("fin"), updated: new Date().toISOString(), unsynced: true });
-          state.finances.push(rec); save(); pushFinance(rec);
-          toast((kind === "in" ? "+" : "−") + money(base.amount) + " logged.");
-        }
-      }
-      hideDrawer(); renderView();
-    });
-  }
-  function deleteFinance(id) {
-    var x = finById(id); if (!x) return;
-    if (!window.confirm("Delete this transaction (" + signed(x) + ")?")) return;
-    state.finances = state.finances.filter(function (y) { return y.id !== id; });
-    save(); pushFinanceDelete(x); hideDrawer(); renderView(); toast("Transaction removed.");
-  }
-  function openOpeningBalance() {
-    showDrawer("Opening balance", '<form id="obForm">' +
-      '<div class="field"><label for="ob-amt">Opening / bank balance</label><input id="ob-amt" type="number" step="0.01" value="' + (Number(state.settings.openingBalance) || 0) + '">' +
-      '<p class="err" style="color:var(--ink-3);font-weight:500">Your starting cash before any transactions below — so Balance matches your real account.</p></div>' +
-      '<div class="drawer__foot"><button type="submit" class="btn btn--primary">Save</button></div></form>');
-    $("#obForm").addEventListener("submit", function (e) { e.preventDefault();
-      state.settings.openingBalance = Math.round((parseFloat($("#ob-amt").value) || 0) * 100) / 100;
-      save(); hideDrawer(); renderView(); toast("Opening balance set.");
-    });
-  }
-
-  // ---- finances cross-device sync via the Sheet ----
-  function pushFinance(x) {
-    if (!SIGNUPS_URL || !x) return;
-    apiPost({ type: "finance", id: x.id, date: x.date, kind: x.kind, category: x.category, amount: x.amount,
-      method: x.method, party: x.party, desc: x.desc, note: x.note, updated: x.updated })
-      .then(function () { delete x.unsynced; save(); }).catch(function () {});
-  }
-  function pushFinanceDelete(x) {
-    if (!SIGNUPS_URL || !x) return;
-    apiPost({ type: "finance-delete", id: x.id }).catch(function () {});
-  }
-  function syncFinances(quiet) {
-    if (!SIGNUPS_URL || (AUTH.enabled && !AUTH.ready)) return;
-    state.finances.forEach(function (x) { if (x.unsynced) pushFinance(x); });
-    apiGet().then(function (data) {
-      if (data && data.error === "auth") { relock("Session expired — sign in again."); return; }
-      if (!data || !data.finances) return;
-      var byId = {}; state.finances.forEach(function (x) { byId[x.id] = x; });
-      data.finances.forEach(function (row) {
-        if (!row.id) return;
-        var local = byId[row.id];
-        var remote = { id: row.id, date: String(row.date), kind: row.kind === "in" ? "in" : "out", category: row.category || "",
-          amount: Number(row.amount) || 0, method: row.method || "", party: row.party || "", desc: row.desc || "",
-          note: row.note || "", updated: String(row.updated || "") };
-        if (!local) byId[row.id] = remote;
-        else if (!local.unsynced && String(remote.updated) >= String(local.updated || "")) byId[row.id] = Object.assign(local, remote);
-      });
-      state.finances = Object.keys(byId).map(function (id) { return byId[id]; });
-      save();
-      if (ui.view === "finances") renderView();
-    }).catch(function () {});
-  }
-
-  // ================================================================
   //  TRAINING LIBRARY — videos + guides for coaches (shared, synced)
   // ================================================================
   function resById(id) { for (var i = 0; i < state.resources.length; i++) if (state.resources[i].id === id) return state.resources[i]; return null; }
@@ -1546,34 +1254,6 @@
     });
   }
 
-  function sponsorForm(s) {
-    s = s || {};
-    return '<form id="sponForm">' +
-      '<div class="field"><label for="s-name">Business name</label><input id="s-name" value="' + esc(s.name || "") + '" required></div>' +
-      '<div class="field"><label for="s-amt">Amount <span style="font-weight:500;color:var(--ink-3)">(0 for in-kind)</span></label>' +
-        '<input id="s-amt" type="number" min="0" step="25" value="' + (s.amount != null ? s.amount : "") + '" placeholder="100"></div>' +
-      '<div class="field"><label for="s-note">Note</label><textarea id="s-note" placeholder="Banner up · in-kind cleats · PA shout-out…">' + esc(s.note || "") + '</textarea></div>' +
-      '<div class="drawer__foot">' +
-        (s.id ? '<button type="button" class="btn btn--danger" data-action="delete-sponsor" data-id="' + s.id + '">Delete</button>' : "") +
-        '<button type="submit" class="btn btn--primary">' + (s.id ? "Save" : "Add sponsor") + '</button>' +
-      '</div></form>';
-  }
-  function openSponsor(s) {
-    showDrawer(s ? "Edit sponsor" : "Add sponsor", sponsorForm(s));
-    $("#sponForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-      var name = $("#s-name").value.trim();
-      var field = $("#s-name").closest(".field"); field.classList.toggle("field--invalid", !name);
-      if (!name) { $("#s-name").focus(); return; }
-      var amt = parseInt($("#s-amt").value, 10); if (isNaN(amt) || amt < 0) amt = 0;
-      var note = $("#s-note").value.trim();
-      if (s && s.id) { var idx = state.sponsors.findIndex(function (x) { return x.id === s.id; });
-        state.sponsors[idx] = Object.assign({}, s, { name: name, amount: amt, note: note }); toast("Saved " + name + "."); }
-      else { state.sponsors.push({ id: uid("sp"), name: name, amount: amt, note: note }); toast("Added " + name + "."); }
-      save(); hideDrawer(); renderView();
-    });
-  }
-
   function openSettings() {
     var s = state.settings;
     showDrawer("Program numbers", '<form id="setForm">' +
@@ -1738,7 +1418,7 @@
     showDrawer("Connect sign-ups", '<div class="cast-primary">' +
       '<p class="cast-note">Website sign-ups flow into your <b>Google Sheet</b>, and this button pulls new ones straight into <b>Athletes</b> — no retyping.</p>' +
       '<p class="cast-note">To turn it on, deploy the Apps Script (see the parent-alerts guide), then paste your web-app <code>/exec</code> URL into <code>SIGNUPS_URL</code> at the top of <code>src/app.js</code>.</p>' +
-      '<p class="cast-hint">It maps each sign-up to an athlete (name, graduation class, Boys/Girls, other sports), marks them Active, skips sponsors, and never imports the same kid twice.</p>' +
+      '<p class="cast-hint">It maps each sign-up to an athlete (name, graduation class, Boys/Girls, other sports), marks them Active, and never imports the same kid twice.</p>' +
       '</div><div class="drawer__foot"><button type="button" class="btn btn--primary" data-action="close-drawer">Got it</button></div>');
   }
 
@@ -1817,14 +1497,6 @@
       case "edit-event": openEvent(eventById(id)); break;
       case "delete-event": deleteEvent(id); break;
       case "take-attendance": ui.attEvent = id; ui.presentEvent = null; setView("attendance"); break;
-      case "add-sponsor": openSponsor(null); break;
-      case "edit-sponsor": openSponsor(state.sponsors.find(function (x) { return x.id === id; })); break;
-      case "delete-sponsor": state.sponsors = state.sponsors.filter(function (x) { return x.id !== id; }); save(); hideDrawer(); renderView(); toast("Sponsor removed."); break;
-      case "add-finance": openFinance(null); break;
-      case "edit-finance": openFinance(finById(id)); break;
-      case "delete-finance": deleteFinance(id); break;
-      case "fin-opening": openOpeningBalance(); break;
-      case "fin-filter": ui.finFilter = act.dataset.f; renderFinances(); break;
       case "settings": openSettings(); break;
       case "broadcast": openBroadcast(); break;
       case "sync-signups": syncSignups(false); break;
@@ -1857,7 +1529,7 @@
     toast("Sample roster loaded.");
   }
   function clearAll() {
-    if (!window.confirm("Clear all athletes, sponsors, plan progress, and numbers? This can't be undone.")) return;
+    if (!window.confirm("Clear all athletes, plan progress, and numbers? This can't be undone.")) return;
     state = blank(); save(); renderView(); toast("All data cleared.");
   }
 
