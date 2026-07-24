@@ -477,6 +477,11 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
 .team-coach b{color:var(--ink)}
 .team-coach a{color:var(--accent);font-weight:600}
 .team-coaches .team-clinic{font-size:var(--fs-xs);margin-top:.15rem}
+/* view-only coaches: hide every edit affordance */
+.is-viewonly .owner-only{display:none!important}
+.viewonly-pill{display:inline-flex;align-items:center;gap:.4rem;font-size:var(--fs-xs);font-weight:800;
+  letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);background:var(--surface-2,var(--surface));
+  border:1px solid var(--line);border-radius:999px;padding:.35rem .7rem}
 /* multi-coach editor rows (team drawer) */
 .coach-row{border:1px solid var(--line);border-radius:var(--r-md);padding:.6rem;margin-bottom:.5rem;background:var(--surface-2,var(--surface))}
 .coach-row__top{display:flex;gap:.5rem;align-items:center}

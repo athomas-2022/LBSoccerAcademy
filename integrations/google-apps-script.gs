@@ -150,6 +150,8 @@ function doPost(e) {
     if (DASH[d.type]) {
       var auth = authOf_(d.token);
       if (authEnabled_() && (!auth || !auth.approved)) return json_({ ok: false, error: "auth" });
+      // Editing the dashboard is owner-only; approved non-owners are view-only.
+      if (authEnabled_() && !auth.owner) return json_({ ok: false, error: "readonly" });
       if (d.type === "attendance")     return saveAttendance_(d);
       if (d.type === "event")          return saveEvent_(d);
       if (d.type === "event-delete")   return deleteEvent_(d);

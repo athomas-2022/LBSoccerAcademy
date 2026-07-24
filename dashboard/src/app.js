@@ -97,6 +97,8 @@
   // ================================================================
   var AUTH = { token: "", email: "", name: "", owner: false, enabled: !!GOOGLE_CLIENT_ID, ready: false };
   function authToken() { return AUTH.token || ""; }
+  // Only the owner may edit. Approved non-owners are view-only. (No gate configured yet → editable.)
+  function canEdit() { return !AUTH.enabled || AUTH.owner; }
   function apiGet(extra) {
     var url = SIGNUPS_URL + "?token=" + encodeURIComponent(authToken()) + (extra || "");
     return fetch(url, { method: "GET" }).then(function (r) { return r.json(); });
@@ -253,6 +255,12 @@
     var m = VIEW_META[ui.view];
     $("#viewTitle").textContent = m.title; $("#viewSub").textContent = m.sub;
     var slot = $("#topActions"); slot.innerHTML = "";
+    if (!canEdit()) {
+      // View-only coaches get read-only actions only.
+      slot.innerHTML = '<span class="viewonly-pill">View only</span>' +
+        (ui.view === "schedule" && CALENDAR_ID ? '<a class="btn btn--ghost" href="https://calendar.google.com/calendar/u/0/r?cid=' + encodeURIComponent(CALENDAR_ID) + '" target="_blank" rel="noopener">Open shared calendar</a>' : "");
+      return;
+    }
     if (ui.view === "overview") {
       slot.innerHTML = '<button class="btn btn--ghost" data-action="settings">Edit numbers</button>' +
         '<button class="btn btn--primary" data-action="add-athlete"><svg class="ic"><use href="#ic-plus"/></svg>Add athlete</button>';
@@ -282,6 +290,7 @@
     window.scrollTo(0, 0);
   }
   function renderView() {
+    document.body.classList.toggle("is-viewonly", !canEdit());
     if (ui.view === "overview") renderOverview();
     else if (ui.view === "athletes") renderAthletes();
     else if (ui.view === "teams") renderTeams();
@@ -295,7 +304,7 @@
   }
   function renderDataNote() {
     var note = $("#dataNote");
-    if (!state.athletes.length) { note.innerHTML = ""; return; }
+    if (!state.athletes.length || !canEdit()) { note.innerHTML = ""; return; }
     note.innerHTML = (state.seeded ? "Showing sample data. " : "") +
       '<button data-action="clear">Clear all data</button>';
   }
@@ -362,7 +371,7 @@
       '<img src="../assets/logos/Crest.png" alt="" />' +
       '<h3>Let’s build the map.</h3>' +
       '<p>Every athletic kid in the district matters — today’s second-grader is tomorrow’s varsity. Start by adding the kids you know, or load a sample roster to see how it works.</p>' +
-      '<div class="empty__actions">' +
+      '<div class="empty__actions owner-only">' +
         '<button class="btn btn--primary" data-action="add-athlete"><svg class="ic"><use href="#ic-plus"/></svg>Add your first athlete</button>' +
         '<button class="btn btn--ghost" data-action="load-sample">Explore with sample data</button>' +
       '</div></div>';
@@ -386,7 +395,7 @@
     if (!state.athletes.length) {
       host.innerHTML = '<div class="empty"><img src="../assets/logos/Crest.png" alt="" />' +
         '<h3>No athletes yet.</h3><p>Map every athletic kid K–8 — including the fast basketball kid who’s never touched a soccer ball. A future center back or keeper.</p>' +
-        '<div class="empty__actions"><button class="btn btn--primary" data-action="add-athlete"><svg class="ic"><use href="#ic-plus"/></svg>Add an athlete</button>' +
+        '<div class="empty__actions owner-only"><button class="btn btn--primary" data-action="add-athlete"><svg class="ic"><use href="#ic-plus"/></svg>Add an athlete</button>' +
         '<button class="btn btn--ghost" data-action="load-sample">Load sample roster</button></div></div>';
       return;
     }
@@ -417,16 +426,17 @@
         (ui.grad !== "all" ? '<button class="chip" data-action="filter-grad" data-grad="all" aria-pressed="true">Class of ' + ui.grad + ' ✕</button>' : "") +
       '</div></div>';
 
+    var editAttr = canEdit() ? ' data-action="edit"' : "";
     var rows = list.map(function (a) {
-      return '<tr data-action="edit" data-id="' + a.id + '"' + (a.status === "atrisk" ? ' class="is-risk"' : "") + '>' +
+      return '<tr' + editAttr + ' data-id="' + a.id + '"' + (a.status === "atrisk" ? ' class="is-risk"' : "") + '>' +
         '<td><div class="who"><span class="avatar ' + (a.program === "Girls" ? "g" : "") + '">' + esc(initials(a)) + '</span>' +
-          '<span><button type="button" class="who__name" data-action="edit" data-id="' + a.id + '">' + esc(a.first + " " + a.last) + '</button>' +
+          '<span>' + (canEdit() ? '<button type="button" class="who__name" data-action="edit" data-id="' + a.id + '">' + esc(a.first + " " + a.last) + '</button>' : '<span class="who__name">' + esc(a.first + " " + a.last) + '</span>') +
           (a.sports && a.sports.length ? '<span class="who__sports">' + esc(a.sports.join(", ")) + '</span>' : "") +
           (a.shirt ? '<span class="who__shirt" title="Shirt size">' + esc(shortSize(a.shirt)) + '</span>' : "") + '</span></div></td>' +
         '<td class="tnum">' + LB.GRADE_LABELS[a.grade] + '</td>' +
         '<td class="tnum">' + a.gradYear + '</td>' +
         '<td><span class="prog-tag ' + (a.program === "Girls" ? "g" : "b") + '">' + esc(a.program) + '</span></td>' +
-        '<td>' + statusPill(a.status, true, a.id) + '</td>' +
+        '<td>' + statusPill(a.status, canEdit(), a.id) + '</td>' +
         '</tr>';
     }).join("");
 
@@ -509,7 +519,7 @@
     if (!teamCount) {
       host.innerHTML = summary + '<div class="empty"><img src="../assets/logos/Crest.png" alt="" />' +
         '<h3>No coaches yet.</h3><p>Add a rec, travel, club or school coach — their team and roster. Track them from prospect to invited to Eagles-Affiliated, and pull their kids into Athletes with one tap.</p>' +
-        '<div class="empty__actions"><button class="btn btn--primary" data-action="add-team"><svg class="ic"><use href="#ic-plus"/></svg>Add a coach</button></div></div>';
+        '<div class="empty__actions owner-only"><button class="btn btn--primary" data-action="add-team"><svg class="ic"><use href="#ic-plus"/></svg>Add a coach</button></div></div>';
       return;
     }
     var affRank = { affiliated: 0, invited: 1, prospect: 2 };
@@ -535,7 +545,7 @@
       var importLbl = matched >= players.length && players.length ? "All in academy" : "Add roster to Athletes";
       return '<div class="team-card">' +
         '<div class="team-card__head"><div><h3 class="team-name">' + esc(t.name) + '</h3><div class="team-chips">' + chips + '</div></div>' +
-          '<div class="team-actions">' +
+          '<div class="team-actions owner-only">' +
             '<button class="btn btn--primary btn--sm" data-action="import-team" data-id="' + t.id + '"' + (players.length && matched < players.length ? "" : " disabled") + '>' + importLbl + '</button>' +
             '<button class="btn btn--ghost btn--sm" data-action="edit-team" data-id="' + t.id + '">Edit</button>' +
           '</div></div>' +
@@ -699,7 +709,7 @@
     if (!state.events.length) {
       host.innerHTML = calNote + '<div class="empty"><img src="../assets/logos/Crest.png" alt="" />' +
         '<h3>No events yet.</h3><p>Add your first date — a coach clinic, a monthly touchpoint, or a Play-with-the-Eagles showcase. You’ll take attendance against these.</p>' +
-        '<div class="empty__actions"><button class="btn btn--primary" data-action="add-event"><svg class="ic"><use href="#ic-plus"/></svg>Add an event</button></div></div>';
+        '<div class="empty__actions owner-only"><button class="btn btn--primary" data-action="add-event"><svg class="ic"><use href="#ic-plus"/></svg>Add an event</button></div></div>';
       return;
     }
     var td = today(), evs = eventsSorted();
@@ -719,7 +729,7 @@
           '<div class="ev-chips">' + chips + '</div>' +
           (e.note ? '<p class="ev-note">' + esc(e.note) + '</p>' : "") +
         '</div>' +
-        '<div class="ev-card__actions">' +
+        '<div class="ev-card__actions owner-only">' +
           '<button class="btn btn--primary btn--sm" data-action="clinic-attendance" data-id="' + e.id + '"><svg class="ic"><use href="#ic-attend"/></svg>Attendance</button>' +
           '<button class="btn btn--ghost btn--sm" data-action="edit-event" data-id="' + e.id + '">Edit</button>' +
         '</div></div>';
@@ -970,7 +980,7 @@
         (r.note && /example/i.test(r.note) ? '<p class="res-flag">' + esc(r.note) + '</p>' : "") +
         '<div class="res-actions">' +
           '<button class="btn btn--primary btn--sm" data-action="' + act + '" data-id="' + r.id + '"><svg class="ic"><use href="#' + (isVideo ? "ic-play" : "ic-link") + '"/></svg>' + (isVideo ? "Watch" : "Open") + '</button>' +
-          '<button class="btn btn--ghost btn--sm" data-action="edit-resource" data-id="' + r.id + '">Edit</button>' +
+          '<button class="btn btn--ghost btn--sm owner-only" data-action="edit-resource" data-id="' + r.id + '">Edit</button>' +
         '</div>' +
       '</div></article>';
   }
@@ -980,7 +990,7 @@
     if (!state.resources.length) {
       host.innerHTML = '<div class="empty"><img src="../assets/logos/Crest.png" alt="" />' +
         '<h3>Build your coaching library.</h3><p>Collect the videos, drills, and session plans your coaches should use — YouTube &amp; Vimeo links play right here, guides and PDFs open in a tab. Everything you add is shared with every coach.</p>' +
-        '<div class="empty__actions"><button class="btn btn--primary" data-action="add-resource"><svg class="ic"><use href="#ic-plus"/></svg>Add a resource</button>' +
+        '<div class="empty__actions owner-only"><button class="btn btn--primary" data-action="add-resource"><svg class="ic"><use href="#ic-plus"/></svg>Add a resource</button>' +
         '<button class="btn btn--ghost" data-action="load-starter-resources">Load the starter library</button></div></div>';
       return;
     }
@@ -1418,12 +1428,18 @@
   // ================================================================
   //  EVENTS (delegation)
   // ================================================================
+  // Non-mutating actions a view-only coach is still allowed to trigger.
+  var VIEW_ACTIONS = { "res-type": 1, "res-age": 1, "filter-status": 1, "filter-grad": 1,
+    "clear-filters": 1, "play-resource": 1, "open-resource": 1, "close-player": 1,
+    "close-drawer": 1, "goto-coaches": 1, "sign-out": 1 };
   document.addEventListener("click", function (e) {
     var nav = e.target.closest(".side__link"); if (nav) { setView(nav.dataset.view); return; }
     var seg = e.target.closest("#progSeg button"); if (seg) { ui.prog = seg.dataset.prog;
       $$("#progSeg button").forEach(function (b) { b.setAttribute("aria-pressed", String(b === seg)); }); renderView(); return; }
     var act = e.target.closest("[data-action]"); if (!act) { closePop(); return; }
     var action = act.dataset.action, id = act.dataset.id;
+    // View-only coaches may browse and open the calendar/videos, but not change anything.
+    if (!canEdit() && !VIEW_ACTIONS[action]) { toast("View only — only the owner can make changes."); return; }
     switch (action) {
       case "add-athlete": openAthlete(null); break;
       case "edit": openAthlete(state.athletes.find(function (x) { return x.id === id; })); break;
