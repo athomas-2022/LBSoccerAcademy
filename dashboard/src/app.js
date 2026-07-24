@@ -249,7 +249,7 @@
     athletes: { title: "Athletes", sub: "Every athletic kid, K–8, by graduation year." },
     teams: { title: "Coaches", sub: "The district's coaches — train them in the Eagles Way and every kid on their roster benefits." },
     training: { title: "Training Library", sub: "Videos, drills & guides for every Eagles-Affiliated coach." },
-    schedule: { title: "Schedule", sub: "Coach clinics, touchpoints & showcases — auto-added to the shared calendar. Take clinic attendance right here." }
+    schedule: { title: "Schedule", sub: "Preseason coach clinics & showcases — auto-added to the shared calendar. Take clinic attendance right here." }
   };
   function renderTopbar() {
     var m = VIEW_META[ui.view];
@@ -709,7 +709,7 @@
       : '<p class="sched-note sched-note--off">Events save and sync across your devices. To also push them to a calendar families can subscribe to, connect a shared Google Calendar (see setup).</p>';
     if (!state.events.length) {
       host.innerHTML = calNote + '<div class="empty"><img src="../assets/logos/Crest.png" alt="" />' +
-        '<h3>No events yet.</h3><p>Add your first date — a coach clinic, a monthly touchpoint, or a Play-with-the-Eagles showcase. You’ll take attendance against these.</p>' +
+        '<h3>No events yet.</h3><p>Add your first date — a preseason coach clinic or a Play-with-the-Eagles showcase. You’ll take attendance against these.</p>' +
         '<div class="empty__actions owner-only"><button class="btn btn--primary" data-action="add-event"><svg class="ic"><use href="#ic-plus"/></svg>Add an event</button></div></div>';
       return;
     }
@@ -747,7 +747,7 @@
     var tierOpts = '<option value="">All ages / mixed</option>' + LB.TIERS.map(function (t) {
       return '<option value="' + t.key + '"' + (e.tier === t.key ? " selected" : "") + '>' + esc(t.name) + ' (' + esc(t.grades) + ' · ' + esc(t.ages) + ')</option>'; }).join("");
     return '<form id="evForm">' +
-      '<div class="field"><label for="e-title">Event name</label><input id="e-title" value="' + esc(e.title || "") + '" placeholder="Fall coach clinic, monthly touchpoint, showcase…" required></div>' +
+      '<div class="field"><label for="e-title">Event name</label><input id="e-title" value="' + esc(e.title || "") + '" placeholder="Fall coach clinic, Spring coach clinic, showcase…" required></div>' +
       '<div class="field"><label for="e-date">Date</label><input id="e-date" type="date" value="' + esc(e.date || today()) + '" required></div>' +
       '<div class="field--row">' +
         '<div class="field"><label for="e-start">Start time</label><input id="e-start" type="time" value="' + esc(e.start || "") + '"></div>' +
