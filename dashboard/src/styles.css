@@ -445,6 +445,37 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
   border-radius:var(--r-sm);padding:.25rem .5rem}
 .res-actions{display:flex;gap:.4rem;margin-top:auto;padding-top:.5rem}
 .res-actions .ic{width:14px;height:14px}
+/* owner-only: which coaches have opened this material */
+.res-used{display:inline-flex;align-items:center;gap:.35rem;align-self:flex-start;font:inherit;font-size:var(--fs-xs);
+  font-weight:800;color:var(--lb-blue);background:var(--accent-weak);border:1px solid transparent;
+  border-radius:var(--r-pill);padding:.15rem .55rem;cursor:pointer;letter-spacing:.01em}
+.res-used:hover{border-color:var(--accent)}
+.res-used .ic{width:12px;height:12px}
+.res-used--none{color:var(--ink-3);background:var(--surface-2);cursor:default;font-weight:700}
+.team-stat--btn{font:inherit;cursor:pointer;border:1px dashed var(--line-2);background:transparent}
+.team-stat--btn:hover{border-color:var(--accent);color:var(--lb-blue)}
+/* coach activity + per-material usage drawers */
+.use-head{margin-bottom:.6rem}
+.use-h3{font-size:var(--fs-lg);font-weight:800;letter-spacing:-.01em;color:var(--ink)}
+.use-list{list-style:none;margin:0;padding:0;display:grid;gap:.3rem}
+.use-row{display:flex;justify-content:space-between;align-items:baseline;gap:.8rem;padding:.5rem .2rem;
+  border-bottom:1px solid var(--line)}
+.use-row__who{display:flex;flex-direction:column;min-width:0}
+.use-name{font-weight:700;color:var(--ink)}
+.use-mail{font-size:var(--fs-xs);color:var(--ink-3)}
+.use-when{font-size:var(--fs-sm);font-weight:600;color:var(--ink-2);white-space:nowrap}
+.use-empty{color:var(--ink-3);font-weight:500;padding:.6rem .2rem}
+.use-coaches{display:grid;gap:.7rem}
+.use-coach{border:1px solid var(--line);border-radius:var(--r-md);padding:.7rem .8rem;background:var(--surface-2,var(--surface))}
+.use-coach__head{display:flex;justify-content:space-between;align-items:baseline;gap:.8rem}
+.use-coach__name{font-weight:800;color:var(--ink)}
+.use-coach__n{font-size:var(--fs-xs);font-weight:800;color:var(--lb-blue);background:var(--accent-weak);
+  border-radius:var(--r-pill);padding:.1rem .5rem;white-space:nowrap}
+.use-coach__mail{font-size:var(--fs-xs);color:var(--ink-3);margin:.15rem 0 .4rem}
+.use-items{list-style:none;margin:0;padding:0;display:grid;gap:.2rem}
+.use-item{display:flex;justify-content:space-between;align-items:baseline;gap:.7rem;font-size:var(--fs-sm)}
+.use-item__t{font-weight:600;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.use-item__meta{font-size:var(--fs-xs);color:var(--ink-3);white-space:nowrap}
 .res-checks{display:flex;flex-wrap:wrap;gap:.4rem}
 .res-check{display:inline-flex;align-items:center;gap:.35rem;border:1px solid var(--line-2);border-radius:var(--r-pill);
   padding:.3rem .6rem;font-size:var(--fs-sm);font-weight:600;color:var(--ink-2);cursor:pointer}

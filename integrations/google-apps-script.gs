@@ -72,6 +72,8 @@ var FIN_HEADERS   = ["Id", "Date", "Type", "Category", "Amount", "Method",
 var SHEET_RES     = "Resources";
 var RES_HEADERS   = ["Id", "Title", "Type", "Ages", "Topics", "Url",
                      "Duration", "Description", "Note", "Updated", "Deleted"];
+var SHEET_USE     = "Training use";
+var USE_HEADERS   = ["When", "Coach", "Email", "ResourceId", "Title", "Type", "Action", "Ts"];
 var HEADERS = ["When", "Child", "Graduation class", "Program",
                "Parent", "Email", "Mobile", "Alerts", "Note", "Other sports", "Shirt size",
                "Role", "Team"];
@@ -146,10 +148,14 @@ function doPost(e) {
     var d = JSON.parse(e.postData.contents);
     // Dashboard writes require an approved signed-in account; website signups don't.
     var DASH = { attendance: 1, event: 1, "event-delete": 1, finance: 1, "finance-delete": 1,
-                 resource: 1, "resource-delete": 1, "access-add": 1, "access-remove": 1 };
+                 resource: 1, "resource-delete": 1, "access-add": 1, "access-remove": 1, usage: 1 };
     if (DASH[d.type]) {
       var auth = authOf_(d.token);
       if (authEnabled_() && (!auth || !auth.approved)) return json_({ ok: false, error: "auth" });
+      // Usage logging is allowed for ANY approved coach (view-only coaches included) —
+      // it records which coach opened which training material. Must run before the
+      // owner-only gate below.
+      if (d.type === "usage")          return saveUsage_(d, auth);
       // Editing the dashboard is owner-only; approved non-owners are view-only.
       if (authEnabled_() && !auth.owner) return json_({ ok: false, error: "readonly" });
       if (d.type === "attendance")     return saveAttendance_(d);
@@ -289,6 +295,33 @@ function deleteResource_(d) {
   return json_({ ok: true });
 }
 
+// ================================================================
+//  TRAINING USE — append-only log of which coach opened which material.
+//  Written by any approved coach (view-only included); read only by owners.
+// ================================================================
+function saveUsage_(d, auth) {
+  var sh = sheetOf_(SHEET_USE);
+  if (sh.getLastRow() === 0) sh.appendRow(USE_HEADERS);
+  var coach = (auth && auth.name) || d.coachName || "";
+  var email = (auth && auth.email) || d.email || "";
+  var ts = Number(d.ts) || Date.now();
+  sh.appendRow([new Date(), coach, email, String(d.resourceId || ""), d.title || "",
+    d.kind || "", d.action || "open", ts]);
+  return json_({ ok: true });
+}
+function usageLog_() {
+  var sh = sheetOf_(SHEET_USE);
+  var rows = sh.getDataRange().getValues();
+  var out = [];
+  for (var r = 1; r < rows.length; r++) {
+    if (!rows[r][3] && !rows[r][2]) continue;      // needs a resource id or a coach email
+    out.push({ when: String(rows[r][0]), coach: rows[r][1], email: String(rows[r][2] || ""),
+      resourceId: String(rows[r][3] || ""), title: rows[r][4], type: rows[r][5],
+      action: rows[r][6], ts: Number(rows[r][7]) || 0 });
+  }
+  return out;
+}
+
 // ---- Google Calendar helpers ----
 function calendar_() {
   if (!CONFIG.CALENDAR_ID) return null;
@@ -396,7 +429,7 @@ function doGet(e) {
   }
   var out = { ok: true, approved: true, owner: auth ? !!auth.owner : true,
     signups: signups, attendance: attendance, events: events, finances: finances, resources: resources };
-  if (out.owner) { out.access = accessEmails_(); out.owners = owners_(); }
+  if (out.owner) { out.access = accessEmails_(); out.owners = owners_(); out.usage = usageLog_(); }
   return json_(out);
 }
 
@@ -577,6 +610,11 @@ function setup() {
   res.getRange(1, 1, 1, RES_HEADERS.length).setFontWeight("bold");
   res.setFrozenRows(1);
 
+  var use = ss.getSheetByName(SHEET_USE) || ss.insertSheet(SHEET_USE);
+  if (use.getLastRow() === 0) use.appendRow(USE_HEADERS);
+  use.getRange(1, 1, 1, USE_HEADERS.length).setFontWeight("bold");
+  use.setFrozenRows(1);
+
   // Confirmation popup only works when run from the sheet's menu; running from
   // the editor has no UI, so don't let that throw.
   try {
@@ -596,7 +634,8 @@ function sheetOf_(name) {
     else if (name === SHEET_EVENTS) s.appendRow(EVENT_HEADERS);
     else if (name === SHEET_ACCESS) s.appendRow(ACCESS_HEADERS);
     else if (name === SHEET_FIN) s.appendRow(FIN_HEADERS);
-    else if (name === SHEET_RES) s.appendRow(RES_HEADERS); }
+    else if (name === SHEET_RES) s.appendRow(RES_HEADERS);
+    else if (name === SHEET_USE) s.appendRow(USE_HEADERS); }
   return s;
 }
 

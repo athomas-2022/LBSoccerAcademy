@@ -78,11 +78,11 @@
     { title: "Example — 1v1 moves to teach", type: "video", url: "https://www.youtube.com/results?search_query=soccer+1v1+moves+for+kids", ages: ["academy", "nextxi"], topics: ["1v1 / moves", "Dribbling"], duration: "", desc: "Example placeholder. Add a real YouTube/Vimeo link and coaches watch it without leaving the dashboard.", note: "Example — replace with your clip" }
   ];
 
-  function blank() { return { athletes: [], sponsors: [], phasesDone: [], sessions: [], events: [], finances: [], teams: [], resources: [], settings: Object.assign({}, SETTINGS_DEFAULT), seeded: false }; }
+  function blank() { return { athletes: [], sponsors: [], phasesDone: [], sessions: [], events: [], finances: [], teams: [], resources: [], usage: [], settings: Object.assign({}, SETTINGS_DEFAULT), seeded: false }; }
   function load() {
     try { var raw = localStorage.getItem(KEY); if (raw) { var d = JSON.parse(raw);
       d.settings = Object.assign({}, SETTINGS_DEFAULT, d.settings || {}); d.athletes = d.athletes || [];
-      d.sponsors = d.sponsors || []; d.phasesDone = d.phasesDone || []; d.sessions = d.sessions || []; d.events = d.events || []; d.finances = d.finances || []; d.teams = d.teams || []; d.resources = d.resources || []; return d; } }
+      d.sponsors = d.sponsors || []; d.phasesDone = d.phasesDone || []; d.sessions = d.sessions || []; d.events = d.events || []; d.finances = d.finances || []; d.teams = d.teams || []; d.resources = d.resources || []; d.usage = d.usage || []; return d; } }
     catch (e) {}
     return blank();
   }
@@ -168,7 +168,7 @@
         '<button class="side__authbtn" data-action="sign-out">Sign out</button>' +
       '</div>';
   }
-  function runBootSyncs() { if (SIGNUPS_URL) { syncSignups(true); syncEvents(true); syncResources(true); } }
+  function runBootSyncs() { if (SIGNUPS_URL) { syncSignups(true); syncEvents(true); syncResources(true); syncUsage(true); } }
 
   // ---- approve / remove people (owners only) ----
   function openAccess() {
@@ -271,7 +271,8 @@
     } else if (ui.view === "teams") {
       slot.innerHTML = '<button class="btn btn--primary" data-action="add-team"><svg class="ic"><use href="#ic-plus"/></svg>Add coach</button>';
     } else if (ui.view === "training") {
-      slot.innerHTML = '<button class="btn btn--primary" data-action="add-resource"><svg class="ic"><use href="#ic-plus"/></svg>Add resource</button>';
+      slot.innerHTML = '<button class="btn btn--ghost" data-action="coach-activity"><svg class="ic"><use href="#ic-attend"/></svg>Coach activity</button>' +
+        '<button class="btn btn--primary" data-action="add-resource"><svg class="ic"><use href="#ic-plus"/></svg>Add resource</button>';
     } else if (ui.view === "schedule") {
       slot.innerHTML = (CALENDAR_ID ? '<a class="btn btn--ghost" href="https://calendar.google.com/calendar/u/0/r?cid=' + encodeURIComponent(CALENDAR_ID) + '" target="_blank" rel="noopener">Open shared calendar</a>' : "") +
         '<button class="btn btn--primary" data-action="add-event"><svg class="ic"><use href="#ic-plus"/></svg>Add event</button>';
@@ -285,7 +286,7 @@
     closeSidebar();
     renderTopbar(); renderView();
     if (v === "schedule") { syncEvents(true); syncAttendance(true); }  // pull events + clinic attendance
-    if (v === "training") syncResources(true);        // pull the shared library
+    if (v === "training") { syncResources(true); syncUsage(true); }   // pull the shared library + coach activity
     $("#view-" + v).focus({ preventScroll: true });
     window.scrollTo(0, 0);
   }
@@ -970,6 +971,12 @@
           '<span class="res-dur">' + esc(ty.label) + (r.duration ? " · " + esc(r.duration) : "") + '</span></div>';
     var ages = (r.ages || []).map(function (a) { var o = resAge(a); return o ? '<span class="res-age res-age--' + esc(a) + '">' + o.label + '</span>' : ""; }).join("");
     var topics = (r.topics || []).slice(0, 3).map(function (t) { return '<span class="res-topic">' + esc(t) + '</span>'; }).join("");
+    // Owner-only: how many coaches have opened this material.
+    var used = canEdit() ? usageForResource(r.id) : [];
+    var usedHtml = canEdit() ? (used.length
+      ? '<button type="button" class="res-used" data-action="resource-usage" data-id="' + r.id + '">' +
+          '<svg class="ic"><use href="#ic-attend"/></svg>' + used.length + ' coach' + (used.length === 1 ? "" : "es") + ' used this</button>'
+      : '<span class="res-used res-used--none">No coaches yet</span>') : "";
     return '<article class="res-card" data-action="' + act + '" data-id="' + r.id + '">' +
       thumbHtml +
       '<div class="res-body">' +
@@ -978,6 +985,7 @@
         (r.desc ? '<p class="res-desc">' + esc(r.desc) + '</p>' : "") +
         (topics ? '<div class="res-topics">' + topics + '</div>' : "") +
         (r.note && /example/i.test(r.note) ? '<p class="res-flag">' + esc(r.note) + '</p>' : "") +
+        usedHtml +
         '<div class="res-actions">' +
           '<button class="btn btn--primary btn--sm" data-action="' + act + '" data-id="' + r.id + '"><svg class="ic"><use href="#' + (isVideo ? "ic-play" : "ic-link") + '"/></svg>' + (isVideo ? "Watch" : "Open") + '</button>' +
           '<button class="btn btn--ghost btn--sm owner-only" data-action="edit-resource" data-id="' + r.id + '">Edit</button>' +
@@ -995,8 +1003,10 @@
       return;
     }
     var count = state.resources.length, vids = state.resources.filter(function (r) { return r.type === "video"; }).length;
+    var activeCoaches = canEdit() ? usageByCoach().length : 0;
     var summary = '<div class="team-summary"><div class="team-stat"><b class="tnum">' + count + '</b> resource' + (count === 1 ? "" : "s") + '</div>' +
       '<div class="team-stat"><b class="tnum">' + vids + '</b> video' + (vids === 1 ? "" : "s") + '</div>' +
+      (canEdit() ? '<button class="team-stat team-stat--btn" data-action="coach-activity"><b class="tnum">' + activeCoaches + '</b> coach' + (activeCoaches === 1 ? "" : "es") + ' active</button>' : "") +
       '<p class="team-lede">Everything your coaches need to run the Eagles Way — videos play in-app, guides &amp; plans open in a tab. ' + syncNote + '</p></div>';
 
     var typeChips = '<div class="filterset">' + [["all", "All"]].concat(RES_TYPES.map(function (t) { return [t.key, t.label]; })).map(function (p) {
@@ -1124,6 +1134,98 @@
       save();
       if (ui.view === "training") renderView();
     }).catch(function () {});
+  }
+
+  // ================================================================
+  //  TRAINING USE — which coaches open which materials
+  //  A signed-in coach opening/watching a resource logs a row to the
+  //  Sheet (allowed even for view-only coaches). Only the owner reads
+  //  the log back. Usage is keyed to the coach's Google account.
+  // ================================================================
+  function logUsage(r, action) {
+    if (!SIGNUPS_URL || !r) return;
+    if (AUTH.enabled && !AUTH.ready) return;
+    apiPost({ type: "usage", resourceId: r.id, title: r.title, kind: r.type, action: action || "open",
+      coachName: AUTH.name || "", email: AUTH.email || "", ts: Date.now() });
+  }
+  function syncUsage(quiet) {
+    if (!SIGNUPS_URL || (AUTH.enabled && !AUTH.ready)) return;
+    if (AUTH.enabled && !AUTH.owner) return;                 // only the owner pulls the activity log
+    apiGet().then(function (data) {
+      if (data && data.error === "auth") { relock("Session expired — sign in again."); return; }
+      if (!data || !data.usage) return;
+      state.usage = data.usage; save();
+      if (ui.view === "training") renderView();
+    }).catch(function () {});
+  }
+  function usageKey(u) { return String(u.email || u.coach || "").trim().toLowerCase(); }
+  function fmtStamp(ts) {
+    var x = new Date(Number(ts)); if (!Number(ts) || isNaN(x)) return "";
+    var h = x.getHours(), m = x.getMinutes(), ap = h < 12 ? "AM" : "PM", h12 = h % 12 || 12;
+    return ATT_MON[x.getMonth()] + " " + x.getDate() + ", " + h12 + ":" + String(m).padStart(2, "0") + " " + ap;
+  }
+  // Distinct coaches who have opened one material, most-recent first.
+  function usageForResource(id) {
+    var by = {};
+    (state.usage || []).forEach(function (u) {
+      if (String(u.resourceId) !== String(id)) return;
+      var k = usageKey(u); if (!k) return;
+      if (!by[k] || u.ts > by[k].ts) by[k] = { coach: u.coach || u.email, email: u.email, ts: u.ts };
+    });
+    return Object.keys(by).map(function (k) { return by[k]; }).sort(function (a, b) { return b.ts - a.ts; });
+  }
+  // Each coach with the distinct materials they've opened, most-recent first.
+  function usageByCoach() {
+    var by = {};
+    (state.usage || []).forEach(function (u) {
+      var k = usageKey(u); if (!k) return;
+      if (!by[k]) by[k] = { coach: u.coach || u.email, email: u.email, last: 0, res: {} };
+      var g = by[k]; if (u.coach) g.coach = u.coach; if (u.ts > g.last) g.last = u.ts;
+      var rk = String(u.resourceId);
+      if (!g.res[rk] || u.ts > g.res[rk].ts) g.res[rk] = { resourceId: rk, title: u.title, type: u.type, ts: u.ts };
+    });
+    return Object.keys(by).map(function (k) {
+      var g = by[k];
+      g.items = Object.keys(g.res).map(function (r) { return g.res[r]; }).sort(function (a, b) { return b.ts - a.ts; });
+      g.count = g.items.length; return g;
+    }).sort(function (a, b) { return b.last - a.last; });
+  }
+  function openResourceUsage(id) {
+    var r = resById(id); if (!r) return;
+    var used = usageForResource(id);
+    var rows = used.length ? used.map(function (u) {
+      return '<li class="use-row"><span class="use-row__who"><span class="use-name">' + esc(u.coach || u.email) + '</span>' +
+        (u.email && u.coach && u.email.toLowerCase() !== String(u.coach).toLowerCase() ? '<span class="use-mail">' + esc(u.email) + '</span>' : "") +
+        '</span><span class="use-when">' + esc(fmtStamp(u.ts)) + '</span></li>';
+    }).join("") : '<li class="use-empty">No coach has opened this yet.</li>';
+    showDrawer("Who's used this",
+      '<div class="use-head"><h3 class="use-h3">' + esc(r.title) + '</h3>' +
+      '<p class="cast-note">' + used.length + ' coach' + (used.length === 1 ? "" : "es") + ' opened this material. Most recent first.</p></div>' +
+      '<ul class="use-list">' + rows + '</ul>');
+  }
+  function openCoachActivity() {
+    var coaches = usageByCoach();
+    var total = (state.usage || []).length;
+    var body;
+    if (!coaches.length) {
+      body = '<div class="empty empty--mini"><h3>No activity yet.</h3>' +
+        '<p>When a coach signs in and opens a video or guide from the library, it shows up here — so you can see who’s using what.</p></div>';
+    } else {
+      body = '<p class="cast-note">' + coaches.length + ' coach' + (coaches.length === 1 ? "" : "es") + ' active · ' + total + ' open' + (total === 1 ? "" : "s") + ' logged. Most recent first.</p>' +
+        '<div class="use-coaches">' + coaches.map(function (g) {
+          var items = g.items.map(function (it) {
+            return '<li class="use-item"><span class="use-item__t">' + esc(it.title || "(untitled)") + '</span>' +
+              '<span class="use-item__meta">' + esc((it.type || "") + (it.ts ? " · " + fmtStamp(it.ts) : "")) + '</span></li>';
+          }).join("");
+          return '<div class="use-coach"><div class="use-coach__head">' +
+            '<span class="use-coach__name">' + esc(g.coach || g.email) + '</span>' +
+            '<span class="use-coach__n">' + g.count + ' material' + (g.count === 1 ? "" : "s") + '</span></div>' +
+            '<div class="use-coach__mail">' + (g.email ? esc(g.email) + ' · ' : "") + 'last ' + esc(fmtStamp(g.last)) + '</div>' +
+            '<ul class="use-items">' + items + '</ul></div>';
+        }).join("") + '</div>' +
+        '<p class="cast-hint">Activity is keyed to each coach’s signed-in Google account.</p>';
+    }
+    showDrawer("Coach activity", body);
   }
 
   // ================================================================
@@ -1451,8 +1553,10 @@
       case "add-resource": openResource(null); break;
       case "edit-resource": openResource(resById(id)); break;
       case "delete-resource": deleteResource(id); break;
-      case "play-resource": openPlayer(resById(id)); break;
-      case "open-resource": var rr = resById(id); if (rr && rr.url) window.open(rr.url, "_blank", "noopener"); break;
+      case "play-resource": logUsage(resById(id), "watch"); openPlayer(resById(id)); break;
+      case "open-resource": var rr = resById(id); if (rr && rr.url) { window.open(rr.url, "_blank", "noopener"); logUsage(rr, "open"); } break;
+      case "resource-usage": openResourceUsage(id); break;
+      case "coach-activity": openCoachActivity(); break;
       case "load-starter-resources": loadStarterResources(); break;
       case "res-type": ui.resType = act.dataset.v; if (act.dataset.v === "all") { ui.resAge = "all"; ui.resTopic = "all"; ui.resSearch = ""; } renderTraining(); break;
       case "res-age": ui.resAge = act.dataset.v; renderTraining(); break;
