@@ -454,6 +454,11 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
 .res-used--none{color:var(--ink-3);background:var(--surface-2);cursor:default;font-weight:700}
 .team-stat--btn{font:inherit;cursor:pointer;border:1px dashed var(--line-2);background:transparent}
 .team-stat--btn:hover{border-color:var(--accent);color:var(--lb-blue)}
+/* the house rule above the library */
+.res-principle{margin:0 0 1.1rem;padding:.75rem .9rem;background:var(--accent-weak);
+  border-left:4px solid var(--accent);border-radius:var(--r-md);
+  font-size:var(--fs-sm);font-weight:500;color:var(--ink-2)}
+.res-principle b{color:var(--lb-blue);font-weight:800}
 /* coach activity + per-material usage drawers */
 .use-head{margin-bottom:.6rem}
 .use-h3{font-size:var(--fs-lg);font-weight:800;letter-spacing:-.01em;color:var(--ink)}

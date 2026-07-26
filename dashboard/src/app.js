@@ -69,7 +69,7 @@
   var EWAY_URL = "https://lbsocceracademy.org/#eaglesway";
   var STARTER_RESOURCES = [
     { title: "The Eagles Way — full curriculum", type: "guide", url: EWAY_URL, ages: ["all"], topics: ["Coaching basics", "Session plans"], duration: "", desc: "The complete K–8 coaching curriculum: the Standard, the session shape, and what to teach by age band.", note: "Starter" },
-    { title: "The Standard — seven non-negotiables", type: "guide", url: EWAY_URL, ages: ["all"], topics: ["Coaching basics"], duration: "", desc: "Touches · Voice & intensity · Brave · Play · Fun · System · every kid known by name — the rules every affiliated coach carries.", note: "Starter" },
+    { title: "The Standard — six non-negotiables", type: "guide", url: EWAY_URL, ages: ["all"], topics: ["Coaching basics"], duration: "", desc: "Touches · Brave · Play · Fun · System · every kid known by name — the rules every affiliated coach carries.", note: "Starter" },
     { title: "The Eagles session shape (4 beats)", type: "plan", url: EWAY_URL, ages: ["all"], topics: ["Session plans", "Warmups"], duration: "", desc: "Arrival ball-mastery → skill of the day → small-sided games → free scrimmage. The repeatable template for any age.", note: "Starter" },
     { title: "Grassroot K–2 — sample session", type: "plan", url: EWAY_URL, ages: ["grassroot"], topics: ["Dribbling", "Fun & games", "Session plans"], duration: "", desc: "Traffic & turns: dribble a maze, freeze, change direction, then swarm-of-tiny-goals 1v1s. Fun is the curriculum.", note: "Starter" },
     { title: "Rising Eagles 3–5 — sample session", type: "plan", url: EWAY_URL, ages: ["academy"], topics: ["1v1 / moves", "Small-sided games", "Session plans"], duration: "", desc: "Take them on: warm up a 1v1 move, rep vs a passive then live defender, then 2v2 with a bonus point for beating your player.", note: "Starter" },
@@ -995,8 +995,13 @@
   function renderTraining() {
     var host = $("#view-training");
     var syncNote = SIGNUPS_URL ? '<span class="att-sync">Shared with every signed-in coach</span>' : '<span class="att-sync att-sync--off">This device only — connect the Sheet to share with coaches</span>';
+    // Coach-facing house rule: it sits above the library so every coach sees it
+    // before they take a plan off the shelf.
+    var principle = '<p class="res-principle"><b>Communication and intensity — in everything.</b> ' +
+      'However you run it, it gets run those two ways: players talking, coaches cueing short and clear, ' +
+      'and every rep at game speed, warmup to last whistle. We don’t walk through drills — we compete through them.</p>';
     if (!state.resources.length) {
-      host.innerHTML = '<div class="empty"><img src="../assets/logos/Crest.png" alt="" />' +
+      host.innerHTML = principle + '<div class="empty"><img src="../assets/logos/Crest.png" alt="" />' +
         '<h3>Build your coaching library.</h3><p>Collect the videos, drills, and session plans your coaches should use — YouTube &amp; Vimeo links play right here, guides and PDFs open in a tab. Everything you add is shared with every coach.</p>' +
         '<div class="empty__actions owner-only"><button class="btn btn--primary" data-action="add-resource"><svg class="ic"><use href="#ic-plus"/></svg>Add a resource</button>' +
         '<button class="btn btn--ghost" data-action="load-starter-resources">Load the starter library</button></div></div>';
@@ -1026,7 +1031,7 @@
       : '<div class="empty empty--mini"><h3>No matches.</h3><p>Nothing fits these filters yet.</p>' +
         '<div class="empty__actions"><button class="btn btn--ghost" data-action="res-type" data-v="all">Clear filters</button></div></div>';
 
-    host.innerHTML = summary + toolbar + grid;
+    host.innerHTML = principle + summary + toolbar + grid;
     var s = $("#resSearch");
     if (s) s.addEventListener("input", function () { ui.resSearch = this.value; var pos = this.selectionStart;
       renderTraining(); var s2 = $("#resSearch"); if (s2) { s2.focus(); try { s2.setSelectionRange(pos, pos); } catch (e) {} } });
