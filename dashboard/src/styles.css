@@ -24,7 +24,7 @@
   --sidebar-2:oklch(0.270 0.070 255);
   --ink:var(--lb-navy);
   --ink-2:oklch(0.430 0.030 255);
-  --ink-3:oklch(0.532 0.024 258);
+  --ink-3:oklch(0.505 0.024 258);   /* muted ink — dark enough to clear AA on white AND on --surface-2 */
   --line:oklch(0.905 0.016 258);
   --line-2:oklch(0.850 0.020 258);
 
@@ -172,16 +172,18 @@ body.is-authed .authgate{display:none}
 .scoreboard{background:linear-gradient(160deg,var(--blue-900),var(--blue-950));border-radius:var(--r-lg);
   padding:.4rem;display:grid;grid-template-columns:repeat(4,1fr);gap:.4rem;box-shadow:var(--shadow-md)}
 .score{padding:1.15rem 1.2rem;border-radius:calc(var(--r-lg) - 4px);background:oklch(1 0 0 / .04);display:grid;gap:.15rem;position:relative}
-.score__label{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:oklch(0.80 .03 255);font-weight:700}
+.score__label{font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:.06em;color:oklch(0.80 .03 255);font-weight:700}
 .score__num{font-weight:900;font-size:clamp(2rem,4vw,2.9rem);line-height:1;color:#fff;letter-spacing:-.02em}
 .score__num small{font-size:1.1rem;font-weight:800;color:oklch(0.85 .04 255)}
-.score__sub{font-size:.75rem;color:oklch(0.78 .03 255);font-weight:600}
+.score__sub{font-size:var(--fs-xs);color:oklch(0.78 .03 255);font-weight:600}
 .score__bar{height:4px;border-radius:2px;background:oklch(1 0 0 / .14);margin-top:.5rem;overflow:hidden}
 .score__bar i{display:block;height:100%;background:var(--lb-gray);border-radius:2px}
 .score--accent .score__num{color:#fff}
 .score--accent .score__bar i{background:oklch(0.76 .135 244)}
 
-.overview-grid{display:grid;gap:1rem;margin-top:1rem;grid-template-columns:1fr}
+/* minmax(0,1fr), not 1fr: a bare 1fr floors at the content's min-content width,
+   and the at-risk row was wide enough to push the whole page sideways on a phone. */
+.overview-grid{display:grid;gap:1rem;margin-top:1rem;grid-template-columns:minmax(0,1fr)}
 
 /* Panels */
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-sm)}
@@ -196,20 +198,26 @@ body.is-authed .authgate{display:none}
 .risk-flag{display:inline-flex;align-items:center;gap:.4rem;color:var(--danger-ink);font-weight:800;font-size:var(--fs-md)}
 .risk-flag .dot{width:9px;height:9px;border-radius:50%;background:var(--danger);box-shadow:0 0 0 3px var(--danger-weak)}
 .risk-list{display:grid;gap:.5rem}
-.risk-row{display:flex;align-items:center;gap:.8rem;padding:.7rem .8rem;border:1px solid oklch(0.53 .21 22 / .18);
+.risk-row{display:flex;flex-wrap:wrap;align-items:center;gap:.8rem;padding:.7rem .8rem;border:1px solid oklch(0.53 .21 22 / .18);
   background:oklch(0.53 .21 22 / .035);border-radius:var(--r-md)}
 .risk-row__who{font-weight:700}
 .risk-row__meta{font-size:var(--fs-sm);color:var(--ink-2)}
-.risk-row__note{font-size:var(--fs-sm);color:var(--ink-2);flex:1;min-width:0}
+/* the note is why the kid is at risk — it wraps to its own line rather than
+   being squeezed to zero width by the buttons */
+.risk-row__note{font-size:var(--fs-sm);color:var(--ink-2);flex:1 1 100%;min-width:0}
 .risk-row__note b{color:var(--danger-ink)}
-.risk-row .btn{margin-left:auto;flex:0 0 auto}
+.risk-row__actions{display:flex;gap:.5rem;margin-left:auto;flex:0 0 auto}
+.risk-row .btn{flex:0 0 auto}
 
 /* mini stats row */
 .mini{display:grid;gap:.6rem}
 .mini__row{display:flex;align-items:center;gap:.8rem}
 .mini__row .lbl{font-size:var(--fs-sm);color:var(--ink-2);font-weight:600;flex:0 0 42%}
 .bar{flex:1;height:9px;background:var(--blue-50);border-radius:5px;overflow:hidden;border:1px solid var(--line)}
-.bar i{display:block;height:100%;background:var(--accent);border-radius:5px;transition:width .5s var(--ease)}
+/* scaleX rather than width so the fill animates on the compositor; the track
+   clips it, so the fill needs no radius of its own (a scaled one would smear). */
+.bar i{display:block;height:100%;width:100%;transform-origin:left center;
+  background:var(--accent);transition:transform .5s var(--ease)}
 .bar i.is-risk{background:var(--danger)}
 .mini__row .val{font-size:var(--fs-sm);font-weight:700;color:var(--ink);flex:0 0 auto;min-width:2.5rem;text-align:right}
 
@@ -454,11 +462,13 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
 .res-used--none{color:var(--ink-3);background:var(--surface-2);cursor:default;font-weight:700}
 .team-stat--btn{font:inherit;cursor:pointer;border:1px dashed var(--line-2);background:transparent}
 .team-stat--btn:hover{border-color:var(--accent);color:var(--lb-blue)}
-/* the house rule above the library */
-.res-principle{margin:0 0 1.1rem;padding:.75rem .9rem;background:var(--accent-weak);
-  border-left:4px solid var(--accent);border-radius:var(--r-md);
-  font-size:var(--fs-sm);font-weight:500;color:var(--ink-2)}
-.res-principle b{color:var(--lb-blue);font-weight:800}
+/* The house rule above the library. It reads as a rule, not a card — the one
+   place the dashboard floods to brand blue, so a coach meets it before they
+   take a plan off the shelf. */
+.res-principle{margin:0 0 1.1rem;padding:.9rem 1.05rem;background:var(--lb-blue);color:#fff;
+  border-radius:var(--r-md);font-size:var(--fs-sm);font-weight:500;line-height:1.55}
+.res-principle b{display:block;margin-bottom:.15rem;font-size:var(--fs-base);
+  font-weight:800;letter-spacing:-.01em;color:#fff}
 /* coach activity + per-material usage drawers */
 .use-head{margin-bottom:.6rem}
 .use-h3{font-size:var(--fs-lg);font-weight:800;letter-spacing:-.01em;color:var(--ink)}

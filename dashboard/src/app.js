@@ -355,16 +355,20 @@
   }
   function miniRow(lbl, val, pct, risk) {
     return '<div class="mini__row"><span class="lbl">' + esc(lbl) + '</span>' +
-      '<span class="bar"><i class="' + (risk ? "is-risk" : "") + '" style="width:' + Math.max(2, Math.min(100, pct)) + '%"></i></span>' +
+      '<span class="bar"><i class="' + (risk ? "is-risk" : "") + '" style="transform:scaleX(' + (Math.max(2, Math.min(100, pct)) / 100) + ')"></i></span>' +
       '<span class="val tnum">' + esc(val) + '</span></div>';
   }
   function riskRow(a) {
     return '<div class="risk-row">' +
       '<span class="risk-row__who">' + esc(a.first + " " + a.last) + '</span>' +
       '<span class="risk-row__meta">' + LB.GRADE_LABELS[a.grade] + " · " + esc(a.program) + '</span>' +
+      // the two actions move as one unit so they never split across lines
+      '<span class="risk-row__actions">' +
+        '<button class="btn btn--sm btn--ghost" data-action="edit" data-id="' + a.id + '">Open</button>' +
+        '<button class="btn btn--sm btn--primary" data-action="reached" data-id="' + a.id + '">Mark active</button>' +
+      '</span>' +
+      // the reason takes its own line, so it is never the thing that gets squeezed
       '<span class="risk-row__note">' + (a.note ? esc(a.note) : '<b>Reach out — no note yet.</b>') + '</span>' +
-      '<button class="btn btn--sm btn--ghost" data-action="edit" data-id="' + a.id + '">Open</button>' +
-      '<button class="btn btn--sm btn--primary" data-action="reached" data-id="' + a.id + '">Mark active</button>' +
       '</div>';
   }
   function firstRunEmpty() {

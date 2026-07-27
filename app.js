@@ -173,17 +173,42 @@
     if (kind) statusEl.setAttribute("data-kind", kind); else statusEl.removeAttribute("data-kind");
   };
 
-  var markField = function (input, invalid) {
+  // Pass a message to mark a field bad, or "" to clear it. The message is wired
+  // to the input with aria-describedby so a screen reader hears the problem, not
+  // just "invalid".
+  var markField = function (input, message) {
     var wrap = input.closest(".field") || input.closest("fieldset");
     if (!wrap) return;
+    var invalid = !!message;
     wrap.classList.toggle("field--invalid", invalid);
+    input.setAttribute("aria-invalid", invalid ? "true" : "false");
     var err = wrap.querySelector(".field__error");
-    if (invalid && !err) {
-      err = document.createElement("p");
-      err.className = "field__error";
-      err.textContent = "Please fill this in.";
-      wrap.appendChild(err);
-    } else if (!invalid && err) { err.remove(); }
+    if (invalid) {
+      if (!err) {
+        err = document.createElement("p");
+        err.className = "field__error";
+        err.id = (input.id || input.name) + "-error";
+        wrap.appendChild(err);
+      }
+      err.textContent = message;
+      input.setAttribute("aria-describedby", err.id);
+    } else if (err) {
+      err.remove();
+      input.removeAttribute("aria-describedby");
+    }
+  };
+
+  // A typo'd email is worse than a blank one: the parent believes they signed up
+  // and we can never reach them. Check the format, not just that something's there.
+  var problemWith = function (input) {
+    if (!input.value.trim()) return "Please fill this in.";
+    if (input.type === "email" && !input.checkValidity()) {
+      return "That email looks off — check for a typo.";
+    }
+    if (input.type === "tel" && input.value.replace(/\D/g, "").length < 10) {
+      return "Enter a full phone number, like 419-555-0134.";
+    }
+    return "";
   };
 
   if (form) {
@@ -196,22 +221,23 @@
         form.querySelector("#email"),
         form.querySelector("#phone")
       ];
-      var firstBad = null;
+      var firstBad = null, firstMsg = "";
       required.forEach(function (input) {
-        var bad = !input.value.trim();
-        markField(input, bad);
-        if (bad && !firstBad) firstBad = input;
+        var msg = problemWith(input);
+        markField(input, msg);
+        if (msg && !firstBad) { firstBad = input; firstMsg = msg; }
       });
       var role = form.querySelector('input[name="role"]:checked');
+      var roleInput = form.querySelector('input[name="role"]');
       if (!role) {
-        markField(form.querySelector('input[name="role"]'), true);
-        if (!firstBad) firstBad = form.querySelector('input[name="role"]');
+        markField(roleInput, "Pick one so we know who we're talking to.");
+        if (!firstBad) { firstBad = roleInput; firstMsg = "Tell us whether you're a parent or a coach."; }
       } else {
-        markField(form.querySelector('input[name="role"]'), false);
+        markField(roleInput, "");
       }
 
       if (firstBad) {
-        setStatus("Just a couple fields left — highlighted above.", "err");
+        setStatus(firstMsg, "err");
         firstBad.focus();
         return;
       }
