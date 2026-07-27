@@ -177,6 +177,15 @@ body.is-authed .authgate{display:none}
 .btn--sm{min-height:32px;padding:.35rem .7rem;font-size:var(--fs-sm)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
 
+/* Sync health. "Nothing here" and "I couldn't reach the server" used to render
+   identically; the bad state names the problem and offers the way out. */
+.sync-note{margin:0 0 .8rem;font-size:var(--fs-sm);font-weight:600;color:var(--ink-3)}
+.sync-note--bad{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;
+  padding:.6rem .8rem;border:1px solid oklch(0.53 .21 22 / .3);background:var(--danger-weak);
+  border-radius:var(--r-md);color:var(--danger-ink);font-weight:600}
+.sync-note__retry{background:none;border:0;padding:.2rem .1rem;font:inherit;font-weight:800;
+  color:var(--danger-ink);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
 /* Says out loud that the sidebar Program filter is reshaping this view. */
 .board-lens{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem;
   font-size:var(--fs-sm);color:var(--ink-2);font-weight:600}

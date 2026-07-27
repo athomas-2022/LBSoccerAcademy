@@ -222,6 +222,30 @@
     });
   }
 
+  // ---- sync health -------------------------------------------------
+  // The read syncs used to swallow every failure, so a backend that was down
+  // and a program that hadn't started yet rendered identically: an empty view,
+  // no spinner, no error, no way to retry. Record what happened instead.
+  var SYNC = { failed: {}, lastOk: {} };
+  function syncOk(key) { delete SYNC.failed[key]; SYNC.lastOk[key] = Date.now(); }
+  function syncFailed(key) { SYNC.failed[key] = true; renderView(); }
+  function agoLabel(ts) {
+    var mins = Math.round((Date.now() - ts) / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return mins + (mins === 1 ? " minute ago" : " minutes ago");
+    var hrs = Math.round(mins / 60);
+    return hrs + (hrs === 1 ? " hour ago" : " hours ago");
+  }
+  function syncBanner(key, what) {
+    if (!SIGNUPS_URL) return "";
+    if (SYNC.failed[key]) {
+      return '<p class="sync-note sync-note--bad" role="status">Couldn’t reach the shared ' + esc(what) +
+        '. You’re seeing what’s saved on this device. ' +
+        '<button class="sync-note__retry" data-action="retry-sync" data-sync="' + key + '">Try again</button></p>';
+    }
+    return SYNC.lastOk[key] ? '<p class="sync-note" role="status">Synced ' + agoLabel(SYNC.lastOk[key]) + '</p>' : "";
+  }
+
   // ---- derived -----------------------------------------------------
   function pool() {
     return state.athletes.filter(function (a) { return ui.prog === "all" || a.program === ui.prog; });
@@ -732,11 +756,12 @@
 
   function renderSchedule() {
     var host = $("#view-schedule");
+    var health = syncBanner("events", "schedule");
     var calNote = CALENDAR_ID
       ? '<p class="sched-note">Every event is added to your shared Google Calendar — families who tapped “Add to calendar” see it, and any change, automatically.</p>'
       : '<p class="sched-note sched-note--off">Events save and sync across your devices. To also push them to a calendar families can subscribe to, connect a shared Google Calendar (see setup).</p>';
     if (!state.events.length) {
-      host.innerHTML = calNote + '<div class="empty"><img src="../assets/logos/Crest-180.png" alt="" />' +
+      host.innerHTML = health + calNote + '<div class="empty"><img src="../assets/logos/Crest-180.png" alt="" />' +
         '<h3>No events yet.</h3><p>Add your first date — a preseason coach clinic or a Play-with-the-Eagles showcase. You’ll take attendance against these.</p>' +
         '<div class="empty__actions owner-only"><button class="btn btn--primary" data-action="add-event"><svg class="ic"><use href="#ic-plus"/></svg>Add an event</button></div></div>';
       return;
@@ -763,7 +788,7 @@
           '<button class="btn btn--ghost btn--sm" data-action="edit-event" data-id="' + e.id + '">Edit</button>' +
         '</div></div>';
     }
-    var html = calNote;
+    var html = health + calNote;
     if (upcoming.length) html += '<div class="sched-group"><h3 class="sched-h">Upcoming</h3>' + upcoming.map(card).join("") + '</div>';
     if (past.length) html += '<div class="sched-group"><h3 class="sched-h">Past</h3>' + past.map(card).join("") + '</div>';
     host.innerHTML = html;
@@ -837,6 +862,7 @@
     state.events.forEach(function (e) { if (e.unsynced) pushEvent(e); });
     apiGet().then(function (data) {
       if (data && data.error === "auth") { relock("Session expired — sign in again."); return; }
+      syncOk("events");
       if (!data || !data.events) return;
       var byId = {}; state.events.forEach(function (e) { byId[e.id] = e; });
       data.events.forEach(function (row) {
@@ -851,7 +877,7 @@
       state.events = Object.keys(byId).map(function (id) { return byId[id]; });
       save();
       if (ui.view === "schedule") renderView();
-    }).catch(function () {});
+    }).catch(function () { syncFailed("events"); });
   }
 
 
@@ -1035,7 +1061,7 @@
         'so we know what’s actually useful and what to make more of. Nothing else is tracked.</p>';
     }
     if (!state.resources.length) {
-      host.innerHTML = principle + '<div class="empty"><img src="../assets/logos/Crest-180.png" alt="" />' +
+      host.innerHTML = syncBanner("resources", "library") + principle + '<div class="empty"><img src="../assets/logos/Crest-180.png" alt="" />' +
         '<h3>Build your coaching library.</h3><p>Collect the videos, drills, and session plans your coaches should use — YouTube &amp; Vimeo links play right here, guides and PDFs open in a tab. Everything you add is shared with every coach.</p>' +
         '<div class="empty__actions owner-only"><button class="btn btn--primary" data-action="add-resource"><svg class="ic"><use href="#ic-plus"/></svg>Add a resource</button>' +
         '<button class="btn btn--ghost" data-action="load-starter-resources">Load the starter library</button></div></div>';
@@ -1065,7 +1091,7 @@
       : '<div class="empty empty--mini"><h3>No matches.</h3><p>Nothing fits these filters yet.</p>' +
         '<div class="empty__actions"><button class="btn btn--ghost" data-action="res-type" data-v="all">Clear filters</button></div></div>';
 
-    host.innerHTML = principle + summary + toolbar + grid;
+    host.innerHTML = syncBanner("resources", "library") + principle + summary + toolbar + grid;
     var s = $("#resSearch");
     if (s) s.addEventListener("input", function () { ui.resSearch = this.value; var pos = this.selectionStart;
       renderTraining(); var s2 = $("#resSearch"); if (s2) { s2.focus(); try { s2.setSelectionRange(pos, pos); } catch (e) {} } });
@@ -1157,6 +1183,7 @@
     state.resources.forEach(function (r) { if (r.unsynced) pushResource(r); });
     apiGet().then(function (data) {
       if (data && data.error === "auth") { relock("Session expired — sign in again."); return; }
+      syncOk("resources");
       if (!data || !data.resources) return;
       var splitList = function (s) { return String(s || "").split(",").map(function (x) { return x.trim(); }).filter(Boolean); };
       var byId = {}; state.resources.forEach(function (r) { byId[r.id] = r; });
@@ -1172,7 +1199,7 @@
       state.resources = Object.keys(byId).map(function (id) { return byId[id]; });
       save();
       if (ui.view === "training") renderView();
-    }).catch(function () {});
+    }).catch(function () { syncFailed("resources"); });
   }
 
   // ================================================================
@@ -1192,10 +1219,11 @@
     if (AUTH.enabled && !AUTH.owner) return;                 // only the owner pulls the activity log
     apiGet().then(function (data) {
       if (data && data.error === "auth") { relock("Session expired — sign in again."); return; }
+      syncOk("usage");
       if (!data || !data.usage) return;
       state.usage = data.usage; save();
       if (ui.view === "training") renderView();
-    }).catch(function () {});
+    }).catch(function () { syncFailed("usage"); });
   }
   function usageKey(u) { return String(u.email || u.coach || "").trim().toLowerCase(); }
   function fmtStamp(ts) {
@@ -1582,6 +1610,15 @@
     // View-only coaches may browse and open the calendar/videos, but not change anything.
     if (!canEdit() && !VIEW_ACTIONS[action]) { toast("View only — only the owner can make changes."); return; }
     switch (action) {
+      case "retry-sync": {
+        var which = act.dataset.sync;
+        delete SYNC.failed[which];
+        renderView();
+        if (which === "events") syncEvents(true);
+        else if (which === "resources") syncResources(true);
+        else if (which === "usage") syncUsage(true);
+        break;
+      }
       case "clear-prog":
         ui.prog = "all";
         $$("#progSeg button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.prog === "all")); });
