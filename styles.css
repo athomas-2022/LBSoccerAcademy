@@ -60,7 +60,9 @@
   --step-2:clamp(1.05rem,.95rem + .48vw,1.35rem);
   --step-3:clamp(1.25rem,1.08rem + .82vw,1.8rem);
   --step-4:clamp(1.5rem,1.2rem + 1.45vw,2.3rem);
-  --step-5:clamp(1.8rem,1.3rem + 2.6vw,3.2rem);
+  /* The hero is the thesis and it was whispering at 30px on a phone. This is
+     the display step; nothing else uses it. */
+  --step-5:clamp(3.4rem,2.3rem + 4.4vw,5.5rem);
 
   /* space */
   --wrap:1200px;
@@ -157,7 +159,10 @@ p{text-wrap:pretty}
 .header-inner{display:flex;align-items:center;gap:1.5rem;min-height:74px;padding-block:.6rem}
 .brand{display:inline-flex;align-items:center;gap:.6rem;flex:0 0 auto}
 .brand-crest{height:clamp(42px,5.5vw,54px);width:auto;filter:drop-shadow(0 2px 6px oklch(0 0 0 / .35))}
-.brand-word{color:#fff;font-weight:800;font-size:clamp(1rem,2.6vw,1.18rem);letter-spacing:-.01em;white-space:nowrap}
+/* The wordmark is the one place the brand system actually reserves Octin for,
+   and it was set in Montserrat while Octin ran loose on twenty label styles. */
+.brand-word{font-family:var(--font-display);color:#fff;font-weight:400;
+  font-size:clamp(1.2rem,3.2vw,1.5rem);letter-spacing:.015em;text-transform:uppercase;white-space:nowrap}
 .brand-word b{color:var(--sky)}
 .primary-nav{display:none;margin-left:auto;gap:clamp(1rem,2vw,1.9rem)}
 .primary-nav a{color:oklch(0.94 .02 255);font-weight:600;font-size:.98rem;position:relative;padding:.4rem 0;transition:color .2s}
@@ -225,7 +230,7 @@ p{text-wrap:pretty}
   background:oklch(1 0 0 / .08);border:1px solid oklch(1 0 0 / .16);padding:.45rem .9rem;border-radius:var(--r-pill)}
 .hero__tag .dot{width:8px;height:8px;border-radius:50%;background:var(--lb-red);box-shadow:0 0 0 4px oklch(0.53 .21 22 / .3)}
 .hero__title{font-family:var(--font-display);font-weight:400;font-size:var(--step-5);line-height:.92;
-  letter-spacing:-.01em;margin-top:1.4rem;text-transform:uppercase}
+  letter-spacing:-.01em;margin-top:2.1rem;text-transform:uppercase}
 .hero__line{display:block}
 .hero__line--accent{color:var(--sky)}
 .hero__lede{font-size:clamp(.85rem,.80rem + .4vw,1.05rem);line-height:1.5;margin-top:1.5rem;
