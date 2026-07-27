@@ -146,7 +146,14 @@
   }
   function verifyAccess() {
     apiGet("&check=1").then(function (data) {
-      if (data && data.ok && data.approved) { AUTH.owner = !!data.owner; hideGate(); AUTH.ready = true; renderIdentity(); runBootSyncs(); }
+      if (data && data.ok && data.approved) {
+        AUTH.owner = !!data.owner; hideGate(); AUTH.ready = true; renderIdentity();
+        // Boot paints before sign-in resolves, so everything is in its view-only
+        // form at this point. Repaint now that we know who this is, or the owner
+        // is told they can't edit their own dashboard on every single visit.
+        renderTopbar(); renderView();
+        runBootSyncs();
+      }
       else if (data && data.error === "pending") { showPending(data.email); }
       else { try { sessionStorage.removeItem("lbsa.idtoken"); } catch (e) {} AUTH.token = ""; renderSignIn(); gateMsg("Sign-in expired or invalid — please sign in again."); }
     }).catch(function () { gateMsg("Couldn't reach the server — check your connection and retry."); setTimeout(function () { if (!AUTH.ready) renderSignIn(); }, 2500); });
@@ -363,7 +370,7 @@
       '<span class="risk-row__who">' + esc(a.first + " " + a.last) + '</span>' +
       '<span class="risk-row__meta">' + LB.GRADE_LABELS[a.grade] + " · " + esc(a.program) + '</span>' +
       // the two actions move as one unit so they never split across lines
-      '<span class="risk-row__actions">' +
+      '<span class="risk-row__actions owner-only">' +
         '<button class="btn btn--sm btn--ghost" data-action="edit" data-id="' + a.id + '">Open</button>' +
         '<button class="btn btn--sm btn--primary" data-action="reached" data-id="' + a.id + '">Mark active</button>' +
       '</span>' +
@@ -1554,7 +1561,16 @@
     switch (action) {
       case "add-athlete": openAthlete(null); break;
       case "edit": openAthlete(state.athletes.find(function (x) { return x.id === id; })); break;
-      case "delete-athlete": state.athletes = state.athletes.filter(function (x) { return x.id !== id; }); save(); hideDrawer(); renderView(); toast("Athlete removed."); break;
+      // Teams, events, resources and access removal all confirm. Losing a kid's
+      // record is the one this product can least afford to do on a mis-tap.
+      case "delete-athlete": {
+        var goneAth = state.athletes.find(function (x) { return x.id === id; });
+        var goneName = goneAth ? (goneAth.first + " " + goneAth.last).trim() : "this athlete";
+        if (!window.confirm("Remove " + goneName + " from the map? This can't be undone.")) break;
+        state.athletes = state.athletes.filter(function (x) { return x.id !== id; });
+        save(); hideDrawer(); renderView(); toast("Athlete removed.");
+        break;
+      }
       case "add-team": openTeam(null); break;
       case "edit-team": openTeam(teamById(id)); break;
       case "delete-team": deleteTeam(id); break;
