@@ -373,7 +373,7 @@
   }
   function firstRunEmpty() {
     return '<div class="empty">' +
-      '<img src="../assets/logos/Crest.png" alt="" />' +
+      '<img src="../assets/logos/Crest-180.png" alt="" />' +
       '<h3>Let’s build the map.</h3>' +
       '<p>Every athletic kid in the district matters — today’s second-grader is tomorrow’s varsity. Start by adding the kids you know, or load a sample roster to see how it works.</p>' +
       '<div class="empty__actions owner-only">' +
@@ -398,7 +398,7 @@
   function renderAthletes() {
     var host = $("#view-athletes");
     if (!state.athletes.length) {
-      host.innerHTML = '<div class="empty"><img src="../assets/logos/Crest.png" alt="" />' +
+      host.innerHTML = '<div class="empty"><img src="../assets/logos/Crest-180.png" alt="" />' +
         '<h3>No athletes yet.</h3><p>Map every athletic kid K–8 — including the fast basketball kid who’s never touched a soccer ball. A future center back or keeper.</p>' +
         '<div class="empty__actions owner-only"><button class="btn btn--primary" data-action="add-athlete"><svg class="ic"><use href="#ic-plus"/></svg>Add an athlete</button>' +
         '<button class="btn btn--ghost" data-action="load-sample">Load sample roster</button></div></div>';
@@ -522,7 +522,7 @@
       '<p class="team-lede">Every rec, travel, club and school coach in the district. Train them in the Eagles Way and it reaches every kid on their roster — no extra sessions for the kids.</p></div>';
 
     if (!teamCount) {
-      host.innerHTML = summary + '<div class="empty"><img src="../assets/logos/Crest.png" alt="" />' +
+      host.innerHTML = summary + '<div class="empty"><img src="../assets/logos/Crest-180.png" alt="" />' +
         '<h3>No coaches yet.</h3><p>Add a rec, travel, club or school coach — their team and roster. Track them from prospect to invited to Eagles-Affiliated, and pull their kids into Athletes with one tap.</p>' +
         '<div class="empty__actions owner-only"><button class="btn btn--primary" data-action="add-team"><svg class="ic"><use href="#ic-plus"/></svg>Add a coach</button></div></div>';
       return;
@@ -712,7 +712,7 @@
       ? '<p class="sched-note">Every event is added to your shared Google Calendar — families who tapped “Add to calendar” see it, and any change, automatically.</p>'
       : '<p class="sched-note sched-note--off">Events save and sync across your devices. To also push them to a calendar families can subscribe to, connect a shared Google Calendar (see setup).</p>';
     if (!state.events.length) {
-      host.innerHTML = calNote + '<div class="empty"><img src="../assets/logos/Crest.png" alt="" />' +
+      host.innerHTML = calNote + '<div class="empty"><img src="../assets/logos/Crest-180.png" alt="" />' +
         '<h3>No events yet.</h3><p>Add your first date — a preseason coach clinic or a Play-with-the-Eagles showcase. You’ll take attendance against these.</p>' +
         '<div class="empty__actions owner-only"><button class="btn btn--primary" data-action="add-event"><svg class="ic"><use href="#ic-plus"/></svg>Add an event</button></div></div>';
       return;
@@ -1005,7 +1005,7 @@
       'However you run it, it gets run those two ways: players talking, coaches cueing short and clear, ' +
       'and every rep at game speed, warmup to last whistle. We don’t walk through drills — we compete through them.</p>';
     if (!state.resources.length) {
-      host.innerHTML = principle + '<div class="empty"><img src="../assets/logos/Crest.png" alt="" />' +
+      host.innerHTML = principle + '<div class="empty"><img src="../assets/logos/Crest-180.png" alt="" />' +
         '<h3>Build your coaching library.</h3><p>Collect the videos, drills, and session plans your coaches should use — YouTube &amp; Vimeo links play right here, guides and PDFs open in a tab. Everything you add is shared with every coach.</p>' +
         '<div class="empty__actions owner-only"><button class="btn btn--primary" data-action="add-resource"><svg class="ic"><use href="#ic-plus"/></svg>Add a resource</button>' +
         '<button class="btn btn--ghost" data-action="load-starter-resources">Load the starter library</button></div></div>';

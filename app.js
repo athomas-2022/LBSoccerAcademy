@@ -74,6 +74,33 @@
     window.addEventListener("scroll", onScroll, { passive: true });
   }
 
+  // ---- Thumb-zone CTA (phones) ------------------------------------
+  // Raised once the hero buttons scroll away, dropped again at the form so it
+  // never sits on top of the thing it points at. Motion-safe: if the observer
+  // is missing the bar simply stays hidden and the header/hero CTAs still work.
+  var thumbCta = document.getElementById("thumbCta");
+  if (thumbCta && "IntersectionObserver" in window) {
+    var heroActions = $(".hero__actions");
+    var registerSec = document.getElementById("register");
+    var pastHero = false, atForm = false;
+    var syncThumb = function () {
+      thumbCta.hidden = false;
+      thumbCta.setAttribute("data-show", pastHero && !atForm ? "true" : "false");
+    };
+    if (heroActions) {
+      new IntersectionObserver(function (entries) {
+        pastHero = !entries[0].isIntersecting;
+        syncThumb();
+      }).observe(heroActions);
+    }
+    if (registerSec) {
+      new IntersectionObserver(function (entries) {
+        atForm = entries[0].isIntersecting;
+        syncThumb();
+      }).observe(registerSec);
+    }
+  }
+
   // ---- Scroll reveals (never gate content; add class then observe) --
   if (!reduceMotion && "IntersectionObserver" in window) {
     var revealTargets = [];
