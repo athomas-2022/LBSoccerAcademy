@@ -226,8 +226,11 @@
   function pool() {
     return state.athletes.filter(function (a) { return ui.prog === "all" || a.program === ui.prog; });
   }
+  // Reads pool(), not state.athletes. When these disagreed, one Overview could
+  // answer "how many are we losing?" three different ways at once — the board
+  // said 2, the panel beside it said 1, and neither said "Girls".
   function numbers() {
-    var all = state.athletes;
+    var all = pool();
     var touched = all.filter(function (a) { return a.status !== "prospect"; });
     var active = all.filter(function (a) { return a.status === "active"; }).length;
     var atrisk = all.filter(function (a) { return a.status === "atrisk"; }).length;
@@ -307,7 +310,8 @@
     renderNavBadge(); renderDataNote();
   }
   function renderNavBadge() {
-    var n = state.athletes.filter(function (a) { return a.status === "atrisk"; }).length;
+    // pool(), so the badge agrees with the board and the panel under a filter.
+    var n = pool().filter(function (a) { return a.status === "atrisk"; }).length;
     var b = $("#navRisk"); if (n > 0) { b.hidden = false; b.textContent = n; } else b.hidden = true;
   }
   function renderDataNote() {
@@ -326,9 +330,19 @@
     if (!state.athletes.length) { host.innerHTML = firstRunEmpty(); return; }
 
     var pct = function (v) { return Math.max(0, Math.min(100, v)); };
-    var board =
-      '<div class="scoreboard" role="group" aria-label="The Four Numbers">' +
-        scoreCell("Capture rate", n.capture + '<small>%</small>', "touched " + n.touched + " of ~" + state.settings.districtAthletes + " kids", pct(n.capture), true) +
+    // The Program filter lives in the sidebar footer, far from what it reshapes.
+    // Say out loud when it is on, and give it a way out from here.
+    var lens = ui.prog === "all" ? "" :
+      '<p class="board-lens">Showing <b>' + esc(ui.prog) + '</b> only. ' +
+        '<button class="board-lens__clear" data-action="clear-prog">Show all</button></p>';
+    // districtAthletes counts both programs, so a capture percentage against it
+    // is meaningless once you filter to one. Show the count we actually know.
+    var captureCell = ui.prog === "all"
+      ? scoreCell("Capture rate", n.capture + '<small>%</small>', "touched " + n.touched + " of ~" + state.settings.districtAthletes + " kids", pct(n.capture), true)
+      : scoreCell("Kids mapped", String(n.touched), ui.prog + " · district total is ~" + state.settings.districtAthletes + " across both programs", null, true);
+    var board = lens +
+      '<div class="scoreboard" role="group" aria-label="Program numbers">' +
+        captureCell +
         scoreCell("Retention", n.retention + '<small>%</small>', n.active + " active · " + n.atrisk + " at risk", pct(n.retention), true) +
         scoreCell("Active players", String(n.active), "playing right now, K–8", pct(n.activeShare), true) +
       '</div>';
@@ -358,7 +372,10 @@
       '<span class="score__label">' + esc(label) + '</span>' +
       '<span class="score__num tnum">' + num + '</span>' +
       '<span class="score__sub">' + esc(sub) + '</span>' +
-      '<span class="score__bar"><i style="width:' + barPct + '%"></i></span></div>';
+      // barPct null = no meter. An empty track reads as "0%", which is a lie
+      // when the truth is "this percentage doesn't apply right now".
+      (barPct === null ? "" : '<span class="score__bar"><i style="width:' + barPct + '%"></i></span>') +
+      '</div>';
   }
   function miniRow(lbl, val, pct, risk) {
     return '<div class="mini__row"><span class="lbl">' + esc(lbl) + '</span>' +
@@ -1011,6 +1028,12 @@
     var principle = '<p class="res-principle"><b>Communication and intensity — in everything.</b> ' +
       'However you run it, it gets run those two ways: players talking, coaches cueing short and clear, ' +
       'and every rep at game speed, warmup to last whistle. We don’t walk through drills — we compete through them.</p>';
+    // Opening a resource logs the coach's name and email to the sheet. They were
+    // never told. Say it plainly, and say why, rather than hiding it.
+    if (SIGNUPS_URL && !canEdit()) {
+      principle += '<p class="res-disclose">Heads up: we log which materials get opened, and by whom, ' +
+        'so we know what’s actually useful and what to make more of. Nothing else is tracked.</p>';
+    }
     if (!state.resources.length) {
       host.innerHTML = principle + '<div class="empty"><img src="../assets/logos/Crest-180.png" alt="" />' +
         '<h3>Build your coaching library.</h3><p>Collect the videos, drills, and session plans your coaches should use — YouTube &amp; Vimeo links play right here, guides and PDFs open in a tab. Everything you add is shared with every coach.</p>' +
@@ -1548,7 +1571,7 @@
   // ================================================================
   // Non-mutating actions a view-only coach is still allowed to trigger.
   var VIEW_ACTIONS = { "res-type": 1, "res-age": 1, "filter-status": 1, "filter-grad": 1,
-    "clear-filters": 1, "play-resource": 1, "open-resource": 1, "close-player": 1,
+    "clear-filters": 1, "clear-prog": 1, "play-resource": 1, "open-resource": 1, "close-player": 1,
     "close-drawer": 1, "goto-coaches": 1, "sign-out": 1 };
   document.addEventListener("click", function (e) {
     var nav = e.target.closest(".side__link"); if (nav) { setView(nav.dataset.view); return; }
@@ -1559,6 +1582,11 @@
     // View-only coaches may browse and open the calendar/videos, but not change anything.
     if (!canEdit() && !VIEW_ACTIONS[action]) { toast("View only — only the owner can make changes."); return; }
     switch (action) {
+      case "clear-prog":
+        ui.prog = "all";
+        $$("#progSeg button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.prog === "all")); });
+        renderView();
+        break;
       case "add-athlete": openAthlete(null); break;
       case "edit": openAthlete(state.athletes.find(function (x) { return x.id === id; })); break;
       // Teams, events, resources and access removal all confirm. Losing a kid's
