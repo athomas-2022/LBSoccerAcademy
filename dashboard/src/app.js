@@ -353,7 +353,6 @@
     var host = $("#view-overview");
     if (!state.athletes.length) { host.innerHTML = firstRunEmpty(); return; }
 
-    var pct = function (v) { return Math.max(0, Math.min(100, v)); };
     // The Program filter lives in the sidebar footer, far from what it reshapes.
     // Say out loud when it is on, and give it a way out from here.
     var lens = ui.prog === "all" ? "" :
@@ -362,13 +361,13 @@
     // districtAthletes counts both programs, so a capture percentage against it
     // is meaningless once you filter to one. Show the count we actually know.
     var captureCell = ui.prog === "all"
-      ? scoreCell("Capture rate", n.capture + '<small>%</small>', "touched " + n.touched + " of ~" + state.settings.districtAthletes + " kids", pct(n.capture), true)
-      : scoreCell("Kids mapped", String(n.touched), ui.prog + " · district total is ~" + state.settings.districtAthletes + " across both programs", null, true);
+      ? scoreCell("Capture rate", n.capture + '<small>%</small>', "touched " + n.touched + " of ~" + state.settings.districtAthletes + " kids")
+      : scoreCell("Kids mapped", String(n.touched), ui.prog + " · district total is ~" + state.settings.districtAthletes + " across both programs");
     var board = lens +
       '<div class="scoreboard" role="group" aria-label="Program numbers">' +
         captureCell +
-        scoreCell("Retention", n.retention + '<small>%</small>', n.active + " active · " + n.atrisk + " at risk", pct(n.retention), true) +
-        scoreCell("Active players", String(n.active), "playing right now, K–8", pct(n.activeShare), true) +
+        scoreCell("Retention", n.retention + '<small>%</small>', n.active + " active · " + n.atrisk + " at risk") +
+        scoreCell("Active players", String(n.active), "playing right now, K–8") +
       '</div>';
 
     var atrisk = pool().filter(function (a) { return a.status === "atrisk"; });
@@ -391,14 +390,14 @@
 
     host.innerHTML = board + '<div class="overview-grid">' + riskPanel + sideCol + '</div>';
   }
-  function scoreCell(label, num, sub, barPct, accent) {
-    return '<div class="score' + (accent ? " score--accent" : "") + '">' +
+  // A scoreboard shows figures. It does not show fill states — the meter under
+  // each cell restated the number directly above it and was the thing making
+  // this read as a SaaS stat row rather than a board.
+  function scoreCell(label, num, sub) {
+    return '<div class="score">' +
       '<span class="score__label">' + esc(label) + '</span>' +
       '<span class="score__num tnum">' + num + '</span>' +
       '<span class="score__sub">' + esc(sub) + '</span>' +
-      // barPct null = no meter. An empty track reads as "0%", which is a lie
-      // when the truth is "this percentage doesn't apply right now".
-      (barPct === null ? "" : '<span class="score__bar"><i style="width:' + barPct + '%"></i></span>') +
       '</div>';
   }
   function miniRow(lbl, val, pct, risk) {
