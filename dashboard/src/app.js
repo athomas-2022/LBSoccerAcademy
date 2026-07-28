@@ -1161,14 +1161,25 @@
   function openPlayer(r) {
     if (!r) return;
     var emb = resEmbed(r.url || "");
-    if (!emb) { if (r.url) window.open(r.url, "_blank", "noopener"); return; }   // not embeddable -> open the link
+    // Not embeddable -> hand it to a new tab. Say so: window.open with noopener
+    // returns null by spec even on success, so a blocked pop-up is undetectable
+    // and the old silent fall-through looked exactly like a dead button.
+    if (!emb) { if (r.url) { window.open(r.url, "_blank", "noopener"); toast("Opening in a new tab…"); } return; }
     $("#playerTitle").textContent = r.title || "Video";
     $("#playerExt").href = r.url || "#";
     $("#playerFrame").innerHTML = '<iframe src="' + esc(emb) + '" title="' + esc(r.title || "Video") + '" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>';
-    var p = $("#player"); p.hidden = false; requestAnimationFrame(function () { p.classList.add("is-open"); });
+    playerLastFocus = document.activeElement;
+    var p = $("#player"); p.hidden = false; setModal("player", true);
+    // Focus moves now, not on the next frame — it has nothing to do with the
+    // open animation, and tying it to rAF made it skippable.
+    var c = p.querySelector(".player__close"); if (c) c.focus();
+    requestAnimationFrame(function () { p.classList.add("is-open"); });
   }
   function closePlayer() { var p = $("#player"); if (!p || p.hidden) return; p.classList.remove("is-open");
-    setTimeout(function () { p.hidden = true; $("#playerFrame").innerHTML = ""; }, 200); }
+    setTimeout(function () { p.hidden = true; $("#playerFrame").innerHTML = ""; }, 200);
+    setModal("player", false);
+    if (playerLastFocus && playerLastFocus.focus) playerLastFocus.focus();
+  }
 
   // ---- resources cross-device sync via the Sheet ----
   function pushResource(r) {
@@ -1298,18 +1309,31 @@
   // ================================================================
   //  DRAWER
   // ================================================================
-  var lastFocus = null;
+  var lastFocus = null, playerLastFocus = null;
+  // ---- modal containment -------------------------------------------
+  // Both dialogs declared aria-modal="true" while every control behind them
+  // stayed tabbable. inert takes the whole shell out of the tab order and out
+  // of the accessibility tree at once, which is what aria-modal was promising.
+  var MODALS = { drawer: false, player: false };
+  function setModal(name, open) {
+    MODALS[name] = !!open;
+    var shell = document.querySelector(".app");
+    if (shell) shell.inert = MODALS.drawer || MODALS.player;
+  }
+
   function showDrawer(title, html) {
     lastFocus = document.activeElement;
+    setModal("drawer", true);
     $("#drawerTitle").textContent = title;
     $("#drawerBody").innerHTML = html;
     var d = $("#drawer"); d.hidden = false;
     requestAnimationFrame(function () { d.classList.add("is-open"); $("#scrim").classList.add("is-open"); });
-    var f = $("#drawerBody input, #drawerBody select, #drawerBody textarea"); if (f) f.focus();
+    var f = $("#drawerBody input, #drawerBody select, #drawerBody textarea, .drawer__close"); if (f) f.focus();
   }
   function hideDrawer() {
     var d = $("#drawer"); d.classList.remove("is-open"); $("#scrim").classList.remove("is-open");
     setTimeout(function () { d.hidden = true; $("#drawerBody").innerHTML = ""; }, 260);
+    setModal("drawer", false);                       // must precede focus(): you cannot focus into an inert tree
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
 
