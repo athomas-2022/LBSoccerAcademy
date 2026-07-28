@@ -449,16 +449,29 @@ p{text-wrap:pretty}
 .eway__kicker{font-family:var(--font-display);text-transform:uppercase;letter-spacing:.04em;
   color:var(--lb-blue);font-size:var(--step-2)}
 /* session shape */
-.eway-flow{list-style:none;margin:0;padding:0;display:grid;gap:.9rem;grid-template-columns:repeat(4,1fr)}
+/* These four beats are a real sequence with real proportions, and four equal
+   cards hid that. Each beat now carries a meter sized from its own share, so
+   Compete visibly runs 2.7x Arrival.
+   Sizing the grid TRACKS by share was the first attempt and was wrong: it left
+   Arrival a 173px ribbon running seven lines at ~22 characters, while Compete
+   sat on two. The proportion belongs on the meter, not on the prose. */
+.eway-flow{list-style:none;margin:0;padding:0;display:grid;gap:1.4rem 1.1rem;
+  grid-template-columns:repeat(4,1fr)}
 @media (max-width:60rem){.eway-flow{grid-template-columns:repeat(2,1fr)}}
 @media (max-width:34rem){.eway-flow{grid-template-columns:1fr}}
-.beat{position:relative;background:#fff;border:1px solid var(--hairline);
-  border-radius:var(--r-lg);padding:1.2rem 1.2rem 1.3rem;box-shadow:var(--shadow-sm)}
-.beat__pct{position:absolute;top:1rem;right:1rem;font-weight:800;font-size:var(--step--1);color:#fff;
-  background:var(--lb-blue);border-radius:var(--r-pill);padding:.1rem .55rem}
+.beat{position:relative;padding-top:1.35rem}
+/* track first, fill second — pseudo-elements paint in order, so the fill sits
+   on top without needing a stacking context to fight over */
+.beat::before{content:"";position:absolute;top:0;left:0;right:0;height:10px;
+  border-radius:3px;background:var(--blue-100)}
+.beat::after{content:"";position:absolute;top:0;left:0;height:10px;
+  width:calc(var(--share,25) * 1%);min-width:38px;
+  border-radius:3px;background:var(--lb-blue)}
+.beat__pct{font-weight:800;font-size:var(--step--1);color:var(--lb-blue);
+  letter-spacing:.02em;margin-left:.45rem}
 .beat__no{font-family:var(--font-display);text-transform:uppercase;letter-spacing:.03em;
   font-size:var(--step--1);color:var(--lb-blue)}
-.beat h4{margin:.4rem 0 .35rem;font-size:var(--step-1);letter-spacing:-.01em;color:var(--ink)}
+.beat h4{margin:.35rem 0 .35rem;font-size:var(--step-1);letter-spacing:-.01em;color:var(--ink)}
 .beat p{color:var(--ink-soft);font-weight:500;font-size:var(--step-0)}
 .eway-principle{margin:1rem auto 0;max-width:46rem;text-align:center;font-weight:700;color:var(--lb-blue);
   background:oklch(0.95 .03 255);border:1px dashed var(--blue-200);border-radius:var(--r-md);padding:.9rem 1rem}
