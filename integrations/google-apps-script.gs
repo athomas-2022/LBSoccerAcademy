@@ -219,7 +219,8 @@ function doPost(e) {
     var d = JSON.parse(e.postData.contents);
     // Dashboard writes require an approved signed-in account; website signups don't.
     var DASH = { attendance: 1, event: 1, "event-delete": 1, finance: 1, "finance-delete": 1,
-                 resource: 1, "resource-delete": 1, "access-add": 1, "access-remove": 1, usage: 1 };
+                 resource: 1, "resource-delete": 1, "access-add": 1, "access-remove": 1,
+                 "access-deny": 1, usage: 1 };
     if (DASH[d.type]) {
       var auth = authOf_(d.token);
       if (authEnabled_() && (!auth || !auth.approved)) return json_({ ok: false, error: "auth" });
@@ -240,6 +241,13 @@ function doPost(e) {
       if (d.type === "access-remove")  return accessRemove_(d, auth);
       if (d.type === "access-deny")    return accessDeny_(d, auth);
     }
+    // A website signup carries no "type" at all. Anything that named a type and
+    // still reached here is an unknown or misrouted dashboard call, and must NOT
+    // be filed as a family signup: doing so appended a blank row, mailed the
+    // office "New signup: ?", and — because these payloads carry an email —
+    // sent a "You're in" welcome to whoever the call was about.
+    if (d.type) return json_({ ok: false, error: "unknown type: " + String(d.type) });
+
     // ---- public website signup (no auth) ----
     var sh = sheetOf_(SHEET_SIGNUPS);
     sh.appendRow([
