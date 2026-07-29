@@ -742,8 +742,16 @@ button.pill:hover{filter:brightness(.96)}
 /* ============ RESPONSIVE ============ */
 @media (max-width:900px){
   .app{grid-template-columns:1fr}
-  .side{position:fixed;left:0;top:0;z-index:var(--z-drawer);width:270px;transform:translateX(-100%);transition:transform .25s var(--ease)}
-  .side.is-open{transform:none;box-shadow:var(--shadow-pop)}
+  /* +1 like .drawer. At the same z-index as .scrim the sidebar lost the tie on
+     DOM order, so the scrim sat on top of it and swallowed every tap on a nav
+     tab — the panel opened and nothing in it could be clicked.
+     visibility also keeps the ten controls out of the tab order while it is
+     slid off-screen; it flips on immediately and off only after the slide. */
+  .side{position:fixed;left:0;top:0;z-index:calc(var(--z-drawer) + 1);width:270px;
+    transform:translateX(-100%);visibility:hidden;
+    transition:transform .25s var(--ease),visibility 0s linear .25s}
+  .side.is-open{transform:none;visibility:visible;box-shadow:var(--shadow-pop);
+    transition:transform .25s var(--ease),visibility 0s}
   .mobile-head{display:flex;align-items:center;gap:.8rem;padding:.7rem 1rem;background:var(--sidebar);color:#fff;position:sticky;top:0;z-index:15}
   .mobile-head img{width:30px;height:30px}
   .mobile-head .mtitle{font-family:var(--display);font-size:1rem;text-transform:uppercase}
