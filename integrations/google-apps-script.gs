@@ -66,6 +66,8 @@ var SHEET_ATT     = "Attendance";
 var SHEET_EVENTS  = "Events";
 var SHEET_ACCESS  = "Access";
 var ACCESS_HEADERS = ["Email", "Name", "Added", "Added by"];
+var SHEET_REQ     = "Access requests";
+var REQ_HEADERS   = ["Email", "Name", "First asked", "Last asked", "Times", "Status"];
 var SHEET_FIN     = "Finances";
 var FIN_HEADERS   = ["Id", "Date", "Type", "Category", "Amount", "Method",
                      "Paid to/from", "Description", "Note", "Updated", "Deleted"];
@@ -121,6 +123,65 @@ function authOf_(token) {
   if (!v) return null;
   return { email: v.email, name: v.name, owner: isOwner_(v.email), approved: isApproved_(v.email) };
 }
+// ---- access requests -------------------------------------------------------
+// A pending sign-in used to return "pending" and vanish: nothing written, nobody
+// told. Now it is logged once per person and mailed to the office the first time,
+// so a coach asking for access does not depend on them also texting you.
+function requestLog_(auth) {
+  if (!auth || !auth.email) return;
+  var email = String(auth.email).toLowerCase();
+  var sh = sheetOf_(SHEET_REQ);
+  var rows = sh.getDataRange().getValues();
+  for (var r = 1; r < rows.length; r++) {
+    if (String(rows[r][0]).toLowerCase() === email) {
+      // seen before: bump the counters, stay quiet — no repeat mail on refresh
+      sh.getRange(r + 1, 4).setValue(new Date());
+      sh.getRange(r + 1, 5).setValue((Number(rows[r][4]) || 1) + 1);
+      return;
+    }
+  }
+  var now = new Date();
+  sh.appendRow([email, auth.name || "", now, now, 1, "waiting"]);
+  notifyAccessRequest_(email, auth.name || "");
+}
+function notifyAccessRequest_(email, name) {
+  try {
+    var who = name ? (name + " (" + email + ")") : email;
+    MailApp.sendEmail({
+      to: CONFIG.OFFICE_EMAIL,
+      subject: who + " asked for access to the coach dashboard",
+      body: who + " signed in to the " + CONFIG.PROGRAM_NAME + " coach dashboard and is waiting to be let in.\n\n" +
+            "To approve: open the dashboard, choose Manage access in the sidebar, and approve them there —\n" +
+            "they will show up in the Waiting list with an Approve button.\n\n" +
+            "If you don't recognise this person, do nothing. They stay locked out until you approve them.\n",
+      name: CONFIG.PROGRAM_NAME
+    });
+  } catch (err) {
+    // Never let a mail failure block sign-in; the row is already in the sheet.
+  }
+}
+// Everyone still waiting, newest first — shown to owners in Manage access.
+function accessRequests_() {
+  var rows = sheetOf_(SHEET_REQ).getDataRange().getValues();
+  var out = [];
+  for (var r = 1; r < rows.length; r++) {
+    if (!rows[r][0]) continue;
+    if (String(rows[r][5] || "").toLowerCase() !== "waiting") continue;
+    out.push({ email: String(rows[r][0]).toLowerCase(), name: rows[r][1] || "",
+               first: String(rows[r][2] || ""), last: String(rows[r][3] || ""),
+               times: Number(rows[r][4]) || 1 });
+  }
+  return out.reverse();
+}
+function requestResolve_(email, status) {
+  email = String(email).toLowerCase();
+  var sh = sheetOf_(SHEET_REQ);
+  var rows = sh.getDataRange().getValues();
+  for (var r = 1; r < rows.length; r++) {
+    if (String(rows[r][0]).toLowerCase() === email) sh.getRange(r + 1, 6).setValue(status);
+  }
+}
+
 function accessAdd_(d, auth) {
   if (!auth || !auth.owner) return json_({ ok: false, error: "auth" });
   var email = String(d.email || "").toLowerCase().trim();
@@ -129,6 +190,16 @@ function accessAdd_(d, auth) {
   var rows = sh.getDataRange().getValues();
   for (var r = 1; r < rows.length; r++) { if (String(rows[r][0]).toLowerCase() === email) return json_({ ok: true, already: true }); }
   sh.appendRow([email, d.name || "", new Date(), auth.email || ""]);
+  requestResolve_(email, "approved");
+  return json_({ ok: true });
+}
+// Dismiss a request without granting access. They stay locked out, and they
+// stop reappearing in the waiting list every time they retry.
+function accessDeny_(d, auth) {
+  if (!auth || !auth.owner) return json_({ ok: false, error: "auth" });
+  var email = String(d.email || "").toLowerCase().trim();
+  if (!email) return json_({ ok: false, error: "bad email" });
+  requestResolve_(email, "denied");
   return json_({ ok: true });
 }
 function accessRemove_(d, auth) {
@@ -167,6 +238,7 @@ function doPost(e) {
       if (d.type === "resource-delete") return deleteResource_(d);
       if (d.type === "access-add")     return accessAdd_(d, auth);
       if (d.type === "access-remove")  return accessRemove_(d, auth);
+      if (d.type === "access-deny")    return accessDeny_(d, auth);
     }
     // ---- public website signup (no auth) ----
     var sh = sheetOf_(SHEET_SIGNUPS);
@@ -380,7 +452,7 @@ function doGet(e) {
   var auth = authOf_(token);
   if (authEnabled_()) {
     if (!auth) return json_({ ok: false, error: "auth" });
-    if (!auth.approved) return json_({ ok: false, error: "pending", email: auth.email });
+    if (!auth.approved) { requestLog_(auth); return json_({ ok: false, error: "pending", email: auth.email }); }
   }
   var sh = sheetOf_(SHEET_SIGNUPS);
   var rows = sh.getDataRange().getValues();
@@ -429,7 +501,8 @@ function doGet(e) {
   }
   var out = { ok: true, approved: true, owner: auth ? !!auth.owner : true,
     signups: signups, attendance: attendance, events: events, finances: finances, resources: resources };
-  if (out.owner) { out.access = accessEmails_(); out.owners = owners_(); out.usage = usageLog_(); }
+  if (out.owner) { out.access = accessEmails_(); out.owners = owners_(); out.usage = usageLog_();
+                   out.requests = accessRequests_(); }
   return json_(out);
 }
 
@@ -594,6 +667,11 @@ function setup() {
   if (ev.getLastRow() === 0) ev.appendRow(EVENT_HEADERS);
   ev.getRange(1, 1, 1, EVENT_HEADERS.length).setFontWeight("bold");
   ev.setFrozenRows(1);
+
+  var req = ss.getSheetByName(SHEET_REQ) || ss.insertSheet(SHEET_REQ);
+  if (req.getLastRow() === 0) req.appendRow(REQ_HEADERS);
+  req.getRange(1, 1, 1, REQ_HEADERS.length).setFontWeight("bold");
+  req.setFrozenRows(1);
 
   var acc = ss.getSheetByName(SHEET_ACCESS) || ss.insertSheet(SHEET_ACCESS);
   if (acc.getLastRow() === 0) acc.appendRow(ACCESS_HEADERS);

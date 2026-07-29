@@ -154,6 +154,17 @@ body.is-authed .authgate{display:none}
 .acc-mail{font-size:var(--fs-sm);color:var(--ink);font-weight:600;word-break:break-all}
 .acc-mail i{color:var(--ink-3);font-weight:500}
 .acc-tag{font-size:var(--fs-xs);font-weight:800;color:var(--accent);text-transform:uppercase;letter-spacing:.04em}
+/* the waiting list — someone signed in and is locked out until you act */
+.acc-wait{margin-bottom:1.1rem;padding:.85rem .9rem;border:1px solid var(--line-2);
+  border-radius:var(--r-md);background:var(--accent-weak)}
+.acc-wait__h{display:flex;align-items:center;gap:.5rem;margin:0 0 .5rem;
+  font-size:var(--fs-base);font-weight:800;color:var(--lb-blue)}
+.acc-wait__n{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 .35rem;
+  border-radius:var(--r-pill);background:var(--lb-blue);color:#fff;font-size:var(--fs-xs);font-weight:800}
+.acc-row--wait{flex-wrap:wrap;gap:.5rem}
+.acc-wait__acts{display:flex;gap:.5rem;margin-left:auto;flex:0 0 auto}
+.acc-times{margin-left:.4rem;font-size:var(--fs-xs);font-weight:700;color:var(--ink-3)}
+.badge--wait{margin-left:.45rem;background:var(--lb-blue)}
 .acc-rm{background:none;border:0;color:var(--danger-ink);font:inherit;font-size:var(--fs-xs);font-weight:700;cursor:pointer}
 .acc-rm:hover{text-decoration:underline}
 .acc-empty{color:var(--ink-3);font-size:var(--fs-sm);padding:.3rem}

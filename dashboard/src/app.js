@@ -96,6 +96,7 @@
   //  AUTH GATE — Google Sign-In + approved-email allowlist
   // ================================================================
   var AUTH = { token: "", email: "", name: "", owner: false, enabled: !!GOOGLE_CLIENT_ID, ready: false };
+  var PENDING_REQS = 0;                 // people signed in and waiting to be let in
   function authToken() { return AUTH.token || ""; }
   // Only the owner may edit. Approved non-owners are view-only. (No gate configured yet → editable.)
   function canEdit() { return !AUTH.enabled || AUTH.owner; }
@@ -171,7 +172,8 @@
     foot.innerHTML = '<div class="side__who"><span class="side__whoname">' + esc(AUTH.name || AUTH.email) + '</span>' +
       '<span class="side__whomail">' + esc(AUTH.email) + (AUTH.owner ? " · owner" : "") + '</span></div>' +
       '<div class="side__authbtns">' +
-        (AUTH.owner ? '<button class="side__authbtn" data-action="manage-access">Manage access</button>' : "") +
+        (AUTH.owner ? '<button class="side__authbtn" data-action="manage-access">Manage access' +
+          (PENDING_REQS ? '<span class="badge badge--wait">' + PENDING_REQS + '</span>' : "") + '</button>' : "") +
         '<button class="side__authbtn" data-action="sign-out">Sign out</button>' +
       '</div>';
   }
@@ -187,18 +189,35 @@
     apiGet().then(function (data) {
       var b = $("#accessBody"); if (!b) return;
       if (!data || !data.ok || !data.owner) { b.innerHTML = '<p class="cast-note">Only owners can manage access.</p>'; return; }
-      renderAccessBody(data.access || [], data.owners || []);
+      renderAccessBody(data.access || [], data.owners || [], data.requests || []);
     }).catch(function () { var b = $("#accessBody"); if (b) b.innerHTML = '<p class="cast-note">Couldn\'t load the list — retry.</p>'; });
   }
-  function renderAccessBody(list, owners) {
+  function renderAccessBody(list, owners, requests) {
     var b = $("#accessBody"); if (!b) return;
+    requests = requests || [];
+    // People who signed in and are still locked out. This is the whole point of
+    // the request log: before it, they were invisible unless they texted you.
+    var waiting = requests.length ? (
+      '<div class="acc-wait">' +
+        '<h4 class="acc-wait__h">Waiting for you' +
+          '<span class="acc-wait__n">' + requests.length + '</span></h4>' +
+        '<ul class="acc-list">' + requests.map(function (q) {
+          return '<li class="acc-row acc-row--wait">' +
+            '<span class="acc-mail">' + esc(q.email) + (q.name ? ' <i>' + esc(q.name) + '</i>' : "") +
+              (q.times > 1 ? '<span class="acc-times">tried ' + q.times + '×</span>' : "") + '</span>' +
+            '<span class="acc-wait__acts">' +
+              '<button class="btn btn--primary btn--sm" data-accok="' + esc(q.email) + '" data-accname="' + esc(q.name || "") + '">Approve</button>' +
+              '<button class="acc-rm" data-accno="' + esc(q.email) + '">Not them</button>' +
+            '</span></li>';
+        }).join("") + '</ul>' +
+      '</div>') : "";
     var ownerRows = owners.map(function (e) {
       return '<li class="acc-row"><span class="acc-mail">' + esc(e) + '</span><span class="acc-tag">owner</span></li>'; }).join("");
     var rows = list.map(function (x) {
       var email = x.email || x;
       return '<li class="acc-row"><span class="acc-mail">' + esc(email) + (x.name ? ' <i>' + esc(x.name) + '</i>' : "") + '</span>' +
         '<button class="acc-rm" data-accrm="' + esc(email) + '">Remove</button></li>'; }).join("");
-    b.innerHTML =
+    b.innerHTML = waiting +
       '<p class="cast-note">Approved people can sign in and use the dashboard. Owners are set in config and can\'t be removed here.</p>' +
       '<ul class="acc-list">' + ownerRows + rows + (list.length ? "" : '<li class="acc-empty">No one else approved yet.</li>') + '</ul>' +
       '<form id="accAdd" class="acc-add">' +
@@ -213,13 +232,31 @@
       apiPost({ type: "access-add", email: email, name: $("#acc-name").value.trim() });
       toast("Approved " + email + "."); b.innerHTML = "Updating…"; setTimeout(refreshAccess, 900);
     });
-    b.addEventListener("click", function (e) {
+    // onclick, not addEventListener: this body is re-rendered on every refresh
+    // but the element itself persists, so listeners were stacking up and one
+    // tap fired the handler once per render.
+    b.onclick = function (e) {
+      var ok = e.target.closest("[data-accok]");
+      if (ok) {
+        var okMail = ok.dataset.accok;
+        apiPost({ type: "access-add", email: okMail, name: ok.dataset.accname || "" });
+        toast("Approved " + okMail + "."); b.innerHTML = "Updating…"; setTimeout(refreshAccess, 900);
+        return;
+      }
+      var no = e.target.closest("[data-accno]");
+      if (no) {
+        var noMail = no.dataset.accno;
+        if (!window.confirm("Dismiss " + noMail + "? They stay locked out and drop off this list.")) return;
+        apiPost({ type: "access-deny", email: noMail });
+        toast("Dismissed " + noMail + "."); b.innerHTML = "Updating…"; setTimeout(refreshAccess, 900);
+        return;
+      }
       var rm = e.target.closest("[data-accrm]"); if (!rm) return;
       var email = rm.dataset.accrm;
       if (!window.confirm("Remove " + email + "'s access?")) return;
       apiPost({ type: "access-remove", email: email });
       toast("Removed " + email + "."); b.innerHTML = "Updating…"; setTimeout(refreshAccess, 900);
-    });
+    };
   }
 
   // ---- sync health -------------------------------------------------
@@ -1230,6 +1267,12 @@
     apiGet().then(function (data) {
       if (data && data.error === "auth") { relock("Session expired — sign in again."); return; }
       syncOk("usage");
+      // Before the usage guard: someone can be waiting for access on a day when
+      // nobody opened a single resource.
+      if (data && data.requests) {
+        var n = data.requests.length;
+        if (n !== PENDING_REQS) { PENDING_REQS = n; renderIdentity(); }
+      }
       if (!data || !data.usage) return;
       state.usage = data.usage; save();
       if (ui.view === "training") renderView();
