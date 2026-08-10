@@ -72,7 +72,7 @@
   var LAW_AGES = [
     { key: "u6",  label: "U6" }, { key: "u8",  label: "U8" },
     { key: "u10", label: "U10" }, { key: "u12", label: "U12" },
-    { key: "all", label: "All ages" }
+    { key: "u15", label: "U15" }, { key: "all", label: "All ages" }
   ];
   function resAge(k) {
     var i;
@@ -94,7 +94,10 @@
     { key: "u6",  title: "U6", note: "30 min practice then a 30 min game — four 5–6 min quarters, or five 5 min quarters if both coaches agree. 4v4, no goalie. Coaches ref, nobody keeps score. 10 games." },
     { key: "u8",  title: "U8", note: "6v6 with a goalie, two 20-minute halves. No punting or drop kicks. Coaches ref their own games. Equal playing time expected." },
     { key: "u10", title: "U10", note: "7v7 with a goalie, two 25-minute halves. Build-out lines come in, and referees are assigned from here up." },
-    { key: "u12", title: "U12", note: "9v9 with a goalie, two 30-minute halves. True offside replaces the build-out line." }
+    { key: "u12", title: "U12", note: "9v9 with a goalie, two 30-minute halves. True offside replaces the build-out line." },
+    // The rules sheet we were given stops at U12. The one U15 rule it states is
+    // that heading becomes legal here; the format is flagged rather than guessed.
+    { key: "u15", title: "U15", note: "Heading is allowed from this age — the first level where it is. The last stop before high school soccer.", unconfirmed: "Our rules sheet stops at U12. Confirm the U15 format with the league — players a side, half length, ball size — and write it into this note." }
   ];
   // Built from LB's own division rules, not a generic framework.
   var LAW_PLAN = [
@@ -126,7 +129,13 @@
     { band: "u12", title: "Offside is about being involved", why: "Interfering with play, interfering with an opponent, or gaining an advantage from the position.", topics: ["Offside"] },
     { band: "u12", title: "When a player is NOT offside", why: "Own half, level with the last defender, or behind the ball — and never direct from a goal kick, throw-in or corner.", topics: ["Offside", "Goal kicks & corners", "Throw-ins"] },
     { band: "u12", title: "The restart after an offside call", why: "Indirect kick to the other team from where the infringement happened.", topics: ["Offside", "Fouls & free kicks"] },
-    { band: "u12", title: "9v9, two 30-minute halves", why: "The last step before 11v11, and the format the whole U12 season runs on.", topics: ["Small-sided rules"] }
+    { band: "u12", title: "9v9, two 30-minute halves", why: "The last step before 11v11, and the format the whole U12 season runs on.", topics: ["Small-sided rules"] },
+
+    { band: "u15", title: "Heading is legal from U15 — bringing it back safely", why: "The only U15 rule our sheet actually states. Players have gone nine years without it, so teach the technique before the first ball comes in.", topics: ["Basics for parents", "Fouls & free kicks"] },
+    { band: "u15", title: "Confirm and record the U15 format", why: "Our rules sheet stops at U12. Get the league's numbers — players a side, half length, ball size — and put them in this section before the season.", topics: ["Small-sided rules", "Field & equipment"] },
+    { band: "u15", title: "Offside at speed", why: "Same law as U12, but played faster by players who can now time a run. Worth a refresher rather than assuming it carried over.", topics: ["Offside"] },
+    { band: "u15", title: "Cards start to cost you", why: "A yellow or red at this age carries into the next match. Say what earns each before someone finds out the hard way.", topics: ["Misconduct & cards"] },
+    { band: "u15", title: "What high school soccer expects", why: "The handover to varsity: the laws they will be held to, and the standards that come with the shirt.", topics: ["Basics for parents", "Referee signals"] }
   ];
   function lawPlanFor(band) { return LAW_PLAN.filter(function (p) { return p.band === band; }); }
   // Matched on title, which is what the "Make this" button pre-fills. Rename an
@@ -1257,6 +1266,7 @@
           '<div class="lawband__head"><h3 class="lawband__h">' + esc(b.title) + '</h3>' +
             '<span class="lawband__count tnum">' + made + '/' + lawPlanFor(b.key).length + ' planned</span></div>' +
           '<p class="lawband__note">' + esc(b.note) + '</p>' +
+          (b.unconfirmed ? '<p class="lawband__todo">Format not confirmed — ' + esc(b.unconfirmed) + '</p>' : "") +
           (cards.length ? '<div class="res-grid">' + cards.map(resCard).join("") + '</div>' : "") +
           (todo.length ? '<ul class="lawtodo">' + todo.map(function (p) {
             var i = LAW_PLAN.indexOf(p);

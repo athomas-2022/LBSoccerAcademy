@@ -500,6 +500,7 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
 .res-age--u8{background:oklch(0.500 0.175 261 / .16);color:oklch(0.44 0.175 261)}
 .res-age--u10{background:oklch(0.402 0.177 261 / .16);color:var(--lb-blue)}
 .res-age--u12{background:oklch(0.288 0.110 257 / .16);color:oklch(0.288 0.110 257)}
+.res-age--u15{background:oklch(0.238 0.075 254 / .16);color:oklch(0.238 0.075 254)}
 .res-title{font-size:var(--fs-md);font-weight:800;letter-spacing:-.01em;color:var(--ink);line-height:1.25}
 .res-desc{font-size:var(--fs-sm);color:var(--ink-2);font-weight:500;line-height:1.4}
 .res-topics{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.1rem}
@@ -543,6 +544,11 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
   background:var(--surface-2);border-radius:var(--r-pill);padding:.15rem .55rem;flex:0 0 auto}
 .lawband__note{margin:0 0 .9rem;font-size:var(--fs-sm);color:var(--ink-2);font-weight:500;max-width:70ch}
 .lawband__done{margin:0;font-size:var(--fs-sm);color:var(--ink-3);font-weight:600}
+/* Marks a band whose format we were never given, so a placeholder is never
+   mistaken for a league rule. */
+.lawband__todo{margin:0 0 .9rem;padding:.55rem .75rem;border:1px dashed var(--line-2);
+  border-radius:var(--r-md);background:var(--surface-2);color:var(--ink-2);
+  font-size:var(--fs-sm);font-weight:600;line-height:1.5;max-width:70ch}
 .lawtodo{list-style:none;margin:.8rem 0 0;padding:0;display:grid;gap:.4rem}
 .lawtodo__row{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;
   padding:.6rem .8rem;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface)}
