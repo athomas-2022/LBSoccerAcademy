@@ -499,14 +499,10 @@
       return;
     }
     if (ui.view === "overview") {
-      // Sync sign-ups and Message families moved here when the Athletes tab was
-      // removed. They are program-level actions and were the only route from the
-      // public form into the dashboard — losing them with the tab would have cut
-      // the intake path.
-      slot.innerHTML = '<button class="btn btn--ghost" data-action="sync-signups">Sync sign-ups</button>' +
-        '<button class="btn btn--ghost" data-action="broadcast"><svg class="ic"><use href="#ic-phone"/></svg>Message families</button>' +
-        '<button class="btn btn--ghost" data-action="settings">Edit numbers</button>' +
-        '<button class="btn btn--primary" data-action="add-athlete"><svg class="ic"><use href="#ic-plus"/></svg>Add athlete</button>';
+      // Nothing. Overview explains the dashboard and points at the other tabs;
+      // the owner's program tools sit in an owner-only strip at the foot of it
+      // rather than as chrome above a page coaches read.
+      slot.innerHTML = "";
     } else if (ui.view === "teams") {
       slot.innerHTML = '<button class="btn btn--primary" data-action="add-team"><svg class="ic"><use href="#ic-plus"/></svg>Add coach</button>';
     } else if (ui.view === "training") {
@@ -550,11 +546,10 @@
     renderNavBadge(); renderDataNote();
   }
   function renderNavBadge() {
-    // pool(), so the badge agrees with the board and the panel under a filter.
-    var n = pool().filter(function (a) { return a.status === "atrisk"; }).length;
-    // Badge lives on Overview now — that is where the at-risk panel is.
-    var b = $("#navRisk"); if (!b) return;
-    if (n > 0) { b.hidden = false; b.textContent = n; } else b.hidden = true;
+    // Kept hidden: with the athlete roster and the at-risk panel both off the
+    // nav, this counted something a coach had no way to open. A badge that
+    // cannot be acted on is just an unread marker you can never clear.
+    var b = $("#navRisk"); if (b) b.hidden = true;
   }
   function renderDataNote() {
     var note = $("#dataNote");
@@ -566,47 +561,73 @@
   // ================================================================
   //  OVERVIEW
   // ================================================================
+  // Overview is the coach's front door: what this is, and where to go next.
+  // It carries no athlete figures — those belong to the people running intake,
+  // not to a volunteer opening this before Tuesday practice.
   function renderOverview() {
-    var n = numbers();
     var host = $("#view-overview");
-    if (!state.athletes.length) { host.innerHTML = firstRunEmpty(); return; }
+    var td = today();
 
-    // The Program filter lives in the sidebar footer, far from what it reshapes.
-    // Say out loud when it is on, and give it a way out from here.
-    var lens = ui.prog === "all" ? "" :
-      '<p class="board-lens">Showing <b>' + esc(ui.prog) + '</b> only. ' +
-        '<button class="board-lens__clear" data-action="clear-prog">Show all</button></p>';
-    // districtAthletes counts both programs, so a capture percentage against it
-    // is meaningless once you filter to one. Show the count we actually know.
-    var captureCell = ui.prog === "all"
-      ? scoreCell("Capture rate", n.capture + '<small>%</small>', "touched " + n.touched + " of ~" + state.settings.districtAthletes + " kids")
-      : scoreCell("Kids mapped", String(n.touched), ui.prog + " · district total is ~" + state.settings.districtAthletes + " across both programs");
-    var board = lens +
-      '<div class="scoreboard" role="group" aria-label="Program numbers">' +
-        captureCell +
-        scoreCell("Retention", n.retention + '<small>%</small>', n.active + " active · " + n.atrisk + " at risk") +
-        scoreCell("Active players", String(n.active), "playing right now, K–8") +
-      '</div>';
+    var training = resourcesIn("training"), laws = resourcesIn("laws");
+    var upcoming = eventsSorted().filter(function (e) { return e.date >= td; });
+    var affiliated = state.teams.filter(function (t) { return t.affiliation === "affiliated"; }).length;
 
-    var atrisk = pool().filter(function (a) { return a.status === "atrisk"; });
-    var riskPanel =
-      '<section class="panel panel--risk">' +
-        '<div class="panel__head"><span class="risk-flag"><span class="dot"></span>Kids at risk of being lost</span>' +
-          '<span class="count">' + atrisk.length + (atrisk.length === 1 ? " kid" : " kids") + '</span></div>' +
-        '<div class="panel__body">' +
-          (atrisk.length ? '<div class="risk-list">' + atrisk.map(riskRow).join("") + '</div>'
-            : '<p style="color:var(--ink-2)">No one is slipping right now. Every identified kid is still with us. 🔵</p>') +
-        '</div></section>';
+    var intro =
+      '<section class="hub">' +
+        '<h2 class="hub__h">Everything you need to coach the Eagles Way.</h2>' +
+        '<p class="hub__lede">This is the academy’s coach dashboard. The sessions we want run, how the game ' +
+          'is actually called at each age, and when you’re needed — kept in one place and shared with every ' +
+          'affiliated coach. Nothing in here is homework: take what’s useful for your team and leave the rest.</p>' +
+      '</section>';
 
-    var sideCol =
-      '<section class="panel"><div class="panel__head"><h2>Where we stand</h2></div><div class="panel__body">' +
-        '<div class="mini">' +
-          miniRow("Capture rate", n.capture + "%", n.capture, false) +
-          miniRow("Retention", n.retention + "%", n.retention, false) +
-          miniRow("At risk", n.atrisk + " of " + n.touched, n.touched ? Math.round(n.atrisk / n.touched * 100) : 0, true) +
-        '</div></div></section>';
+    // Rows, not a grid of matching cards: these are four different places with
+    // different amounts to say, and the counts tell you which are worth a look.
+    var dest = function (view, name, blurb, meta) {
+      return '<li class="hubnav__row">' +
+        '<span class="hubnav__main"><b>' + esc(name) + '</b><span>' + esc(blurb) + '</span></span>' +
+        '<span class="hubnav__meta">' + esc(meta) + '</span>' +
+        '<button class="btn btn--ghost btn--sm" data-action="goto" data-goto="' + esc(view) + '">Open</button>' +
+      '</li>';
+    };
+    var nav = '<ul class="hubnav">' +
+      dest("training", "Training library",
+        "Sessions, drills and the four-beat practice shape — what a good Eagles session looks like.",
+        training.length ? training.length + (training.length === 1 ? " resource" : " resources") : "nothing yet") +
+      dest("laws", "Laws of the Game",
+        "How the game is called at U6 through U15 — offside, restarts, the build-out line, no headers until U15.",
+        laws.length ? laws.length + (laws.length === 1 ? " explainer" : " explainers") : "nothing yet") +
+      dest("schedule", "Schedule",
+        "Coach clinics and showcases, added to the shared calendar so they land on your phone.",
+        upcoming.length ? "next " + fmtDate(upcoming[0].date) : "nothing booked") +
+      dest("teams", "Coaches",
+        "Who’s affiliated across the district, their teams, and how many kids that reaches.",
+        state.teams.length ? affiliated + " of " + state.teams.length + " affiliated" : "none added yet") +
+      '</ul>';
 
-    host.innerHTML = board + '<div class="overview-grid">' + riskPanel + sideCol + '</div>';
+    var standard =
+      '<section class="hub-standard">' +
+        '<b>Communication and intensity — in everything.</b> ' +
+        'However you run it, it gets run those two ways: players talking, coaches cueing short and clear, ' +
+        'and every rep at game speed. We don’t walk through drills — we compete through them.' +
+      '</section>';
+
+    // Owner-only. Intake and family messaging have to live somewhere, and this
+    // keeps them off the page a coach reads without hiding them from you.
+    var admin = canEdit()
+      ? '<section class="hub-admin owner-only">' +
+          '<h3 class="hub-admin__h">Program admin</h3>' +
+          '<p class="hub-admin__note">Only you see this. Sign-ups from the public form land here.</p>' +
+          '<div class="hub-admin__btns">' +
+            '<button class="btn btn--ghost btn--sm" data-action="sync-signups">Sync sign-ups</button>' +
+            '<button class="btn btn--ghost btn--sm" data-action="broadcast">Message families</button>' +
+            '<button class="btn btn--ghost btn--sm" data-action="add-athlete">Add athlete</button>' +
+            '<button class="btn btn--ghost btn--sm" data-action="settings">Edit numbers</button>' +
+            (state.athletes.length ? "" : '<button class="btn btn--ghost btn--sm" data-action="load-sample">Load sample data</button>') +
+          '</div>' +
+        '</section>'
+      : "";
+
+    host.innerHTML = intro + nav + standard + admin;
   }
   // A scoreboard shows figures. It does not show fill states — the meter under
   // each cell restated the number directly above it and was the thing making
@@ -1887,7 +1908,7 @@
   // Non-mutating actions a view-only coach is still allowed to trigger.
   var VIEW_ACTIONS = { "res-type": 1, "res-age": 1, "filter-status": 1, "filter-grad": 1,
     "clear-filters": 1, "clear-prog": 1, "play-resource": 1, "open-resource": 1, "close-player": 1,
-    "close-drawer": 1, "goto-coaches": 1, "sign-out": 1,
+    "close-drawer": 1, "goto-coaches": 1, "goto": 1, "sign-out": 1,
     // Must be here. While previewing, canEdit() is false and every action not on
     // this list is refused — without it the way out of preview is itself dead.
     "exit-preview": 1 };
@@ -1935,6 +1956,7 @@
       case "edit-team": openTeam(teamById(id)); break;
       case "delete-team": deleteTeam(id); break;
       case "import-team": importTeam(id); break;
+      case "goto": setView(act.dataset.goto); break;
       case "preview-coach":
         if (!AUTH.owner) break;
         setPreview(true);
