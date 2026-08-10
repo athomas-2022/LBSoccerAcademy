@@ -137,13 +137,47 @@
     { band: "u15", title: "Cards start to cost you", why: "A yellow or red at this age carries into the next match. Say what earns each before someone finds out the hard way.", topics: ["Misconduct & cards"] },
     { band: "u15", title: "What high school soccer expects", why: "The handover to varsity: the laws they will be held to, and the standards that come with the shirt.", topics: ["Basics for parents", "Referee signals"] }
   ];
-  function lawPlanFor(band) { return LAW_PLAN.filter(function (p) { return p.band === band; }); }
+  // The coaching library plans against the curriculum we already publish: the
+  // Standard, the four-beat session, and each band's own focus and cues.
+  var TRAIN_BANDS = [
+    { key: "all", title: "Every age", note: "What every Eagles-Affiliated coach runs, whatever age they have — the Standard, the session shape, and how we sound on the field." },
+    { key: "grassroot", title: "K–2 · Grassroot", note: "Fun, coordination, ball love. Fun is the curriculum — every kid on a ball, nobody standing in a line." },
+    { key: "academy", title: "3–5 · Rising", note: "Real skill: the toolbox that beats a defender, and the first touch that buys the time to use it." },
+    { key: "nextxi", title: "6–8 · Next XI", note: "The Eagles system — how we play as a team, out of the back and through the lines." }
+  ];
+  var TRAIN_PLAN = [
+    { band: "all", title: "The Standard — the six non-negotiables on video", why: "Touches, Brave, Play, Fun, System, every kid known by name. The rules every affiliated coach carries.", topics: ["Coaching basics"] },
+    { band: "all", title: "One full session, all four beats", why: "Film a real practice start to finish so a new coach can see 15 / 20 / 40 / 25 rather than read it.", topics: ["Session plans"] },
+    { band: "all", title: "Communication and intensity — what it looks like", why: "The house rule is abstract until someone sees a session run at game speed with players talking.", topics: ["Coaching basics"] },
+    { band: "all", title: "Setting up a small-sided game in 60 seconds", why: "Cones, teams, rotations. The difference between 40% of the session competing and 40% standing around.", topics: ["Small-sided games", "Session plans"] },
+    { band: "all", title: "One coach, fourteen kids, no help", why: "The situation most of our volunteers are actually in. Show how the session still works.", topics: ["Coaching basics", "Session plans"] },
+
+    { band: "grassroot", title: "Beat 1: a K–2 ball-mastery warmup", why: "Everyone on a ball the moment they arrive. Show what good looks like for five-year-olds.", topics: ["Ball mastery", "Warmups"] },
+    { band: "grassroot", title: "Traffic and turns — the dribbling maze", why: "The Grassroot sample session's opener. Easy to set up, impossible to stand still in.", topics: ["Dribbling", "Fun & games"] },
+    { band: "grassroot", title: "Swarm of tiny goals — 1v1s that never stop", why: "The competing half of a K–2 session, with no lines and no waiting.", topics: ["1v1 / moves", "Small-sided games"] },
+    { band: "grassroot", title: "The three K–2 cues, said out loud", why: "“Little touches, keep it close.” “Freeze — now go the other way.” “Great try — go again.” Coaches need to hear the tone, not just read it.", topics: ["Coaching basics"] },
+    { band: "grassroot", title: "Keeping every kid on a ball", why: "No lines, no laps, no long lectures. If a kid is standing still, the drill is wrong.", topics: ["Fun & games", "Coaching basics"] },
+
+    { band: "academy", title: "Beat 2: teaching a move in under a minute", why: "Demo, reps, mini-challenge. The teach that does not eat the session.", topics: ["1v1 / moves", "Session plans"] },
+    { band: "academy", title: "Passive defender to live defender", why: "The progression that turns a drill into a skill. Most volunteers skip straight to live and lose the move.", topics: ["1v1 / moves", "Defending"] },
+    { band: "academy", title: "2v2 with a bonus for beating your player", why: "How to score a game so it rewards the brave thing we are trying to teach.", topics: ["Small-sided games", "1v1 / moves"] },
+    { band: "academy", title: "First touch into space", why: "The habit that buys a 3rd-grader the half second they need. One drill, one cue.", topics: ["First touch", "Passing & receiving"] },
+    { band: "academy", title: "The three Rising cues, said out loud", why: "“Head up — what do you see?” “First touch into space.” “Try your move — I love the brave.”", topics: ["Coaching basics"] },
+
+    { band: "nextxi", title: "Rondo — keeping the ball under pressure", why: "The warmup that teaches angles, speed of play and scanning all at once.", topics: ["Passing & receiving", "Warmups"] },
+    { band: "nextxi", title: "4v4+2 building from the keeper", why: "The Next XI sample session's core. Playing out of the back on purpose, not by accident.", topics: ["Team shape", "Goalkeeping"] },
+    { band: "nextxi", title: "Playing through the lines", why: "What we mean by the Eagles system, shown on a field rather than a whiteboard.", topics: ["Team shape", "Passing & receiving"] },
+    { band: "nextxi", title: "Check your shoulder — scanning before you receive", why: "The single habit that separates a 6th-grader who looks composed from one who does not.", topics: ["First touch", "Team shape"] },
+    { band: "nextxi", title: "The three Next XI cues, said out loud", why: "“Open up — check your shoulder.” “We lost it — press together.” “Play through the lines, be patient.”", topics: ["Coaching basics"] }
+  ];
+
+  function planFor(lib, band) { return lib.plan.filter(function (p) { return p.band === band; }); }
   // Matched on title, which is what the "Make this" button pre-fills. Rename an
-  // explainer and its to-do reappears — deliberate, so the list stays honest.
-  function lawPlanDone(p) {
+  // item and its to-do reappears — deliberate, so the list stays honest.
+  function planDone(lib, p) {
     var t = String(p.title).trim().toLowerCase();
     return state.resources.some(function (r) {
-      return resCat(r) === "laws" && String(r.title || "").trim().toLowerCase() === t;
+      return resCat(r) === lib.cat && String(r.title || "").trim().toLowerCase() === t;
     });
   }
   function resourcesInBand(list, band) {
@@ -156,12 +190,12 @@
 
   var LIBS = {
     training: { cat: "training", topics: RES_TOPICS, ages: RES_AGES, noun: "resource",
-      emptyHead: "Build your coaching library.",
-      emptyBody: "Collect the videos, drills, and session plans your coaches should use — YouTube &amp; Vimeo links play right here, guides and PDFs open in a tab. Everything you add is shared with every coach.",
+      bands: TRAIN_BANDS, plan: TRAIN_PLAN,
+      planNote: 'Planned against the curriculum we already publish — the Standard, the four-beat session, and each band’s own focus and cues. Edit or drop any line.',
       lede: "Everything your coaches need to run the Eagles Way — videos play in-app, guides &amp; plans open in a tab. " },
     laws: { cat: "laws", topics: LAW_TOPICS, ages: LAW_AGES, noun: "explainer",
-      emptyHead: "Explain the laws in your own words.",
-      emptyBody: "Record or link short clips that explain how the game is actually called — offside, handball, restarts, what a card is for. Coaches, parents and refs all read the same page when it comes from you.",
+      bands: LAW_BANDS, plan: LAW_PLAN,
+      planNote: 'Built from our own division rules — formats, timings, the U8 penalty-box rule, the build-out line, and <b>no headers until U15</b>. If the league changes a rule, change the line here too.',
       lede: "How the game is called, explained once so coaches, parents and refs all say the same thing. " }
   };
   function resCat(r) { return (r && r.category === "laws") ? "laws" : "training"; }
@@ -1225,16 +1259,9 @@
       principle += '<p class="res-disclose">Heads up: we log which materials get opened, and by whom, ' +
         'so we know what’s actually useful and what to make more of. Nothing else is tracked.</p>';
     }
+    // Neither shelf shows a bare empty state any more: the band sections carry
+    // the content plan, which is the useful thing when you have made nothing.
     var mine = resourcesIn(cat);
-    // Laws never shows a bare empty state: the band sections carry the content
-    // plan, which is exactly what you need when you have made nothing yet.
-    if (!mine.length && cat !== "laws") {
-      host.innerHTML = syncBanner("resources", "library") + principle + '<div class="empty"><img src="../assets/logos/Crest-180.png" alt="" />' +
-        '<h3>' + lib.emptyHead + '</h3><p>' + lib.emptyBody + '</p>' +
-        '<div class="empty__actions owner-only"><button class="btn btn--primary" data-action="add-resource"><svg class="ic"><use href="#ic-plus"/></svg>Add ' + (cat === "laws" ? "an explainer" : "a resource") + '</button>' +
-        (cat === "training" ? '<button class="btn btn--ghost" data-action="load-starter-resources">Load the starter library</button>' : "") + '</div></div>';
-      return;
-    }
     var count = mine.length, vids = mine.filter(function (r) { return r.type === "video"; }).length;
     var activeCoaches = canEdit() ? usageByCoach().length : 0;
     var summary = '<div class="team-summary"><div class="team-stat"><b class="tnum">' + count + '</b> ' + lib.noun + (count === 1 ? "" : "s") + '</div>' +
@@ -1245,46 +1272,38 @@
     var typeChips = '<div class="filterset">' + [["all", "All"]].concat(RES_TYPES.map(function (t) { return [t.key, t.label]; })).map(function (p) {
       return '<button class="chip' + (f.type === p[0] ? " is-on" : "") + '" data-action="res-type" data-v="' + esc(p[0]) + '" aria-pressed="' + (f.type === p[0]) + '">' + esc(p[1]) + '</button>';
     }).join("") + '</div>';
-    var ageChips = '<div class="filterset">' + [["all", "All ages"]].concat(RES_AGES.filter(function (a) { return a.key !== "all"; }).map(function (a) { return [a.key, a.label]; })).map(function (p) {
-      return '<button class="chip' + (f.age === p[0] ? " is-on" : "") + '" data-action="res-age" data-v="' + esc(p[0]) + '" aria-pressed="' + (f.age === p[0]) + '">' + esc(p[1]) + '</button>';
-    }).join("") + '</div>';
     var topicOpts = '<option value="all">All topics</option>' + lib.topics.map(function (t) { return '<option value="' + esc(t) + '"' + (f.topic === t ? " selected" : "") + '>' + esc(t) + '</option>'; }).join("");
     var toolbar = '<div class="res-toolbar">' +
       '<div class="search"><svg class="ic"><use href="#ic-search"/></svg><input type="search" id="resSearch" placeholder="Search title, topic…" value="' + esc(f.q || "") + '" aria-label="Search ' + esc(lib.noun) + 's"></div>' +
       '<select id="resTopic" class="res-topicsel" aria-label="Filter by topic">' + topicOpts + '</select>' +
-      // Laws groups by age band below, so an age filter here would fight it.
-      '</div><div class="res-filters">' + typeChips + (cat === "laws" ? "" : ageChips) + '</div>';
+      // Both shelves group by age band below, so an age filter would fight it.
+      '</div><div class="res-filters">' + typeChips + '</div>';
 
     var list = filteredResources(cat);
-    var grid;
-    if (cat === "laws") {
-      grid = LAW_BANDS.map(function (b) {
-        var cards = resourcesInBand(list, b.key);
-        var todo = lawPlanFor(b.key).filter(function (p) { return !lawPlanDone(p); });
-        var made = lawPlanFor(b.key).length - todo.length;
-        return '<section class="lawband">' +
-          '<div class="lawband__head"><h3 class="lawband__h">' + esc(b.title) + '</h3>' +
-            '<span class="lawband__count tnum">' + made + '/' + lawPlanFor(b.key).length + ' planned</span></div>' +
-          '<p class="lawband__note">' + esc(b.note) + '</p>' +
-          (b.unconfirmed ? '<p class="lawband__todo">Format not confirmed — ' + esc(b.unconfirmed) + '</p>' : "") +
-          (cards.length ? '<div class="res-grid">' + cards.map(resCard).join("") + '</div>' : "") +
-          (todo.length ? '<ul class="lawtodo">' + todo.map(function (p) {
-            var i = LAW_PLAN.indexOf(p);
-            return '<li class="lawtodo__row">' +
-              '<span class="lawtodo__txt"><b>' + esc(p.title) + '</b><span>' + esc(p.why) + '</span></span>' +
-              '<button class="btn btn--ghost btn--sm owner-only" data-action="make-law" data-i="' + i + '">Make this</button>' +
-            '</li>';
-          }).join("") + '</ul>' : "") +
-          (!cards.length && !todo.length ? '<p class="lawband__done">Every planned explainer for this age is made.</p>' : "") +
-        '</section>';
-      }).join("");
-      grid = '<p class="lawplan-note">Built from our own division rules — formats, timings, the U8 penalty-box rule, ' +
-        'the build-out line, and <b>no headers until U15</b>. If the league changes a rule, change the line here too.</p>' + grid;
-    } else {
-      grid = list.length ? '<div class="res-grid">' + list.map(resCard).join("") + '</div>'
-        : '<div class="empty empty--mini"><h3>No matches.</h3><p>Nothing fits these filters yet.</p>' +
-          '<div class="empty__actions"><button class="btn btn--ghost" data-action="res-type" data-v="all">Clear filters</button></div></div>';
-    }
+    var grid = lib.bands.map(function (b) {
+      var cards = resourcesInBand(list, b.key);
+      var all = planFor(lib, b.key);
+      var todo = all.filter(function (p) { return !planDone(lib, p); });
+      return '<section class="lawband">' +
+        '<div class="lawband__head"><h3 class="lawband__h">' + esc(b.title) + '</h3>' +
+          '<span class="lawband__count tnum">' + (all.length - todo.length) + '/' + all.length + ' planned</span></div>' +
+        '<p class="lawband__note">' + esc(b.note) + '</p>' +
+        (b.unconfirmed ? '<p class="lawband__todo">Format not confirmed — ' + esc(b.unconfirmed) + '</p>' : "") +
+        (cards.length ? '<div class="res-grid">' + cards.map(resCard).join("") + '</div>' : "") +
+        (todo.length ? '<ul class="lawtodo">' + todo.map(function (p) {
+          return '<li class="lawtodo__row">' +
+            '<span class="lawtodo__txt"><b>' + esc(p.title) + '</b><span>' + esc(p.why) + '</span></span>' +
+            '<button class="btn btn--ghost btn--sm owner-only" data-action="make-planned" ' +
+              'data-lib="' + esc(cat) + '" data-i="' + lib.plan.indexOf(p) + '">Make this</button>' +
+          '</li>';
+        }).join("") + '</ul>' : "") +
+        (!cards.length && !todo.length ? '<p class="lawband__done">Every planned ' + esc(lib.noun) + ' for this band is made.</p>' : "") +
+      '</section>';
+    }).join("");
+    grid = '<p class="lawplan-note">' + lib.planNote +
+      (cat === "training" && !mine.length
+        ? ' <button class="btn btn--ghost btn--sm owner-only" data-action="load-starter-resources">Load the starter library</button>'
+        : "") + '</p>' + grid;
 
     host.innerHTML = syncBanner("resources", "library") + principle + summary + toolbar + grid;
     var s = host.querySelector("#resSearch");
@@ -1875,13 +1894,14 @@
       case "delete-team": deleteTeam(id); break;
       case "import-team": importTeam(id); break;
       case "add-resource": openResource(null, libCat()); break;
-      case "make-law": {
-        var plan = LAW_PLAN[Number(act.dataset.i)];
+      case "make-planned": {
+        var pLib = libOf(act.dataset.lib || "training");
+        var plan = pLib.plan[Number(act.dataset.i)];
         if (!plan) break;
         // Seed the form: no id, so this is still an Add. Band -> age tag, so the
-        // finished explainer files itself back under the section it came from.
+        // finished item files itself back under the section it came from.
         openResource({ title: plan.title, ages: [plan.band], topics: (plan.topics || []).slice(),
-          desc: plan.why, type: "video" }, "laws");
+          desc: plan.why, type: "video" }, pLib.cat);
         break;
       }
       case "edit-resource": openResource(resById(id)); break;
