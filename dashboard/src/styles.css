@@ -526,6 +526,26 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
 .res-disclose{margin:-.6rem 0 1.1rem;padding:.55rem .75rem;border:1px solid var(--line-2);
   border-radius:var(--r-md);background:var(--surface-2);color:var(--ink-2);
   font-size:var(--fs-sm);font-weight:500;line-height:1.5}
+/* Laws of the Game: one section per age band, each carrying what is made and
+   what is still to make. */
+.lawplan-note{margin:0 0 1.2rem;padding:.6rem .8rem;border:1px dashed var(--line-2);
+  border-radius:var(--r-md);background:var(--surface-2);color:var(--ink-2);
+  font-size:var(--fs-sm);font-weight:500;line-height:1.5}
+.lawband{margin-bottom:1.8rem}
+.lawband__head{display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap;margin-bottom:.2rem}
+.lawband__h{font-size:var(--fs-lg);font-weight:800;letter-spacing:-.01em;color:var(--ink)}
+.lawband__count{margin-left:auto;font-size:var(--fs-xs);font-weight:700;color:var(--ink-3);
+  background:var(--surface-2);border-radius:var(--r-pill);padding:.15rem .55rem;flex:0 0 auto}
+.lawband__note{margin:0 0 .9rem;font-size:var(--fs-sm);color:var(--ink-2);font-weight:500;max-width:70ch}
+.lawband__done{margin:0;font-size:var(--fs-sm);color:var(--ink-3);font-weight:600}
+.lawtodo{list-style:none;margin:.8rem 0 0;padding:0;display:grid;gap:.4rem}
+.lawtodo__row{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;
+  padding:.6rem .8rem;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface)}
+.lawtodo__txt{display:grid;gap:.1rem;flex:1 1 16rem;min-width:0}
+.lawtodo__txt b{font-size:var(--fs-base);font-weight:700;color:var(--ink)}
+.lawtodo__txt span{font-size:var(--fs-sm);color:var(--ink-3);font-weight:500}
+.lawtodo__row .btn{margin-left:auto;flex:0 0 auto}
+
 /* coach activity + per-material usage drawers */
 .use-head{margin-bottom:.6rem}
 .use-h3{font-size:var(--fs-lg);font-weight:800;letter-spacing:-.01em;color:var(--ink)}

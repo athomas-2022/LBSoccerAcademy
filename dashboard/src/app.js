@@ -75,6 +75,59 @@
   var LAW_TOPICS = ["Kick-off & restarts", "Ball in & out of play", "Offside", "Fouls & free kicks",
     "Handball", "Penalty kicks", "Throw-ins", "Goal kicks & corners", "Misconduct & cards",
     "Referee signals", "Field & equipment", "Small-sided rules", "Goalkeeper rules", "Basics for parents"];
+  // The laws split into what everyone plays by, and what changes per age band.
+  // Bands mirror RES_AGES so an explainer tagged "3–5" lands under Rising.
+  var LAW_BANDS = [
+    { key: "all", title: "Every age", note: "The laws that never change — how the game is called from K all the way to varsity." },
+    { key: "grassroot", title: "K–2 · Grassroot (U6–U8)", note: "Small-sided, no keeper, no offside. The rules are stripped back so the game keeps moving." },
+    { key: "academy", title: "3–5 · Rising (U9–U11)", note: "Keepers arrive, the build-out line appears, and offside starts to matter." },
+    { key: "nextxi", title: "6–8 · Next XI (U12–U15)", note: "Close to the full laws — heading returns, offside applies everywhere, 11v11 arrives." }
+  ];
+  // A starting content plan. Each line you haven't made yet shows up as a to-do
+  // on its band with a button that opens the form pre-filled.
+  // NOTE: drafted against the US Soccer small-sided framework. Your league's
+  // published rules win — edit these before you record anything.
+  var LAW_PLAN = [
+    { band: "all", title: "What the referee's signals mean", why: "One arm up is indirect, straight ahead is direct. Nobody teaches this and everyone argues about it.", topics: ["Referee signals"] },
+    { band: "all", title: "In or out? The whole ball, the whole line", why: "The single most-argued call on a sideline, and it takes thirty seconds to settle.", topics: ["Ball in & out of play"] },
+    { band: "all", title: "Fouls: careless, reckless, excessive", why: "Explains why some hard tackles are nothing and some soft ones are a card.", topics: ["Fouls & free kicks"] },
+    { band: "all", title: "Direct vs indirect free kicks", why: "Why some free kicks can score straight in and some can't.", topics: ["Fouls & free kicks", "Kick-off & restarts"] },
+    { band: "all", title: "What coaches and parents may do from the touchline", why: "Sets the standard before a ref has to.", topics: ["Misconduct & cards", "Basics for parents"] },
+    { band: "all", title: "Handball — it isn't just 'it hit an arm'", why: "The most misunderstood law in the game, at every age.", topics: ["Handball"] },
+
+    { band: "grassroot", title: "Why there's no goalkeeper yet", why: "Parents ask this every season. Answer it once.", topics: ["Goalkeeper rules", "Small-sided rules"] },
+    { band: "grassroot", title: "How we restart at this age", why: "Kick-in, pass-in or throw-in — leagues differ, so say what LB does.", topics: ["Throw-ins", "Kick-off & restarts"] },
+    { band: "grassroot", title: "No offside here — and why that's on purpose", why: "Stops the 'he's cherry-picking' argument before it starts.", topics: ["Offside", "Small-sided rules"] },
+    { band: "grassroot", title: "Ball size, field size, how many play", why: "What a K–2 game actually looks like, so nobody turns up expecting 11v11.", topics: ["Field & equipment", "Small-sided rules"] },
+
+    { band: "academy", title: "The build-out line, explained", why: "The rule most new coaches at this age get wrong.", topics: ["Small-sided rules", "Goal kicks & corners"] },
+    { band: "academy", title: "Keepers arrive: what they can and can't do", why: "Handling, distribution, the back-pass — all new at this age.", topics: ["Goalkeeper rules"] },
+    { band: "academy", title: "No heading, and what we do instead", why: "It's a safety rule with a hard age line. Coaches need to know exactly where it sits.", topics: ["Basics for parents", "Fouls & free kicks"] },
+    { band: "academy", title: "Offside when it starts to count", why: "First real exposure to the law — teach it before a ref has to.", topics: ["Offside"] },
+
+    { band: "nextxi", title: "Offside, the whole law", why: "Position vs offence, the moment the ball is played, who's actually involved.", topics: ["Offside"] },
+    { band: "nextxi", title: "Heading returns — how we reintroduce it", why: "The age it comes back and how to coach it safely.", topics: ["Basics for parents"] },
+    { band: "nextxi", title: "Throw-ins refs actually call", why: "Feet, hands, over the head — the details that get called at this level.", topics: ["Throw-ins"] },
+    { band: "nextxi", title: "Yellow and red: what earns each", why: "Before they reach varsity, where a card costs a game.", topics: ["Misconduct & cards"] },
+    { band: "nextxi", title: "Moving up to 11v11", why: "New positions, bigger field, size 5 ball, full laws.", topics: ["Field & equipment", "Small-sided rules"] }
+  ];
+  function lawPlanFor(band) { return LAW_PLAN.filter(function (p) { return p.band === band; }); }
+  // Matched on title, which is what the "Make this" button pre-fills. Rename an
+  // explainer and its to-do reappears — deliberate, so the list stays honest.
+  function lawPlanDone(p) {
+    var t = String(p.title).trim().toLowerCase();
+    return state.resources.some(function (r) {
+      return resCat(r) === "laws" && String(r.title || "").trim().toLowerCase() === t;
+    });
+  }
+  function resourcesInBand(list, band) {
+    return list.filter(function (r) {
+      var ages = r.ages || [];
+      if (band === "all") return !ages.length || ages.indexOf("all") > -1;
+      return ages.indexOf(band) > -1;
+    });
+  }
+
   var LIBS = {
     training: { cat: "training", topics: RES_TOPICS, noun: "resource",
       emptyHead: "Build your coaching library.",
@@ -1147,7 +1200,9 @@
         'so we know what’s actually useful and what to make more of. Nothing else is tracked.</p>';
     }
     var mine = resourcesIn(cat);
-    if (!mine.length) {
+    // Laws never shows a bare empty state: the band sections carry the content
+    // plan, which is exactly what you need when you have made nothing yet.
+    if (!mine.length && cat !== "laws") {
       host.innerHTML = syncBanner("resources", "library") + principle + '<div class="empty"><img src="../assets/logos/Crest-180.png" alt="" />' +
         '<h3>' + lib.emptyHead + '</h3><p>' + lib.emptyBody + '</p>' +
         '<div class="empty__actions owner-only"><button class="btn btn--primary" data-action="add-resource"><svg class="ic"><use href="#ic-plus"/></svg>Add ' + (cat === "laws" ? "an explainer" : "a resource") + '</button>' +
@@ -1171,12 +1226,38 @@
     var toolbar = '<div class="res-toolbar">' +
       '<div class="search"><svg class="ic"><use href="#ic-search"/></svg><input type="search" id="resSearch" placeholder="Search title, topic…" value="' + esc(f.q || "") + '" aria-label="Search ' + esc(lib.noun) + 's"></div>' +
       '<select id="resTopic" class="res-topicsel" aria-label="Filter by topic">' + topicOpts + '</select>' +
-      '</div><div class="res-filters">' + typeChips + ageChips + '</div>';
+      // Laws groups by age band below, so an age filter here would fight it.
+      '</div><div class="res-filters">' + typeChips + (cat === "laws" ? "" : ageChips) + '</div>';
 
     var list = filteredResources(cat);
-    var grid = list.length ? '<div class="res-grid">' + list.map(resCard).join("") + '</div>'
-      : '<div class="empty empty--mini"><h3>No matches.</h3><p>Nothing fits these filters yet.</p>' +
-        '<div class="empty__actions"><button class="btn btn--ghost" data-action="res-type" data-v="all">Clear filters</button></div></div>';
+    var grid;
+    if (cat === "laws") {
+      grid = LAW_BANDS.map(function (b) {
+        var cards = resourcesInBand(list, b.key);
+        var todo = lawPlanFor(b.key).filter(function (p) { return !lawPlanDone(p); });
+        var made = lawPlanFor(b.key).length - todo.length;
+        return '<section class="lawband">' +
+          '<div class="lawband__head"><h3 class="lawband__h">' + esc(b.title) + '</h3>' +
+            '<span class="lawband__count tnum">' + made + '/' + lawPlanFor(b.key).length + ' planned</span></div>' +
+          '<p class="lawband__note">' + esc(b.note) + '</p>' +
+          (cards.length ? '<div class="res-grid">' + cards.map(resCard).join("") + '</div>' : "") +
+          (todo.length ? '<ul class="lawtodo">' + todo.map(function (p) {
+            var i = LAW_PLAN.indexOf(p);
+            return '<li class="lawtodo__row">' +
+              '<span class="lawtodo__txt"><b>' + esc(p.title) + '</b><span>' + esc(p.why) + '</span></span>' +
+              '<button class="btn btn--ghost btn--sm owner-only" data-action="make-law" data-i="' + i + '">Make this</button>' +
+            '</li>';
+          }).join("") + '</ul>' : "") +
+          (!cards.length && !todo.length ? '<p class="lawband__done">Every planned explainer for this age is made.</p>' : "") +
+        '</section>';
+      }).join("");
+      grid = '<p class="lawplan-note">This plan is a starting point drafted against the US Soccer small-sided framework. ' +
+        '<b>Your league’s published rules win</b> — edit or delete any line before you record it.</p>' + grid;
+    } else {
+      grid = list.length ? '<div class="res-grid">' + list.map(resCard).join("") + '</div>'
+        : '<div class="empty empty--mini"><h3>No matches.</h3><p>Nothing fits these filters yet.</p>' +
+          '<div class="empty__actions"><button class="btn btn--ghost" data-action="res-type" data-v="all">Clear filters</button></div></div>';
+    }
 
     host.innerHTML = syncBanner("resources", "library") + principle + summary + toolbar + grid;
     var s = host.querySelector("#resSearch");
@@ -1210,7 +1291,10 @@
   function openResource(r, cat) {
     cat = cat || resCat(r);
     var isLaw = cat === "laws";
-    showDrawer(r ? (isLaw ? "Edit explainer" : "Edit resource") : (isLaw ? "Add explainer" : "Add resource"), resourceForm(r, cat));
+    // Keyed on r.id, not r: a "Make this" seed is a pre-filled NEW record, and
+    // calling that screen "Edit" would be a lie.
+    var editing = !!(r && r.id);
+    showDrawer(editing ? (isLaw ? "Edit explainer" : "Edit resource") : (isLaw ? "Add explainer" : "Add resource"), resourceForm(r, cat));
     $("#resForm").addEventListener("submit", function (sub) {
       sub.preventDefault();
       var title = $("#r-title").value.trim(), url = $("#r-url").value.trim();
@@ -1764,6 +1848,15 @@
       case "delete-team": deleteTeam(id); break;
       case "import-team": importTeam(id); break;
       case "add-resource": openResource(null, libCat()); break;
+      case "make-law": {
+        var plan = LAW_PLAN[Number(act.dataset.i)];
+        if (!plan) break;
+        // Seed the form: no id, so this is still an Add. Band -> age tag, so the
+        // finished explainer files itself back under the section it came from.
+        openResource({ title: plan.title, ages: [plan.band], topics: (plan.topics || []).slice(),
+          desc: plan.why, type: "video" }, "laws");
+        break;
+      }
       case "edit-resource": openResource(resById(id)); break;
       case "delete-resource": deleteResource(id); break;
       case "play-resource": logUsage(resById(id), "watch"); openPlayer(resById(id)); break;
