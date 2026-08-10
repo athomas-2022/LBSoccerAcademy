@@ -499,11 +499,13 @@
       return;
     }
     if (ui.view === "overview") {
-      slot.innerHTML = '<button class="btn btn--ghost" data-action="settings">Edit numbers</button>' +
-        '<button class="btn btn--primary" data-action="add-athlete"><svg class="ic"><use href="#ic-plus"/></svg>Add athlete</button>';
-    } else if (ui.view === "athletes") {
+      // Sync sign-ups and Message families moved here when the Athletes tab was
+      // removed. They are program-level actions and were the only route from the
+      // public form into the dashboard — losing them with the tab would have cut
+      // the intake path.
       slot.innerHTML = '<button class="btn btn--ghost" data-action="sync-signups">Sync sign-ups</button>' +
         '<button class="btn btn--ghost" data-action="broadcast"><svg class="ic"><use href="#ic-phone"/></svg>Message families</button>' +
+        '<button class="btn btn--ghost" data-action="settings">Edit numbers</button>' +
         '<button class="btn btn--primary" data-action="add-athlete"><svg class="ic"><use href="#ic-plus"/></svg>Add athlete</button>';
     } else if (ui.view === "teams") {
       slot.innerHTML = '<button class="btn btn--primary" data-action="add-team"><svg class="ic"><use href="#ic-plus"/></svg>Add coach</button>';
@@ -521,7 +523,11 @@
     ui.view = v;
     $$(".side__link").forEach(function (b) { b.setAttribute("aria-current", String(b.dataset.view === v)); });
     $$(".view").forEach(function (s) { s.classList.remove("is-active"); });
-    $("#view-" + v).classList.add("is-active");
+    // Guarded: a removed view (athletes) has no section to activate, and an
+    // unguarded lookup here would throw rather than fall back.
+    var sec = $("#view-" + v);
+    if (!sec) { ui.view = "overview"; sec = $("#view-overview"); }
+    sec.classList.add("is-active");
     closeSidebar();
     renderTopbar(); renderView();
     if (v === "schedule") { syncEvents(true); syncAttendance(true); }  // pull events + clinic attendance
@@ -533,7 +539,10 @@
     document.body.classList.toggle("is-viewonly", !canEdit());
     var pb = $("#previewBar"); if (pb) pb.hidden = !isPreviewing();
     if (ui.view === "overview") renderOverview();
-    else if (ui.view === "athletes") renderAthletes();
+    // No athletes route: the tab and its section are gone. renderAthletes and the
+    // roster/map code are deliberately left in place so the tab can be restored
+    // by putting back the nav button, the <section id="view-athletes">, and this
+    // line — nothing else was unpicked.
     else if (ui.view === "teams") renderTeams();
     else if (ui.view === "training") renderTraining();
     else if (ui.view === "laws") renderLaws();
@@ -543,7 +552,9 @@
   function renderNavBadge() {
     // pool(), so the badge agrees with the board and the panel under a filter.
     var n = pool().filter(function (a) { return a.status === "atrisk"; }).length;
-    var b = $("#navRisk"); if (n > 0) { b.hidden = false; b.textContent = n; } else b.hidden = true;
+    // Badge lives on Overview now — that is where the at-risk panel is.
+    var b = $("#navRisk"); if (!b) return;
+    if (n > 0) { b.hidden = false; b.textContent = n; } else b.hidden = true;
   }
   function renderDataNote() {
     var note = $("#dataNote");
@@ -649,8 +660,11 @@
       return true;
     }).sort(function (x, y) { return x.gradYear - y.gradYear || x.last.localeCompare(y.last); });
   }
+  // Retained but unreachable while the Athletes tab is removed. Guarded so the
+  // leftover filter actions can't throw if one ever fires.
   function renderAthletes() {
     var host = $("#view-athletes");
+    if (!host) return;
     if (!state.athletes.length) {
       host.innerHTML = '<div class="empty"><img src="../assets/logos/Crest-180.png" alt="" />' +
         '<h3>No athletes yet.</h3><p>Map every athletic kid K–8 — including the fast basketball kid who’s never touched a soccer ball. A future center back or keeper.</p>' +
