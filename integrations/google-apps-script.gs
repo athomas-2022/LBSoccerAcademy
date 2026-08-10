@@ -72,8 +72,11 @@ var SHEET_FIN     = "Finances";
 var FIN_HEADERS   = ["Id", "Date", "Type", "Category", "Amount", "Method",
                      "Paid to/from", "Description", "Note", "Updated", "Deleted"];
 var SHEET_RES     = "Resources";
+// Category is appended last on purpose: existing rows keep their column
+// positions, and a blank reads as "training", so nothing already in the sheet
+// moves off the Training shelf.
 var RES_HEADERS   = ["Id", "Title", "Type", "Ages", "Topics", "Url",
-                     "Duration", "Description", "Note", "Updated", "Deleted"];
+                     "Duration", "Description", "Note", "Updated", "Deleted", "Category"];
 var SHEET_USE     = "Training use";
 var USE_HEADERS   = ["When", "Coach", "Email", "ResourceId", "Title", "Type", "Action", "Ts"];
 var HEADERS = ["When", "Child", "Graduation class", "Program",
@@ -361,7 +364,8 @@ function saveResource_(d) {
   var rowIdx = -1;
   for (var r = 1; r < vals.length; r++) { if (String(vals[r][0]) === id) { rowIdx = r; break; } }
   var row = [id, d.title || "", d.kind || "video", d.ages || "", d.topics || "", d.url || "",
-    d.duration || "", d.desc || "", d.note || "", d.updated || new Date().toISOString(), ""];
+    d.duration || "", d.desc || "", d.note || "", d.updated || new Date().toISOString(), "",
+    String(d.category || "").toLowerCase() === "laws" ? "laws" : "training"];
   if (rowIdx > -1) sh.getRange(rowIdx + 1, 1, 1, row.length).setValues([row]);
   else sh.appendRow(row);
   return json_({ ok: true });
@@ -505,7 +509,8 @@ function doGet(e) {
     resources.push({ id: String(resRows[rr][0]), title: resRows[rr][1], type: resRows[rr][2] || "video",
       ages: String(resRows[rr][3] || ""), topics: String(resRows[rr][4] || ""), url: resRows[rr][5] || "",
       duration: resRows[rr][6] || "", desc: resRows[rr][7] || "", note: resRows[rr][8] || "",
-      updated: String(resRows[rr][9] || "") });
+      updated: String(resRows[rr][9] || ""),
+      category: String(resRows[rr][11] || "").toLowerCase() === "laws" ? "laws" : "training" });
   }
   var out = { ok: true, approved: true, owner: auth ? !!auth.owner : true,
     signups: signups, attendance: attendance, events: events, finances: finances, resources: resources };
@@ -693,6 +698,7 @@ function setup() {
 
   var res = ss.getSheetByName(SHEET_RES) || ss.insertSheet(SHEET_RES);
   if (res.getLastRow() === 0) res.appendRow(RES_HEADERS);
+  else res.getRange(1, 1, 1, RES_HEADERS.length).setValues([RES_HEADERS]);  // refresh header (adds Category)
   res.getRange(1, 1, 1, RES_HEADERS.length).setFontWeight("bold");
   res.setFrozenRows(1);
 

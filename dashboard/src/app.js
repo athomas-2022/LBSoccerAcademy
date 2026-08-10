@@ -68,6 +68,32 @@
     "Small-sided games", "Defending", "Goalkeeping", "Team shape", "Set pieces", "Warmups", "Fun & games", "Session plans", "Coaching basics"];
   function resType(k) { for (var i = 0; i < RES_TYPES.length; i++) if (RES_TYPES[i].key === k) return RES_TYPES[i]; return RES_TYPES[0]; }
   function resAge(k) { for (var i = 0; i < RES_AGES.length; i++) if (RES_AGES[i].key === k) return RES_AGES[i]; return null; }
+
+  // ---- Laws of the Game: same library machinery, its own shelf --------------
+  // A resource carries a category. Anything without one is training, so every
+  // resource that already exists stays exactly where it was.
+  var LAW_TOPICS = ["Kick-off & restarts", "Ball in & out of play", "Offside", "Fouls & free kicks",
+    "Handball", "Penalty kicks", "Throw-ins", "Goal kicks & corners", "Misconduct & cards",
+    "Referee signals", "Field & equipment", "Small-sided rules", "Goalkeeper rules", "Basics for parents"];
+  var LIBS = {
+    training: { cat: "training", topics: RES_TOPICS, noun: "resource",
+      emptyHead: "Build your coaching library.",
+      emptyBody: "Collect the videos, drills, and session plans your coaches should use — YouTube &amp; Vimeo links play right here, guides and PDFs open in a tab. Everything you add is shared with every coach.",
+      lede: "Everything your coaches need to run the Eagles Way — videos play in-app, guides &amp; plans open in a tab. " },
+    laws: { cat: "laws", topics: LAW_TOPICS, noun: "explainer",
+      emptyHead: "Explain the laws in your own words.",
+      emptyBody: "Record or link short clips that explain how the game is actually called — offside, handball, restarts, what a card is for. Coaches, parents and refs all read the same page when it comes from you.",
+      lede: "How the game is called, explained once so coaches, parents and refs all say the same thing. " }
+  };
+  function resCat(r) { return (r && r.category === "laws") ? "laws" : "training"; }
+  function libCat() { return ui.view === "laws" ? "laws" : "training"; }
+  function libOf(cat) { return LIBS[cat] || LIBS.training; }
+  // Filters are per shelf: switching to Laws should not inherit a Training filter.
+  function libFilters(cat) {
+    ui.libf = ui.libf || {};
+    if (!ui.libf[cat]) ui.libf[cat] = { type: "all", age: "all", topic: "all", q: "" };
+    return ui.libf[cat];
+  }
   function ytId(u) { var m = String(u || "").match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|v\/)|youtu\.be\/)([\w-]{6,})/); return m ? m[1] : ""; }
   function vimeoId(u) { var m = String(u || "").match(/vimeo\.com\/(?:video\/)?(\d+)/); return m ? m[1] : ""; }
   function resEmbed(u) { var y = ytId(u); if (y) return "https://www.youtube-nocookie.com/embed/" + y + "?rel=0&autoplay=1";
@@ -327,6 +353,7 @@
     athletes: { title: "Athletes", sub: "Every athletic kid, K–8, by graduation year." },
     teams: { title: "Coaches", sub: "The district's coaches — train them in the Eagles Way and every kid on their roster benefits." },
     training: { title: "Training Library", sub: "Videos, drills & guides for every Eagles-Affiliated coach." },
+    laws: { title: "Laws of the Game", sub: "Short explainers on how the game is actually called — for coaches, parents and players." },
     schedule: { title: "Schedule", sub: "Preseason coach clinics & showcases — auto-added to the shared calendar. Take clinic attendance right here." }
   };
   function renderTopbar() {
@@ -351,6 +378,8 @@
     } else if (ui.view === "training") {
       slot.innerHTML = '<button class="btn btn--ghost" data-action="coach-activity"><svg class="ic"><use href="#ic-attend"/></svg>Coach activity</button>' +
         '<button class="btn btn--primary" data-action="add-resource"><svg class="ic"><use href="#ic-plus"/></svg>Add resource</button>';
+    } else if (ui.view === "laws") {
+      slot.innerHTML = '<button class="btn btn--primary" data-action="add-resource"><svg class="ic"><use href="#ic-plus"/></svg>Add explainer</button>';
     } else if (ui.view === "schedule") {
       slot.innerHTML = (CALENDAR_ID ? '<a class="btn btn--ghost" href="' + calSubscribeUrl() + '" target="_blank" rel="noopener">Open shared calendar</a>' : "") +
         '<button class="btn btn--primary" data-action="add-event"><svg class="ic"><use href="#ic-plus"/></svg>Add event</button>';
@@ -374,6 +403,7 @@
     else if (ui.view === "athletes") renderAthletes();
     else if (ui.view === "teams") renderTeams();
     else if (ui.view === "training") renderTraining();
+    else if (ui.view === "laws") renderLaws();
     else if (ui.view === "schedule") renderSchedule();
     renderNavBadge(); renderDataNote();
   }
@@ -1047,12 +1077,15 @@
   //  TRAINING LIBRARY — videos + guides for coaches (shared, synced)
   // ================================================================
   function resById(id) { for (var i = 0; i < state.resources.length; i++) if (state.resources[i].id === id) return state.resources[i]; return null; }
-  function filteredResources() {
-    var q = (ui.resSearch || "").trim().toLowerCase();
-    return state.resources.filter(function (r) {
-      if (ui.resType && ui.resType !== "all" && r.type !== ui.resType) return false;
-      if (ui.resAge && ui.resAge !== "all" && (r.ages || []).indexOf(ui.resAge) === -1) return false;
-      if (ui.resTopic && ui.resTopic !== "all" && (r.topics || []).indexOf(ui.resTopic) === -1) return false;
+  function resourcesIn(cat) {
+    return state.resources.filter(function (r) { return resCat(r) === cat; });
+  }
+  function filteredResources(cat) {
+    var f = libFilters(cat), q = (f.q || "").trim().toLowerCase();
+    return resourcesIn(cat).filter(function (r) {
+      if (f.type && f.type !== "all" && r.type !== f.type) return false;
+      if (f.age && f.age !== "all" && (r.ages || []).indexOf(f.age) === -1) return false;
+      if (f.topic && f.topic !== "all" && (r.topics || []).indexOf(f.topic) === -1) return false;
       if (q) { var hay = (r.title + " " + (r.desc || "") + " " + (r.topics || []).join(" ")).toLowerCase(); if (hay.indexOf(q) === -1) return false; }
       return true;
     }).sort(function (a, b) { return (a.type === "video" ? 0 : 1) - (b.type === "video" ? 0 : 1) || String(a.title).localeCompare(String(b.title)); });
@@ -1089,65 +1122,77 @@
         '</div>' +
       '</div></article>';
   }
-  function renderTraining() {
-    var host = $("#view-training");
+  function renderTraining() { renderLibrary("training"); }
+  function renderLaws()     { renderLibrary("laws"); }
+
+  function renderLibrary(cat) {
+    var lib = libOf(cat), f = libFilters(cat);
+    var host = $(cat === "laws" ? "#view-laws" : "#view-training");
+    if (!host) return;
     var syncNote = SIGNUPS_URL ? '<span class="att-sync">Shared with every signed-in coach</span>' : '<span class="att-sync att-sync--off">This device only — connect the Sheet to share with coaches</span>';
     // Coach-facing house rule: it sits above the library so every coach sees it
-    // before they take a plan off the shelf.
-    var principle = '<p class="res-principle"><b>Communication and intensity — in everything.</b> ' +
-      'However you run it, it gets run those two ways: players talking, coaches cueing short and clear, ' +
-      'and every rep at game speed, warmup to last whistle. We don’t walk through drills — we compete through them.</p>';
+    // before they take a plan off the shelf. It is about how practice is run, so
+    // it belongs on the training shelf only.
+    var principle = cat === "training"
+      ? '<p class="res-principle"><b>Communication and intensity — in everything.</b> ' +
+        'However you run it, it gets run those two ways: players talking, coaches cueing short and clear, ' +
+        'and every rep at game speed, warmup to last whistle. We don’t walk through drills — we compete through them.</p>'
+      : '<p class="res-principle"><b>One answer to “is that a foul?”</b> ' +
+        'Kids, parents and coaches all watch the same game and see three different rules. Put the real ' +
+        'answer here once, in your own words, and everyone on an Eagles sideline is working from it.</p>';
     // Opening a resource logs the coach's name and email to the sheet. They were
     // never told. Say it plainly, and say why, rather than hiding it.
     if (SIGNUPS_URL && !canEdit()) {
       principle += '<p class="res-disclose">Heads up: we log which materials get opened, and by whom, ' +
         'so we know what’s actually useful and what to make more of. Nothing else is tracked.</p>';
     }
-    if (!state.resources.length) {
+    var mine = resourcesIn(cat);
+    if (!mine.length) {
       host.innerHTML = syncBanner("resources", "library") + principle + '<div class="empty"><img src="../assets/logos/Crest-180.png" alt="" />' +
-        '<h3>Build your coaching library.</h3><p>Collect the videos, drills, and session plans your coaches should use — YouTube &amp; Vimeo links play right here, guides and PDFs open in a tab. Everything you add is shared with every coach.</p>' +
-        '<div class="empty__actions owner-only"><button class="btn btn--primary" data-action="add-resource"><svg class="ic"><use href="#ic-plus"/></svg>Add a resource</button>' +
-        '<button class="btn btn--ghost" data-action="load-starter-resources">Load the starter library</button></div></div>';
+        '<h3>' + lib.emptyHead + '</h3><p>' + lib.emptyBody + '</p>' +
+        '<div class="empty__actions owner-only"><button class="btn btn--primary" data-action="add-resource"><svg class="ic"><use href="#ic-plus"/></svg>Add ' + (cat === "laws" ? "an explainer" : "a resource") + '</button>' +
+        (cat === "training" ? '<button class="btn btn--ghost" data-action="load-starter-resources">Load the starter library</button>' : "") + '</div></div>';
       return;
     }
-    var count = state.resources.length, vids = state.resources.filter(function (r) { return r.type === "video"; }).length;
+    var count = mine.length, vids = mine.filter(function (r) { return r.type === "video"; }).length;
     var activeCoaches = canEdit() ? usageByCoach().length : 0;
-    var summary = '<div class="team-summary"><div class="team-stat"><b class="tnum">' + count + '</b> resource' + (count === 1 ? "" : "s") + '</div>' +
+    var summary = '<div class="team-summary"><div class="team-stat"><b class="tnum">' + count + '</b> ' + lib.noun + (count === 1 ? "" : "s") + '</div>' +
       '<div class="team-stat"><b class="tnum">' + vids + '</b> video' + (vids === 1 ? "" : "s") + '</div>' +
       (canEdit() ? '<button class="team-stat team-stat--btn" data-action="coach-activity"><b class="tnum">' + activeCoaches + '</b> coach' + (activeCoaches === 1 ? "" : "es") + ' active</button>' : "") +
-      '<p class="team-lede">Everything your coaches need to run the Eagles Way — videos play in-app, guides &amp; plans open in a tab. ' + syncNote + '</p></div>';
+      '<p class="team-lede">' + lib.lede + syncNote + '</p></div>';
 
     var typeChips = '<div class="filterset">' + [["all", "All"]].concat(RES_TYPES.map(function (t) { return [t.key, t.label]; })).map(function (p) {
-      return '<button class="chip' + ((ui.resType || "all") === p[0] ? " is-on" : "") + '" data-action="res-type" data-v="' + esc(p[0]) + '" aria-pressed="' + ((ui.resType || "all") === p[0]) + '">' + esc(p[1]) + '</button>';
+      return '<button class="chip' + (f.type === p[0] ? " is-on" : "") + '" data-action="res-type" data-v="' + esc(p[0]) + '" aria-pressed="' + (f.type === p[0]) + '">' + esc(p[1]) + '</button>';
     }).join("") + '</div>';
     var ageChips = '<div class="filterset">' + [["all", "All ages"]].concat(RES_AGES.filter(function (a) { return a.key !== "all"; }).map(function (a) { return [a.key, a.label]; })).map(function (p) {
-      return '<button class="chip' + ((ui.resAge || "all") === p[0] ? " is-on" : "") + '" data-action="res-age" data-v="' + esc(p[0]) + '" aria-pressed="' + ((ui.resAge || "all") === p[0]) + '">' + esc(p[1]) + '</button>';
+      return '<button class="chip' + (f.age === p[0] ? " is-on" : "") + '" data-action="res-age" data-v="' + esc(p[0]) + '" aria-pressed="' + (f.age === p[0]) + '">' + esc(p[1]) + '</button>';
     }).join("") + '</div>';
-    var topicOpts = '<option value="all">All topics</option>' + RES_TOPICS.map(function (t) { return '<option value="' + esc(t) + '"' + ((ui.resTopic || "all") === t ? " selected" : "") + '>' + esc(t) + '</option>'; }).join("");
+    var topicOpts = '<option value="all">All topics</option>' + lib.topics.map(function (t) { return '<option value="' + esc(t) + '"' + (f.topic === t ? " selected" : "") + '>' + esc(t) + '</option>'; }).join("");
     var toolbar = '<div class="res-toolbar">' +
-      '<div class="search"><svg class="ic"><use href="#ic-search"/></svg><input type="search" id="resSearch" placeholder="Search title, topic…" value="' + esc(ui.resSearch || "") + '" aria-label="Search resources"></div>' +
+      '<div class="search"><svg class="ic"><use href="#ic-search"/></svg><input type="search" id="resSearch" placeholder="Search title, topic…" value="' + esc(f.q || "") + '" aria-label="Search ' + esc(lib.noun) + 's"></div>' +
       '<select id="resTopic" class="res-topicsel" aria-label="Filter by topic">' + topicOpts + '</select>' +
       '</div><div class="res-filters">' + typeChips + ageChips + '</div>';
 
-    var list = filteredResources();
+    var list = filteredResources(cat);
     var grid = list.length ? '<div class="res-grid">' + list.map(resCard).join("") + '</div>'
       : '<div class="empty empty--mini"><h3>No matches.</h3><p>Nothing fits these filters yet.</p>' +
         '<div class="empty__actions"><button class="btn btn--ghost" data-action="res-type" data-v="all">Clear filters</button></div></div>';
 
     host.innerHTML = syncBanner("resources", "library") + principle + summary + toolbar + grid;
-    var s = $("#resSearch");
-    if (s) s.addEventListener("input", function () { ui.resSearch = this.value; var pos = this.selectionStart;
-      renderTraining(); var s2 = $("#resSearch"); if (s2) { s2.focus(); try { s2.setSelectionRange(pos, pos); } catch (e) {} } });
-    var tp = $("#resTopic");
-    if (tp) tp.addEventListener("change", function () { ui.resTopic = this.value; renderTraining(); });
+    var s = host.querySelector("#resSearch");
+    if (s) s.addEventListener("input", function () { f.q = this.value; var pos = this.selectionStart;
+      renderLibrary(cat); var s2 = host.querySelector("#resSearch"); if (s2) { s2.focus(); try { s2.setSelectionRange(pos, pos); } catch (e) {} } });
+    var tp = host.querySelector("#resTopic");
+    if (tp) tp.addEventListener("change", function () { f.topic = this.value; renderLibrary(cat); });
   }
 
-  function resourceForm(r) {
+  function resourceForm(r, cat) {
     r = r || {};
+    cat = cat || resCat(r);
     var type = r.type || "video";
     var typeSeg = RES_TYPES.map(function (t) { return '<label><input type="radio" name="r-type" value="' + t.key + '"' + (type === t.key ? " checked" : "") + '><span>' + t.label + '</span></label>'; }).join("");
     var ageBoxes = RES_AGES.map(function (a) { return '<label class="res-check"><input type="checkbox" name="r-age" value="' + a.key + '"' + ((r.ages || []).indexOf(a.key) > -1 ? " checked" : "") + '><span>' + a.label + '</span></label>'; }).join("");
-    var topicBoxes = RES_TOPICS.map(function (t) { return '<label class="res-check"><input type="checkbox" name="r-topic" value="' + esc(t) + '"' + ((r.topics || []).indexOf(t) > -1 ? " checked" : "") + '><span>' + esc(t) + '</span></label>'; }).join("");
+    var topicBoxes = libOf(cat).topics.map(function (t) { return '<label class="res-check"><input type="checkbox" name="r-topic" value="' + esc(t) + '"' + ((r.topics || []).indexOf(t) > -1 ? " checked" : "") + '><span>' + esc(t) + '</span></label>'; }).join("");
     return '<form id="resForm">' +
       '<div class="field"><label for="r-title">Title</label><input id="r-title" value="' + esc(r.title || "") + '" placeholder="Ball-mastery warmup, Grassroot session plan…" required></div>' +
       '<div class="field"><label>Type</label><div class="segfield segfield--wrap">' + typeSeg + '</div></div>' +
@@ -1162,8 +1207,10 @@
         '<button type="submit" class="btn btn--primary">' + (r.id ? "Save resource" : "Add resource") + '</button>' +
       '</div></form>';
   }
-  function openResource(r) {
-    showDrawer(r ? "Edit resource" : "Add resource", resourceForm(r));
+  function openResource(r, cat) {
+    cat = cat || resCat(r);
+    var isLaw = cat === "laws";
+    showDrawer(r ? (isLaw ? "Edit explainer" : "Edit resource") : (isLaw ? "Add explainer" : "Add resource"), resourceForm(r, cat));
     $("#resForm").addEventListener("submit", function (sub) {
       sub.preventDefault();
       var title = $("#r-title").value.trim(), url = $("#r-url").value.trim();
@@ -1175,7 +1222,7 @@
       var topics = $$('input[name="r-topic"]:checked').map(function (c) { return c.value; });
       var data = { title: title, type: type, url: url, duration: $("#r-dur").value.trim(),
         ages: ages, topics: topics, desc: $("#r-desc").value.trim(), note: (r && r.note) || "",
-        updated: new Date().toISOString(), unsynced: true };
+        category: cat, updated: new Date().toISOString(), unsynced: true };
       var rec;
       if (r && r.id) { var idx = state.resources.findIndex(function (x) { return x.id === r.id; });
         rec = Object.assign({}, r, data); state.resources[idx] = rec; toast("Saved “" + title + ".”"); }
@@ -1228,7 +1275,8 @@
   function pushResource(r) {
     if (!SIGNUPS_URL || !r) return;
     apiPost({ type: "resource", id: r.id, title: r.title, kind: r.type, ages: (r.ages || []).join(","),
-      topics: (r.topics || []).join(","), url: r.url, duration: r.duration, desc: r.desc, note: r.note, updated: r.updated })
+      topics: (r.topics || []).join(","), url: r.url, duration: r.duration, desc: r.desc, note: r.note,
+      category: resCat(r), updated: r.updated })
       .then(function () { delete r.unsynced; save(); }).catch(function () {});
   }
   function pushResourceDelete(r) { if (!SIGNUPS_URL || !r) return; apiPost({ type: "resource-delete", id: r.id }).catch(function () {}); }
@@ -1246,13 +1294,15 @@
         var local = byId[row.id];
         var remote = { id: row.id, title: row.title || "", type: row.type || "video", url: row.url || "",
           duration: row.duration || "", ages: splitList(row.ages), topics: splitList(row.topics),
-          desc: row.desc || "", note: row.note || "", updated: String(row.updated || "") };
+          desc: row.desc || "", note: row.note || "",
+          category: String(row.category || "").toLowerCase() === "laws" ? "laws" : "training",
+          updated: String(row.updated || "") };
         if (!local) byId[row.id] = remote;
         else if (!local.unsynced && String(remote.updated) >= String(local.updated || "")) byId[row.id] = Object.assign(local, remote);
       });
       state.resources = Object.keys(byId).map(function (id) { return byId[id]; });
       save();
-      if (ui.view === "training") renderView();
+      if (ui.view === "training" || ui.view === "laws") renderView();
     }).catch(function () { syncFailed("resources"); });
   }
 
@@ -1713,7 +1763,7 @@
       case "edit-team": openTeam(teamById(id)); break;
       case "delete-team": deleteTeam(id); break;
       case "import-team": importTeam(id); break;
-      case "add-resource": openResource(null); break;
+      case "add-resource": openResource(null, libCat()); break;
       case "edit-resource": openResource(resById(id)); break;
       case "delete-resource": deleteResource(id); break;
       case "play-resource": logUsage(resById(id), "watch"); openPlayer(resById(id)); break;
@@ -1721,8 +1771,13 @@
       case "resource-usage": openResourceUsage(id); break;
       case "coach-activity": openCoachActivity(); break;
       case "load-starter-resources": loadStarterResources(); break;
-      case "res-type": ui.resType = act.dataset.v; if (act.dataset.v === "all") { ui.resAge = "all"; ui.resTopic = "all"; ui.resSearch = ""; } renderTraining(); break;
-      case "res-age": ui.resAge = act.dataset.v; renderTraining(); break;
+      case "res-type": {
+        var lfT = libFilters(libCat());
+        lfT.type = act.dataset.v;
+        if (act.dataset.v === "all") { lfT.age = "all"; lfT.topic = "all"; lfT.q = ""; }
+        renderLibrary(libCat()); break;
+      }
+      case "res-age": libFilters(libCat()).age = act.dataset.v; renderLibrary(libCat()); break;
       case "close-player": closePlayer(); break;
       case "reached": setStatus(id, "active"); break;
       case "status": e.stopPropagation(); openStatusPop(act, id); break;
