@@ -67,7 +67,19 @@
   var RES_TOPICS = ["Ball mastery", "Dribbling", "1v1 / moves", "Passing & receiving", "First touch", "Shooting & finishing",
     "Small-sided games", "Defending", "Goalkeeping", "Team shape", "Set pieces", "Warmups", "Fun & games", "Session plans", "Coaching basics"];
   function resType(k) { for (var i = 0; i < RES_TYPES.length; i++) if (RES_TYPES[i].key === k) return RES_TYPES[i]; return RES_TYPES[0]; }
-  function resAge(k) { for (var i = 0; i < RES_AGES.length; i++) if (RES_AGES[i].key === k) return RES_AGES[i]; return null; }
+  // The laws divide by playing division (U6/U8/U10/U12), not by the grade bands
+  // the curriculum uses. Different axis, so it gets its own list.
+  var LAW_AGES = [
+    { key: "u6",  label: "U6" }, { key: "u8",  label: "U8" },
+    { key: "u10", label: "U10" }, { key: "u12", label: "U12" },
+    { key: "all", label: "All ages" }
+  ];
+  function resAge(k) {
+    var i;
+    for (i = 0; i < RES_AGES.length; i++) if (RES_AGES[i].key === k) return RES_AGES[i];
+    for (i = 0; i < LAW_AGES.length; i++) if (LAW_AGES[i].key === k) return LAW_AGES[i];
+    return null;
+  }
 
   // ---- Laws of the Game: same library machinery, its own shelf --------------
   // A resource carries a category. Anything without one is training, so every
@@ -78,38 +90,43 @@
   // The laws split into what everyone plays by, and what changes per age band.
   // Bands mirror RES_AGES so an explainer tagged "3–5" lands under Rising.
   var LAW_BANDS = [
-    { key: "all", title: "Every age", note: "The laws that never change — how the game is called from K all the way to varsity." },
-    { key: "grassroot", title: "K–2 · Grassroot (U6–U8)", note: "Small-sided, no keeper, no offside. The rules are stripped back so the game keeps moving." },
-    { key: "academy", title: "3–5 · Rising (U9–U11)", note: "Keepers arrive, the build-out line appears, and offside starts to matter." },
-    { key: "nextxi", title: "6–8 · Next XI (U12–U15)", note: "Close to the full laws — heading returns, offside applies everywhere, 11v11 arrives." }
+    { key: "all", title: "Every age", note: "True at every level we play. Headers are not allowed at any age until U15." },
+    { key: "u6",  title: "U6", note: "30 min practice then a 30 min game — four 5–6 min quarters, or five 5 min quarters if both coaches agree. 4v4, no goalie. Coaches ref, nobody keeps score. 10 games." },
+    { key: "u8",  title: "U8", note: "6v6 with a goalie, two 20-minute halves. No punting or drop kicks. Coaches ref their own games. Equal playing time expected." },
+    { key: "u10", title: "U10", note: "7v7 with a goalie, two 25-minute halves. Build-out lines come in, and referees are assigned from here up." },
+    { key: "u12", title: "U12", note: "9v9 with a goalie, two 30-minute halves. True offside replaces the build-out line." }
   ];
-  // A starting content plan. Each line you haven't made yet shows up as a to-do
-  // on its band with a button that opens the form pre-filled.
-  // NOTE: drafted against the US Soccer small-sided framework. Your league's
-  // published rules win — edit these before you record anything.
+  // Built from LB's own division rules, not a generic framework.
   var LAW_PLAN = [
-    { band: "all", title: "What the referee's signals mean", why: "One arm up is indirect, straight ahead is direct. Nobody teaches this and everyone argues about it.", topics: ["Referee signals"] },
-    { band: "all", title: "In or out? The whole ball, the whole line", why: "The single most-argued call on a sideline, and it takes thirty seconds to settle.", topics: ["Ball in & out of play"] },
-    { band: "all", title: "Fouls: careless, reckless, excessive", why: "Explains why some hard tackles are nothing and some soft ones are a card.", topics: ["Fouls & free kicks"] },
-    { band: "all", title: "Direct vs indirect free kicks", why: "Why some free kicks can score straight in and some can't.", topics: ["Fouls & free kicks", "Kick-off & restarts"] },
-    { band: "all", title: "What coaches and parents may do from the touchline", why: "Sets the standard before a ref has to.", topics: ["Misconduct & cards", "Basics for parents"] },
-    { band: "all", title: "Handball — it isn't just 'it hit an arm'", why: "The most misunderstood law in the game, at every age.", topics: ["Handball"] },
+    { band: "all", title: "No headers until U15", why: "The one safety rule that holds at every age we play. Say it plainly so no coach or parent is unsure.", topics: ["Basics for parents", "Fouls & free kicks"] },
+    { band: "all", title: "Proper throw-ins: over the head, both feet down", why: "Taught from U6 and still getting called at U12. One clip covers the whole club.", topics: ["Throw-ins"] },
+    { band: "all", title: "Direct vs indirect free kicks", why: "You cannot follow the U8 penalty-box rule or a U12 offside restart without this.", topics: ["Fouls & free kicks", "Kick-off & restarts"] },
+    { band: "all", title: "Coaches are responsible for their spectators", why: "A coach can be yellow or red carded for what the sideline says. Set the standard before a ref has to.", topics: ["Misconduct & cards", "Basics for parents"] },
+    { band: "all", title: "Keep it positive — to every player, both benches, and the ref", why: "Discipline can go as far as a permanent ban. Worth being explicit about.", topics: ["Misconduct & cards", "Basics for parents"] },
 
-    { band: "grassroot", title: "Why there's no goalkeeper yet", why: "Parents ask this every season. Answer it once.", topics: ["Goalkeeper rules", "Small-sided rules"] },
-    { band: "grassroot", title: "How we restart at this age", why: "Kick-in, pass-in or throw-in — leagues differ, so say what LB does.", topics: ["Throw-ins", "Kick-off & restarts"] },
-    { band: "grassroot", title: "No offside here — and why that's on purpose", why: "Stops the 'he's cherry-picking' argument before it starts.", topics: ["Offside", "Small-sided rules"] },
-    { band: "grassroot", title: "Ball size, field size, how many play", why: "What a K–2 game actually looks like, so nobody turns up expecting 11v11.", topics: ["Field & equipment", "Small-sided rules"] },
+    { band: "u6", title: "How a U6 night runs", why: "30 minutes of practice, then four 5–6 minute quarters — or five 5s if both coaches agree. Parents ask every week.", topics: ["Small-sided rules", "Basics for parents"] },
+    { band: "u6", title: "4v4, no goalie, roughly two up and two back", why: "The shape we want them holding, and why there is no keeper yet.", topics: ["Small-sided rules", "Goalkeeper rules"] },
+    { band: "u6", title: "Coaches ref, and nobody keeps score", why: "Heads off the most common U6 sideline argument before the season starts.", topics: ["Basics for parents", "Referee signals"] },
+    { band: "u6", title: "A parent or guardian must be at the field", why: "Safety rule: a coach is never alone with a child. Every U6 parent needs to hear this.", topics: ["Basics for parents"] },
+    { band: "u6", title: "What we actually coach at U6", why: "Running and kicking at the same time, throw-ins, and where to stand on offense and defense.", topics: ["Small-sided rules"] },
 
-    { band: "academy", title: "The build-out line, explained", why: "The rule most new coaches at this age get wrong.", topics: ["Small-sided rules", "Goal kicks & corners"] },
-    { band: "academy", title: "Keepers arrive: what they can and can't do", why: "Handling, distribution, the back-pass — all new at this age.", topics: ["Goalkeeper rules"] },
-    { band: "academy", title: "No heading, and what we do instead", why: "It's a safety rule with a hard age line. Coaches need to know exactly where it sits.", topics: ["Basics for parents", "Fouls & free kicks"] },
-    { band: "academy", title: "Offside when it starts to count", why: "First real exposure to the law — teach it before a ref has to.", topics: ["Offside"] },
+    { band: "u8", title: "6v6 with a keeper, two 20-minute halves", why: "The format, plus equal playing time being an expectation and not a suggestion.", topics: ["Small-sided rules", "Goalkeeper rules"] },
+    { band: "u8", title: "No punting, no drop kicks", why: "Keepers arrive and immediately want to punt. Show what they do instead.", topics: ["Goalkeeper rules"] },
+    { band: "u8", title: "Fouls in the box: no penalty kicks at U8", why: "Move it to the nearest penalty-box line and take it as a DIRECT kick. Outside the box is indirect. Coaches get this wrong constantly.", topics: ["Fouls & free kicks", "Penalty kicks"] },
+    { band: "u8", title: "Throw-in redos, and how they change at midseason", why: "First half of the season: allow a redo, then play on either way. Second half: redo, then the other team gets the ball.", topics: ["Throw-ins"] },
+    { band: "u8", title: "Coaches ref their own U8 games", why: "How to teach during a game without turning it into a 90-minute clinic.", topics: ["Referee signals", "Basics for parents"] },
 
-    { band: "nextxi", title: "Offside, the whole law", why: "Position vs offence, the moment the ball is played, who's actually involved.", topics: ["Offside"] },
-    { band: "nextxi", title: "Heading returns — how we reintroduce it", why: "The age it comes back and how to coach it safely.", topics: ["Basics for parents"] },
-    { band: "nextxi", title: "Throw-ins refs actually call", why: "Feet, hands, over the head — the details that get called at this level.", topics: ["Throw-ins"] },
-    { band: "nextxi", title: "Yellow and red: what earns each", why: "Before they reach varsity, where a card costs a game.", topics: ["Misconduct & cards"] },
-    { band: "nextxi", title: "Moving up to 11v11", why: "New positions, bigger field, size 5 ball, full laws.", topics: ["Field & equipment", "Small-sided rules"] }
+    { band: "u10", title: "The build-out line: where it is and what it does", why: "Yellow line halfway between the top of the box and midfield. It teaches offside using a line instead of the last defender.", topics: ["Small-sided rules", "Offside"] },
+    { band: "u10", title: "When attackers may cross the build-out line", why: "The moment a teammate PLAYS the ball past it — not when the ball clears it. This is the detail everyone gets wrong.", topics: ["Offside", "Small-sided rules"] },
+    { band: "u10", title: "Keeper has it: everyone retreats", why: "Opponents go behind the build-out line until the keeper throws, rolls or drops it. Same on goal kicks.", topics: ["Goalkeeper rules", "Goal kicks & corners"] },
+    { band: "u10", title: "Referees arrive at U10 — what changes for you", why: "Stay on the sideline, stay 10 yards off the half line. Both are cardable offences even if most refs let them go.", topics: ["Referee signals", "Misconduct & cards"] },
+    { band: "u10", title: "7v7, two 25-minute halves", why: "The step up from U8: an extra outfield player and five more minutes a half.", topics: ["Small-sided rules"] },
+
+    { band: "u12", title: "True offside — the full rule", why: "No build-out line any more. Closer to the goal than both the ball and the last defender, keeper not counted.", topics: ["Offside"] },
+    { band: "u12", title: "Offside is about being involved", why: "Interfering with play, interfering with an opponent, or gaining an advantage from the position.", topics: ["Offside"] },
+    { band: "u12", title: "When a player is NOT offside", why: "Own half, level with the last defender, or behind the ball — and never direct from a goal kick, throw-in or corner.", topics: ["Offside", "Goal kicks & corners", "Throw-ins"] },
+    { band: "u12", title: "The restart after an offside call", why: "Indirect kick to the other team from where the infringement happened.", topics: ["Offside", "Fouls & free kicks"] },
+    { band: "u12", title: "9v9, two 30-minute halves", why: "The last step before 11v11, and the format the whole U12 season runs on.", topics: ["Small-sided rules"] }
   ];
   function lawPlanFor(band) { return LAW_PLAN.filter(function (p) { return p.band === band; }); }
   // Matched on title, which is what the "Make this" button pre-fills. Rename an
@@ -129,11 +146,11 @@
   }
 
   var LIBS = {
-    training: { cat: "training", topics: RES_TOPICS, noun: "resource",
+    training: { cat: "training", topics: RES_TOPICS, ages: RES_AGES, noun: "resource",
       emptyHead: "Build your coaching library.",
       emptyBody: "Collect the videos, drills, and session plans your coaches should use — YouTube &amp; Vimeo links play right here, guides and PDFs open in a tab. Everything you add is shared with every coach.",
       lede: "Everything your coaches need to run the Eagles Way — videos play in-app, guides &amp; plans open in a tab. " },
-    laws: { cat: "laws", topics: LAW_TOPICS, noun: "explainer",
+    laws: { cat: "laws", topics: LAW_TOPICS, ages: LAW_AGES, noun: "explainer",
       emptyHead: "Explain the laws in your own words.",
       emptyBody: "Record or link short clips that explain how the game is actually called — offside, handball, restarts, what a card is for. Coaches, parents and refs all read the same page when it comes from you.",
       lede: "How the game is called, explained once so coaches, parents and refs all say the same thing. " }
@@ -1251,8 +1268,8 @@
           (!cards.length && !todo.length ? '<p class="lawband__done">Every planned explainer for this age is made.</p>' : "") +
         '</section>';
       }).join("");
-      grid = '<p class="lawplan-note">This plan is a starting point drafted against the US Soccer small-sided framework. ' +
-        '<b>Your league’s published rules win</b> — edit or delete any line before you record it.</p>' + grid;
+      grid = '<p class="lawplan-note">Built from our own division rules — formats, timings, the U8 penalty-box rule, ' +
+        'the build-out line, and <b>no headers until U15</b>. If the league changes a rule, change the line here too.</p>' + grid;
     } else {
       grid = list.length ? '<div class="res-grid">' + list.map(resCard).join("") + '</div>'
         : '<div class="empty empty--mini"><h3>No matches.</h3><p>Nothing fits these filters yet.</p>' +
@@ -1272,7 +1289,7 @@
     cat = cat || resCat(r);
     var type = r.type || "video";
     var typeSeg = RES_TYPES.map(function (t) { return '<label><input type="radio" name="r-type" value="' + t.key + '"' + (type === t.key ? " checked" : "") + '><span>' + t.label + '</span></label>'; }).join("");
-    var ageBoxes = RES_AGES.map(function (a) { return '<label class="res-check"><input type="checkbox" name="r-age" value="' + a.key + '"' + ((r.ages || []).indexOf(a.key) > -1 ? " checked" : "") + '><span>' + a.label + '</span></label>'; }).join("");
+    var ageBoxes = libOf(cat).ages.map(function (a) { return '<label class="res-check"><input type="checkbox" name="r-age" value="' + a.key + '"' + ((r.ages || []).indexOf(a.key) > -1 ? " checked" : "") + '><span>' + a.label + '</span></label>'; }).join("");
     var topicBoxes = libOf(cat).topics.map(function (t) { return '<label class="res-check"><input type="checkbox" name="r-topic" value="' + esc(t) + '"' + ((r.topics || []).indexOf(t) > -1 ? " checked" : "") + '><span>' + esc(t) + '</span></label>'; }).join("");
     return '<form id="resForm">' +
       '<div class="field"><label for="r-title">Title</label><input id="r-title" value="' + esc(r.title || "") + '" placeholder="Ball-mastery warmup, Grassroot session plan…" required></div>' +

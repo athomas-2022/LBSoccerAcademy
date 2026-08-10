@@ -495,6 +495,11 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
 .res-age--grassroot{background:oklch(0.500 0.175 261 / .16);color:oklch(0.44 0.175 261)}
 .res-age--nextxi{background:oklch(0.288 0.110 257 / .16);color:oklch(0.288 0.110 257)}
 .res-age--all{background:var(--surface-2);color:var(--ink-3)}
+/* Division badges on law explainers — the ramp deepens as the division climbs */
+.res-age--u6{background:oklch(0.620 0.150 261 / .16);color:oklch(0.46 0.150 261)}
+.res-age--u8{background:oklch(0.500 0.175 261 / .16);color:oklch(0.44 0.175 261)}
+.res-age--u10{background:oklch(0.402 0.177 261 / .16);color:var(--lb-blue)}
+.res-age--u12{background:oklch(0.288 0.110 257 / .16);color:oklch(0.288 0.110 257)}
 .res-title{font-size:var(--fs-md);font-weight:800;letter-spacing:-.01em;color:var(--ink);line-height:1.25}
 .res-desc{font-size:var(--fs-sm);color:var(--ink-2);font-weight:500;line-height:1.4}
 .res-topics{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.1rem}
