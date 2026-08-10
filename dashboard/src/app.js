@@ -19,6 +19,13 @@
   // Apps Script CONFIG.CALENDAR_ID and public/app.js GOOGLE_CALENDAR_ID. Leave ""
   // to skip the "View shared calendar" link (events still save + sync).
   var CALENDAR_ID = "c_a280d4cafbf4f9838c8141178df7d56c29221939f94bf2b1810d6c5426f8490c@group.calendar.google.com";
+  // Google wants the id as URL-safe base64 on this endpoint — the same thing its
+  // own "+ Google Calendar" badge sends. The raw id makes Google serve the .ics
+  // feed, which the browser downloads instead of opening the add-calendar screen.
+  function calSubscribeUrl() {
+    return "https://calendar.google.com/calendar/u/0/r?cid=" +
+      btoa(CALENDAR_ID).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
   // Sign-in gate: only approved Google accounts can open the dashboard or reach
   // its data. Create a free OAuth Client ID (Google Cloud Console ▸ Credentials ▸
   // OAuth client ID ▸ Web application), add https://athomas-2022.github.io as an
@@ -329,7 +336,7 @@
     if (!canEdit()) {
       // View-only coaches get read-only actions only.
       slot.innerHTML = '<span class="viewonly-pill">View only</span>' +
-        (ui.view === "schedule" && CALENDAR_ID ? '<a class="btn btn--ghost" href="https://calendar.google.com/calendar/u/0/r?cid=' + encodeURIComponent(CALENDAR_ID) + '" target="_blank" rel="noopener">Open shared calendar</a>' : "");
+        (ui.view === "schedule" && CALENDAR_ID ? '<a class="btn btn--ghost" href="' + calSubscribeUrl() + '" target="_blank" rel="noopener">Open shared calendar</a>' : "");
       return;
     }
     if (ui.view === "overview") {
@@ -345,7 +352,7 @@
       slot.innerHTML = '<button class="btn btn--ghost" data-action="coach-activity"><svg class="ic"><use href="#ic-attend"/></svg>Coach activity</button>' +
         '<button class="btn btn--primary" data-action="add-resource"><svg class="ic"><use href="#ic-plus"/></svg>Add resource</button>';
     } else if (ui.view === "schedule") {
-      slot.innerHTML = (CALENDAR_ID ? '<a class="btn btn--ghost" href="https://calendar.google.com/calendar/u/0/r?cid=' + encodeURIComponent(CALENDAR_ID) + '" target="_blank" rel="noopener">Open shared calendar</a>' : "") +
+      slot.innerHTML = (CALENDAR_ID ? '<a class="btn btn--ghost" href="' + calSubscribeUrl() + '" target="_blank" rel="noopener">Open shared calendar</a>' : "") +
         '<button class="btn btn--primary" data-action="add-event"><svg class="ic"><use href="#ic-plus"/></svg>Add event</button>';
     }
   }

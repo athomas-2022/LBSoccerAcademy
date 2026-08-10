@@ -362,8 +362,12 @@
     if (!btn) return;
     var id = (GOOGLE_CALENDAR_ID || "").trim();
     if (!id) { btn.hidden = true; return; }        // no calendar connected yet
-    // Google subscribe link — adds the shared calendar so future changes sync.
-    btn.href = "https://calendar.google.com/calendar/u/0/r?cid=" + encodeURIComponent(id);
+    // Google wants the calendar id as URL-safe base64 here — that is what its own
+    // "+ Google Calendar" badge sends. Handing it the raw id makes Google serve the
+    // .ics feed instead, which the browser silently downloads rather than opening
+    // the add-calendar screen.
+    btn.href = "https://calendar.google.com/calendar/u/0/r?cid=" +
+      btoa(id).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
   })();
 
   // ---- Questions / complaints: send as a pre-filled email ----------
