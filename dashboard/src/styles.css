@@ -532,6 +532,18 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
 .res-disclose{margin:-.6rem 0 1.1rem;padding:.55rem .75rem;border:1px solid var(--line-2);
   border-radius:var(--r-md);background:var(--surface-2);color:var(--ink-2);
   font-size:var(--fs-sm);font-weight:500;line-height:1.5}
+/* Owner previewing the coach view. Deliberately the loudest chrome on the page:
+   being unsure which view you are looking at is worse than being shouted at. */
+.previewbar{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;
+  padding:.7rem clamp(1rem,3vw,2rem);background:var(--lb-blue);color:#fff;
+  font-size:var(--fs-sm);font-weight:600;line-height:1.4}
+.previewbar[hidden]{display:none}
+.previewbar__txt{flex:1 1 16rem;min-width:0}
+.previewbar__txt b{font-weight:800}
+.previewbar__exit{margin-left:auto;flex:0 0 auto;background:#fff;color:var(--lb-blue);
+  border-color:#fff;font-weight:800}
+.previewbar__exit:hover{background:var(--blue-50);color:var(--lb-blue)}
+
 /* Laws of the Game: one section per age band, each carrying what is made and
    what is still to make. */
 .lawplan-note{margin:0 0 1.2rem;padding:.6rem .8rem;border:1px dashed var(--line-2);

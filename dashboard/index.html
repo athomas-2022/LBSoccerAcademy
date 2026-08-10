@@ -102,6 +102,13 @@
       <div class="topbar__actions" id="topActions"></div>
     </div>
 
+    <!-- Shown only while an owner is previewing the coach view. Sits above every
+         view so the way out is never more than one tap away. -->
+    <div class="previewbar" id="previewBar" role="status" hidden>
+      <span class="previewbar__txt"><b>Previewing as a coach.</b> Your owner controls are hidden — nothing here can be edited.</span>
+      <button class="btn btn--sm previewbar__exit" data-action="exit-preview">Back to my view</button>
+    </div>
+
     <section class="view is-active" id="view-overview" tabindex="-1" aria-labelledby="viewTitle"></section>
     <section class="view" id="view-athletes" tabindex="-1"></section>
     <section class="view" id="view-teams" tabindex="-1"></section>

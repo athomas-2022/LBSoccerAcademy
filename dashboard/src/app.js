@@ -245,7 +245,18 @@
   var PENDING_REQS = 0;                 // people signed in and waiting to be let in
   function authToken() { return AUTH.token || ""; }
   // Only the owner may edit. Approved non-owners are view-only. (No gate configured yet → editable.)
-  function canEdit() { return !AUTH.enabled || AUTH.owner; }
+  // AUTH.owner is who you really are. AUTH.preview is an owner choosing to look
+  // at their own dashboard the way a coach does. Everything the UI decides
+  // — controls, owner-only chrome, whose usage data is visible — asks canEdit(),
+  // so flipping preview reshapes the whole app in one move.
+  // It is a preview, not a privilege drop: the server still knows you own this.
+  function canEdit() { return !AUTH.enabled || (AUTH.owner && !AUTH.preview); }
+  function isPreviewing() { return !!(AUTH.owner && AUTH.preview); }
+  function setPreview(on) {
+    AUTH.preview = !!on;
+    try { on ? sessionStorage.setItem("lbsa.preview", "1") : sessionStorage.removeItem("lbsa.preview"); } catch (e) {}
+    renderIdentity(); renderTopbar(); renderView();
+  }
   function apiGet(extra) {
     var url = SIGNUPS_URL + "?token=" + encodeURIComponent(authToken()) + (extra || "");
     return fetch(url, { method: "GET" }).then(function (r) { return r.json(); });
@@ -294,7 +305,11 @@
   function verifyAccess() {
     apiGet("&check=1").then(function (data) {
       if (data && data.ok && data.approved) {
-        AUTH.owner = !!data.owner; hideGate(); AUTH.ready = true; renderIdentity();
+        AUTH.owner = !!data.owner;
+        // Survives view changes within the tab, clears when the tab closes, so
+        // you can never be stranded in preview across sessions.
+        if (AUTH.owner) { try { AUTH.preview = sessionStorage.getItem("lbsa.preview") === "1"; } catch (e) {} }
+        hideGate(); AUTH.ready = true; renderIdentity();
         // Boot paints before sign-in resolves, so everything is in its view-only
         // form at this point. Repaint now that we know who this is, or the owner
         // is told they can't edit their own dashboard on every single visit.
@@ -316,10 +331,14 @@
     if (!AUTH.enabled || !AUTH.email) { foot.hidden = true; foot.innerHTML = ""; return; }
     foot.hidden = false;
     foot.innerHTML = '<div class="side__who"><span class="side__whoname">' + esc(AUTH.name || AUTH.email) + '</span>' +
-      '<span class="side__whomail">' + esc(AUTH.email) + (AUTH.owner ? " · owner" : "") + '</span></div>' +
+      '<span class="side__whomail">' + esc(AUTH.email) + (AUTH.owner ? (isPreviewing() ? " · owner (previewing)" : " · owner") : "") + '</span></div>' +
       '<div class="side__authbtns">' +
-        (AUTH.owner ? '<button class="side__authbtn" data-action="manage-access">Manage access' +
+        // Gated on canEdit(), not AUTH.owner: while previewing, owner chrome has
+        // to disappear too or it isn't a preview of anything.
+        (canEdit() ? '<button class="side__authbtn" data-action="manage-access">Manage access' +
           (PENDING_REQS ? '<span class="badge badge--wait">' + PENDING_REQS + '</span>' : "") + '</button>' : "") +
+        (AUTH.owner ? '<button class="side__authbtn" data-action="' + (isPreviewing() ? "exit-preview" : "preview-coach") + '">' +
+          (isPreviewing() ? "Back to my view" : "View as a coach") + '</button>' : "") +
         '<button class="side__authbtn" data-action="sign-out">Sign out</button>' +
       '</div>';
   }
@@ -327,7 +346,7 @@
 
   // ---- approve / remove people (owners only) ----
   function openAccess() {
-    if (!AUTH.owner) { toast("Owners only."); return; }
+    if (!canEdit()) { toast(isPreviewing() ? "Hidden while previewing as a coach." : "Owners only."); return; }
     showDrawer("Team access", '<div id="accessBody" class="access-body">Loading…</div>');
     refreshAccess();
   }
@@ -512,6 +531,7 @@
   }
   function renderView() {
     document.body.classList.toggle("is-viewonly", !canEdit());
+    var pb = $("#previewBar"); if (pb) pb.hidden = !isPreviewing();
     if (ui.view === "overview") renderOverview();
     else if (ui.view === "athletes") renderAthletes();
     else if (ui.view === "teams") renderTeams();
@@ -1853,7 +1873,10 @@
   // Non-mutating actions a view-only coach is still allowed to trigger.
   var VIEW_ACTIONS = { "res-type": 1, "res-age": 1, "filter-status": 1, "filter-grad": 1,
     "clear-filters": 1, "clear-prog": 1, "play-resource": 1, "open-resource": 1, "close-player": 1,
-    "close-drawer": 1, "goto-coaches": 1, "sign-out": 1 };
+    "close-drawer": 1, "goto-coaches": 1, "sign-out": 1,
+    // Must be here. While previewing, canEdit() is false and every action not on
+    // this list is refused — without it the way out of preview is itself dead.
+    "exit-preview": 1 };
   document.addEventListener("click", function (e) {
     var nav = e.target.closest(".side__link"); if (nav) { setView(nav.dataset.view); return; }
     var seg = e.target.closest("#progSeg button"); if (seg) { ui.prog = seg.dataset.prog;
@@ -1861,7 +1884,12 @@
     var act = e.target.closest("[data-action]"); if (!act) { closePop(); return; }
     var action = act.dataset.action, id = act.dataset.id;
     // View-only coaches may browse and open the calendar/videos, but not change anything.
-    if (!canEdit() && !VIEW_ACTIONS[action]) { toast("View only — only the owner can make changes."); return; }
+    if (!canEdit() && !VIEW_ACTIONS[action]) {
+      // Don't tell an owner that only the owner can do this.
+      toast(isPreviewing() ? "Hidden in the coach view — leave the preview to do this."
+                           : "View only — only the owner can make changes.");
+      return;
+    }
     switch (action) {
       case "retry-sync": {
         var which = act.dataset.sync;
@@ -1893,6 +1921,15 @@
       case "edit-team": openTeam(teamById(id)); break;
       case "delete-team": deleteTeam(id); break;
       case "import-team": importTeam(id); break;
+      case "preview-coach":
+        if (!AUTH.owner) break;
+        setPreview(true);
+        toast("Previewing the coach view. Nothing you do here can change anything.");
+        break;
+      case "exit-preview":
+        setPreview(false);
+        toast("Back to your own view.");
+        break;
       case "add-resource": openResource(null, libCat()); break;
       case "make-planned": {
         var pLib = libOf(act.dataset.lib || "training");
