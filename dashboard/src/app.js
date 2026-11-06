@@ -89,23 +89,25 @@
     "Referee signals", "Field & equipment", "Small-sided rules", "Goalkeeper rules", "Basics for parents"];
   // The laws split into what everyone plays by, and what changes per age band.
   // Bands mirror RES_AGES so an explainer tagged "3–5" lands under Rising.
+  // Sourced from Black Swamp Soccer League's published Playing Guidelines
+  // (one PDF per division, linked from the league site). BSSL starts at U8.
   var LAW_BANDS = [
-    { key: "all", title: "Every age", note: "True at every level we play. Headers are not allowed at any age until U15." },
-    { key: "u6",  title: "U6", note: "30 min practice then a 30 min game — four 5–6 min quarters, or five 5 min quarters if both coaches agree. 4v4, no goalie. Coaches ref, nobody keeps score. 10 games." },
-    { key: "u8",  title: "U8", note: "6v6 with a goalie, two 20-minute halves. No punting or drop kicks. Coaches ref their own games. Equal playing time expected." },
-    { key: "u10", title: "U10", note: "7v7 with a goalie, two 25-minute halves. Build-out lines come in, and referees are assigned from here up." },
-    { key: "u12", title: "U12", note: "9v9 with a goalie, two 30-minute halves. True offside replaces the build-out line." },
-    // The rules sheet we were given stops at U12. The one U15 rule it states is
-    // that heading becomes legal here; the format is flagged rather than guessed.
-    { key: "u15", title: "U15", note: "Heading is allowed from this age — the first level where it is. The last stop before high school soccer.", unconfirmed: "Our rules sheet stops at U12. Confirm the U15 format with the league — players a side, half length, ball size — and write it into this note." }
+    { key: "all", title: "Every age", note: "True wherever we play. Every player must play at least 50% of each game. Referees can card coaches the same way they card players, and a purposeful header is banned until U15." },
+    { key: "u6",  title: "U6", note: "Our own in-house division — Black Swamp starts at U8, so these are LB's rules, not the league's. 30 min practice then four 5–6 min quarters (five 5s if both coaches agree). 4v4, no goalie, roughly two up and two back. Coaches ref, nobody keeps score, 10 games." },
+    { key: "u8",  title: "U8", note: "6v6 including a goalie, two 20-minute halves, size 3 ball. Roster 6–10. No penalty kicks and every free kick is indirect. No punts or drop kicks — opponents retreat 8 yards until the keeper throws, rolls or kicks. A purposeful header is an indirect kick from the spot. Two different keepers minimum, none for more than 20 minutes.",
+      unconfirmed: "Two things in our October meeting notes disagree with the league's published U8 guidelines: the notes say coaches referee their own U8 games (the guidelines say one registered referee) and that a foul in the box is a DIRECT kick from the box line (the guidelines make every U8 free kick indirect). Settle which applies to LB before filming either one." },
+    { key: "u10", title: "U10", note: "7v7 including a goalie, two 25-minute halves, size 4 ball. Roster 7–12. Build-out line, offside, penalty kicks from 8 yards. No punts or drop kicks. A purposeful header is an indirect kick — a penalty kick if it denies a goal. One registered referee." },
+    { key: "u12", title: "U12", note: "9v9 including a goalie, two 30-minute halves, size 4 ball. True offside, no build-out line, penalty kicks from 10 yards. Keepers may punt and drop kick from here on. Heading is still banned. Three-man referee system." },
+    { key: "u15", title: "U15", note: "11v11 including a goalie, two 35-minute halves, size 5 ball on a full-size field. Roster 11–18. Three-person referee system. Heading is allowed, per FIFA. Keepers may punt and drop kick. The same guidelines cover U19, which the league may run as 8v8 on a U12 field." }
   ];
   // Built from LB's own division rules, not a generic framework.
   var LAW_PLAN = [
-    { band: "all", title: "No headers until U15", why: "The one safety rule that holds at every age we play. Say it plainly so no coach or parent is unsure.", topics: ["Basics for parents", "Fouls & free kicks"] },
+    { band: "all", title: "No headers until U15", why: "Banned at U8, U10 and U12 — a purposeful header is an indirect kick from the spot, and at U10 and U12 a penalty kick if it denies a goal. Legal at U15 per FIFA. Say it plainly so no coach or parent is unsure.", topics: ["Basics for parents", "Fouls & free kicks"] },
     { band: "all", title: "Proper throw-ins: over the head, both feet down", why: "Taught from U6 and still getting called at U12. One clip covers the whole club.", topics: ["Throw-ins"] },
     { band: "all", title: "Direct vs indirect free kicks", why: "You cannot follow the U8 penalty-box rule or a U12 offside restart without this.", topics: ["Fouls & free kicks", "Kick-off & restarts"] },
     { band: "all", title: "Coaches are responsible for their spectators", why: "A coach can be yellow or red carded for what the sideline says. Set the standard before a ref has to.", topics: ["Misconduct & cards", "Basics for parents"] },
-    { band: "all", title: "Keep it positive — to every player, both benches, and the ref", why: "Discipline can go as far as a permanent ban. Worth being explicit about.", topics: ["Misconduct & cards", "Basics for parents"] },
+    { band: "all", title: "Keep it positive — to every player, both benches, and the ref", why: "Referees can card a coach exactly as they card a player, and discipline can go as far as a permanent ban. Worth being explicit about.", topics: ["Misconduct & cards", "Basics for parents"] },
+    { band: "all", title: "Everyone plays half the game", why: "A league rule, not a nicety: every player plays at least 50% of each game unless injured, ill, or benched for discipline — and the referee has to be told beforehand in that last case.", topics: ["Small-sided rules", "Basics for parents"] },
 
     { band: "u6", title: "How a U6 night runs", why: "30 minutes of practice, then four 5–6 minute quarters — or five 5s if both coaches agree. Parents ask every week.", topics: ["Small-sided rules", "Basics for parents"] },
     { band: "u6", title: "4v4, no goalie, roughly two up and two back", why: "The shape we want them holding, and why there is no keeper yet.", topics: ["Small-sided rules", "Goalkeeper rules"] },
@@ -115,13 +117,13 @@
 
     { band: "u8", title: "6v6 with a keeper, two 20-minute halves", why: "The format, plus equal playing time being an expectation and not a suggestion.", topics: ["Small-sided rules", "Goalkeeper rules"] },
     { band: "u8", title: "No punting, no drop kicks", why: "Keepers arrive and immediately want to punt. Show what they do instead.", topics: ["Goalkeeper rules"] },
-    { band: "u8", title: "Fouls in the box: no penalty kicks at U8", why: "Move it to the nearest penalty-box line and take it as a DIRECT kick. Outside the box is indirect. Coaches get this wrong constantly.", topics: ["Fouls & free kicks", "Penalty kicks"] },
+    { band: "u8", title: "Fouls in the box: no penalty kicks at U8", why: "The league's guidelines put the ball on the nearest penalty-area line and make every U8 free kick indirect — two players must touch it before it counts. Our meeting notes say direct. Settle that before you film it.", topics: ["Fouls & free kicks", "Penalty kicks"] },
     { band: "u8", title: "Throw-in redos, and how they change at midseason", why: "First half of the season: allow a redo, then play on either way. Second half: redo, then the other team gets the ball.", topics: ["Throw-ins"] },
     { band: "u8", title: "Coaches ref their own U8 games", why: "How to teach during a game without turning it into a 90-minute clinic.", topics: ["Referee signals", "Basics for parents"] },
 
     { band: "u10", title: "The build-out line: where it is and what it does", why: "Yellow line halfway between the top of the box and midfield. It teaches offside using a line instead of the last defender.", topics: ["Small-sided rules", "Offside"] },
-    { band: "u10", title: "When attackers may cross the build-out line", why: "The moment a teammate PLAYS the ball past it — not when the ball clears it. This is the detail everyone gets wrong.", topics: ["Offside", "Small-sided rules"] },
-    { band: "u10", title: "Keeper has it: everyone retreats", why: "Opponents go behind the build-out line until the keeper throws, rolls or drops it. Same on goal kicks.", topics: ["Goalkeeper rules", "Goal kicks & corners"] },
+    { band: "u10", title: "Offside at U10 runs off the build-out line", why: "A player is only offside beyond the build-out line, and it is the SECOND-last opponent that matters, not the last defender. Restart is an indirect kick where it happened.", topics: ["Offside", "Small-sided rules"] },
+    { band: "u10", title: "Keeper has it: everyone retreats", why: "Opponents go behind the build-out line as soon as the keeper has it in their hands, and stay there until it is thrown, rolled or kicked. Same on goal kicks. No punts or drop kicks at all.", topics: ["Goalkeeper rules", "Goal kicks & corners"] },
     { band: "u10", title: "Referees arrive at U10 — what changes for you", why: "Stay on the sideline, stay 10 yards off the half line. Both are cardable offences even if most refs let them go.", topics: ["Referee signals", "Misconduct & cards"] },
     { band: "u10", title: "7v7, two 25-minute halves", why: "The step up from U8: an extra outfield player and five more minutes a half.", topics: ["Small-sided rules"] },
 
@@ -132,7 +134,7 @@
     { band: "u12", title: "9v9, two 30-minute halves", why: "The last step before 11v11, and the format the whole U12 season runs on.", topics: ["Small-sided rules"] },
 
     { band: "u15", title: "Heading is legal from U15 — bringing it back safely", why: "The only U15 rule our sheet actually states. Players have gone nine years without it, so teach the technique before the first ball comes in.", topics: ["Basics for parents", "Fouls & free kicks"] },
-    { band: "u15", title: "Confirm and record the U15 format", why: "Our rules sheet stops at U12. Get the league's numbers — players a side, half length, ball size — and put them in this section before the season.", topics: ["Small-sided rules", "Field & equipment"] },
+    { band: "u15", title: "The jump to 11v11", why: "Nine a side to eleven, size 4 to size 5, a 30-minute half to 35, and a full-size field. Everything gets bigger at once.", topics: ["Small-sided rules", "Field & equipment"] },
     { band: "u15", title: "Offside at speed", why: "Same law as U12, but played faster by players who can now time a run. Worth a refresher rather than assuming it carried over.", topics: ["Offside"] },
     { band: "u15", title: "Cards start to cost you", why: "A yellow or red at this age carries into the next match. Say what earns each before someone finds out the hard way.", topics: ["Misconduct & cards"] },
     { band: "u15", title: "What high school soccer expects", why: "The handover to varsity: the laws they will be held to, and the standards that come with the shirt.", topics: ["Basics for parents", "Referee signals"] }
@@ -195,7 +197,8 @@
       lede: "Everything your coaches need to run the Eagles Way — videos play in-app, guides &amp; plans open in a tab. " },
     laws: { cat: "laws", topics: LAW_TOPICS, ages: LAW_AGES, noun: "explainer",
       bands: LAW_BANDS, plan: LAW_PLAN,
-      planNote: 'Built from our own division rules — formats, timings, the U8 penalty-box rule, the build-out line, and <b>no headers until U15</b>. If the league changes a rule, change the line here too.',
+      planNote: 'Built from Black Swamp’s published Playing Guidelines — one PDF per division — plus our own in-house U6 rules. ' +
+        'Formats, timings, ball sizes, the build-out line, and <b>no headers until U15</b>. If the league reissues a guideline, change the line here too.',
       lede: "How the game is called, explained once so coaches, parents and refs all say the same thing. " }
   };
   function resCat(r) { return (r && r.category === "laws") ? "laws" : "training"; }
