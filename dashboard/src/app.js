@@ -94,8 +94,7 @@
   var LAW_BANDS = [
     { key: "all", title: "Every age", note: "True wherever we play. Every player must play at least 50% of each game. Referees can card coaches the same way they card players, and a purposeful header is banned until U15." },
     { key: "u6",  title: "U6", note: "Our own in-house division — Black Swamp starts at U8, so these are LB's rules, not the league's. 30 min practice then four 5–6 min quarters (five 5s if both coaches agree). 4v4, no goalie, roughly two up and two back. Coaches ref, nobody keeps score, 10 games." },
-    { key: "u8",  title: "U8", note: "6v6 including a goalie, two 20-minute halves, size 3 ball. Roster 6–10. No penalty kicks and every free kick is indirect. No punts or drop kicks — opponents retreat 8 yards until the keeper throws, rolls or kicks. A purposeful header is an indirect kick from the spot. Two different keepers minimum, none for more than 20 minutes.",
-      unconfirmed: "Two things in our October meeting notes disagree with the league's published U8 guidelines: the notes say coaches referee their own U8 games (the guidelines say one registered referee) and that a foul in the box is a DIRECT kick from the box line (the guidelines make every U8 free kick indirect). Settle which applies to LB before filming either one." },
+    { key: "u8",  title: "U8", note: "6v6 including a goalie, two 20-minute halves, size 3 ball. Roster 6–10. One registered referee. No penalty kicks and every free kick is indirect. No punts or drop kicks — opponents retreat 8 yards until the keeper throws, rolls or kicks. A purposeful header is an indirect kick from the spot. Two different keepers minimum, none for more than 20 minutes." },
     { key: "u10", title: "U10", note: "7v7 including a goalie, two 25-minute halves, size 4 ball. Roster 7–12. Build-out line, offside, penalty kicks from 8 yards. No punts or drop kicks. A purposeful header is an indirect kick — a penalty kick if it denies a goal. One registered referee." },
     { key: "u12", title: "U12", note: "9v9 including a goalie, two 30-minute halves, size 4 ball. True offside, no build-out line, penalty kicks from 10 yards. Keepers may punt and drop kick from here on. Heading is still banned. Three-man referee system." },
     { key: "u15", title: "U15", note: "11v11 including a goalie, two 35-minute halves, size 5 ball on a full-size field. Roster 11–18. Three-person referee system. Heading is allowed, per FIFA. Keepers may punt and drop kick. The same guidelines cover U19, which the league may run as 8v8 on a U12 field." }
@@ -117,9 +116,9 @@
 
     { band: "u8", title: "6v6 with a keeper, two 20-minute halves", why: "The format, plus equal playing time being an expectation and not a suggestion.", topics: ["Small-sided rules", "Goalkeeper rules"] },
     { band: "u8", title: "No punting, no drop kicks", why: "Keepers arrive and immediately want to punt. Show what they do instead.", topics: ["Goalkeeper rules"] },
-    { band: "u8", title: "Fouls in the box: no penalty kicks at U8", why: "The league's guidelines put the ball on the nearest penalty-area line and make every U8 free kick indirect — two players must touch it before it counts. Our meeting notes say direct. Settle that before you film it.", topics: ["Fouls & free kicks", "Penalty kicks"] },
-    { band: "u8", title: "Throw-in redos, and how they change at midseason", why: "First half of the season: allow a redo, then play on either way. Second half: redo, then the other team gets the ball.", topics: ["Throw-ins"] },
-    { band: "u8", title: "Coaches ref their own U8 games", why: "How to teach during a game without turning it into a 90-minute clinic.", topics: ["Referee signals", "Basics for parents"] },
+    { band: "u8", title: "Fouls in the box: no penalty kicks at U8", why: "Ball goes on the nearest penalty-area line, opponents eight yards back. It is an indirect kick like every U8 free kick, so two players must touch it before a goal counts.", topics: ["Fouls & free kicks", "Penalty kicks"] },
+    { band: "u8", title: "Teaching throw-ins when they keep going wrong", why: "Our approach: early season, let them redo it and play on either way. Later, a redo then the ball goes over — which is how refs at this level call it. Facing the field, both feet down, over and behind the head.", topics: ["Throw-ins"] },
+    { band: "u8", title: "Rotating keepers at U8", why: "At least two different keepers a game, a change every half, and nobody in goal for more than 20 minutes. It is a rule, not a preference, and it catches coaches out.", topics: ["Goalkeeper rules", "Small-sided rules"] },
 
     { band: "u10", title: "The build-out line: where it is and what it does", why: "Yellow line halfway between the top of the box and midfield. It teaches offside using a line instead of the last defender.", topics: ["Small-sided rules", "Offside"] },
     { band: "u10", title: "Offside at U10 runs off the build-out line", why: "A player is only offside beyond the build-out line, and it is the SECOND-last opponent that matters, not the last defender. Restart is an indirect kick where it happened.", topics: ["Offside", "Small-sided rules"] },
@@ -190,13 +189,42 @@
     });
   }
 
+  // The league's own published guidelines, straight from the Black Swamp site.
+  // These are the source our explainers are written from, so coaches get the
+  // authoritative document today — before a single video exists.
+  var BSSL_PDF = "https://s3.amazonaws.com/jerseywatch-files/production/organizations/351/downloads/";
+  var STARTER_LAWS = [
+    { title: "Laws of the Game (full)", type: "guide", category: "laws",
+      url: "https://jerseywatch-files.s3.amazonaws.com/production/organizations/351/downloads/laws_of_the_game.pdf",
+      ages: ["all"], topics: ["Referee signals", "Fouls & free kicks"], duration: "",
+      desc: "The full Laws of the Game as published by the league. The backstop for anything our own explainers don't cover.", note: "Black Swamp" },
+    { title: "Black Swamp U8 Playing Guidelines", type: "guide", category: "laws",
+      url: BSSL_PDF + "BSSL_U8_Playing_Guidelines.pdf", ages: ["u8"],
+      topics: ["Small-sided rules", "Fouls & free kicks"], duration: "3 pages",
+      desc: "Official U8 rules: 6v6, two 20s, size 3, no penalty kicks, every free kick indirect, no punts, heading banned.", note: "Black Swamp" },
+    { title: "Black Swamp U10 Playing Guidelines", type: "guide", category: "laws",
+      url: BSSL_PDF + "BSSL_U10_Playing_Guidelines.pdf", ages: ["u10"],
+      topics: ["Small-sided rules", "Offside", "Goalkeeper rules"], duration: "4 pages",
+      desc: "Official U10 rules: 7v7, two 25s, size 4, the build-out line, offside, penalty kicks at 8 yards, no punts.", note: "Black Swamp" },
+    { title: "Black Swamp U12 Playing Guidelines", type: "guide", category: "laws",
+      url: BSSL_PDF + "BSSL_U12_Playing_Guidelines.pdf", ages: ["u12"],
+      topics: ["Small-sided rules", "Offside"], duration: "4 pages",
+      desc: "Official U12 rules: 9v9, two 30s, size 4, true offside, penalty kicks at 10 yards, punting allowed, heading still banned.", note: "Black Swamp" },
+    { title: "Black Swamp U15 Playing Guidelines", type: "guide", category: "laws",
+      url: BSSL_PDF + "BSSL_U15_Playing_Guidelines.pdf", ages: ["u15"],
+      topics: ["Small-sided rules", "Field & equipment"], duration: "4 pages",
+      desc: "Official U15 (and U19) rules: 11v11, two 35s, size 5, full-size field, three-person referee system, heading allowed.", note: "Black Swamp" }
+  ];
+
   var LIBS = {
     training: { cat: "training", topics: RES_TOPICS, ages: RES_AGES, noun: "resource",
       bands: TRAIN_BANDS, plan: TRAIN_PLAN,
+      startersLabel: "Load the starter library",
       planNote: 'Planned against the curriculum we already publish — the Standard, the four-beat session, and each band’s own focus and cues. Edit or drop any line.',
       lede: "Everything your coaches need to run the Eagles Way — videos play in-app, guides &amp; plans open in a tab. " },
     laws: { cat: "laws", topics: LAW_TOPICS, ages: LAW_AGES, noun: "explainer",
       bands: LAW_BANDS, plan: LAW_PLAN,
+      startersLabel: "Add the league's own rule PDFs",
       planNote: 'Built from Black Swamp’s published Playing Guidelines — one PDF per division — plus our own in-house U6 rules. ' +
         'Formats, timings, ball sizes, the build-out line, and <b>no headers until U15</b>. If the league reissues a guideline, change the line here too.',
       lede: "How the game is called, explained once so coaches, parents and refs all say the same thing. " }
@@ -226,6 +254,12 @@
     { title: "Example — ball-mastery warmup clip", type: "video", url: "https://www.youtube.com/results?search_query=youth+soccer+ball+mastery+warmup", ages: ["grassroot", "academy"], topics: ["Ball mastery", "Warmups"], duration: "", desc: "Replace with your own clip — paste any YouTube or Vimeo link and it plays right here in the dashboard.", note: "Example — replace with your clip" },
     { title: "Example — 1v1 moves to teach", type: "video", url: "https://www.youtube.com/results?search_query=soccer+1v1+moves+for+kids", ages: ["academy", "nextxi"], topics: ["1v1 / moves", "Dribbling"], duration: "", desc: "Example placeholder. Add a real YouTube/Vimeo link and coaches watch it without leaving the dashboard.", note: "Example — replace with your clip" }
   ];
+
+  // Attached here, not inside LIBS: that object is built above STARTER_RESOURCES,
+  // so referencing it there would have read a hoisted-but-undefined var and the
+  // training starter button would silently never render.
+  LIBS.training.starters = STARTER_RESOURCES;
+  LIBS.laws.starters = STARTER_LAWS;
 
   function blank() { return { athletes: [], sponsors: [], phasesDone: [], sessions: [], events: [], finances: [], teams: [], resources: [], usage: [], settings: Object.assign({}, SETTINGS_DEFAULT), seeded: false }; }
   function load() {
@@ -1359,8 +1393,9 @@
       '</section>';
     }).join("");
     grid = '<p class="lawplan-note">' + lib.planNote +
-      (cat === "training" && !mine.length
-        ? ' <button class="btn btn--ghost btn--sm owner-only" data-action="load-starter-resources">Load the starter library</button>'
+      (lib.starters && !mine.length
+        ? ' <button class="btn btn--ghost btn--sm owner-only" data-action="load-starter-resources" ' +
+          'data-lib="' + esc(cat) + '">' + esc(lib.startersLabel) + '</button>'
         : "") + '</p>' + grid;
 
     host.innerHTML = syncBanner("resources", "library") + principle + summary + toolbar + grid;
@@ -1424,15 +1459,19 @@
     state.resources = state.resources.filter(function (x) { return x.id !== id; });
     save(); pushResourceDelete(r); hideDrawer(); renderView(); toast("Resource removed.");
   }
-  function loadStarterResources() {
-    var added = 0;
-    STARTER_RESOURCES.forEach(function (s) {
+  // Shared by both shelves: category comes from the library, so the law PDFs
+  // land on the laws shelf and the coaching starters on training.
+  function loadStarters(cat) {
+    var lib = libOf(cat), added = 0;
+    (lib.starters || []).forEach(function (s) {
       if (state.resources.some(function (x) { return x.title === s.title; })) return;
-      var rec = Object.assign({}, s, { id: uid("res"), ages: s.ages.slice(), topics: s.topics.slice(), updated: new Date().toISOString(), unsynced: true });
+      var rec = Object.assign({}, s, { id: uid("res"), category: lib.cat,
+        ages: s.ages.slice(), topics: s.topics.slice(),
+        updated: new Date().toISOString(), unsynced: true });
       state.resources.push(rec); pushResource(rec); added++;
     });
     save(); renderView();
-    toast(added + " starter resource" + (added === 1 ? "" : "s") + " added.");
+    toast(added + " " + lib.noun + (added === 1 ? "" : "s") + " added.");
   }
 
   // ---- video / resource player ----
@@ -1986,7 +2025,7 @@
       case "open-resource": var rr = resById(id); if (rr && rr.url) { window.open(rr.url, "_blank", "noopener"); logUsage(rr, "open"); } break;
       case "resource-usage": openResourceUsage(id); break;
       case "coach-activity": openCoachActivity(); break;
-      case "load-starter-resources": loadStarterResources(); break;
+      case "load-starter-resources": loadStarters(act.dataset.lib || "training"); break;
       case "res-type": {
         var lfT = libFilters(libCat());
         lfT.type = act.dataset.v;
