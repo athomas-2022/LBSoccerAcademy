@@ -99,45 +99,6 @@
     { key: "u12", title: "U12", note: "9v9 including a goalie, two 30-minute halves, size 4 ball. True offside, no build-out line, penalty kicks from 10 yards. Keepers may punt and drop kick from here on. Heading is still banned. Three-man referee system." },
     { key: "u15", title: "U15", note: "11v11 including a goalie, two 35-minute halves, size 5 ball on a full-size field. Roster 11–18. Three-person referee system. Heading is allowed, per FIFA. Keepers may punt and drop kick. The same guidelines cover U19, which the league may run as 8v8 on a U12 field." }
   ];
-  // Built from LB's own division rules, not a generic framework.
-  var LAW_PLAN = [
-    { band: "all", title: "No headers until U15", why: "Banned at U8, U10 and U12 — a purposeful header is an indirect kick from the spot, and at U10 and U12 a penalty kick if it denies a goal. Legal at U15 per FIFA. Say it plainly so no coach or parent is unsure.", topics: ["Basics for parents", "Fouls & free kicks"] },
-    { band: "all", title: "Proper throw-ins: over the head, both feet down", why: "Taught from U6 and still getting called at U12. One clip covers the whole club.", topics: ["Throw-ins"] },
-    { band: "all", title: "Direct vs indirect free kicks", why: "You cannot follow the U8 penalty-box rule or a U12 offside restart without this.", topics: ["Fouls & free kicks", "Kick-off & restarts"] },
-    { band: "all", title: "Coaches are responsible for their spectators", why: "A coach can be yellow or red carded for what the sideline says. Set the standard before a ref has to.", topics: ["Misconduct & cards", "Basics for parents"] },
-    { band: "all", title: "Keep it positive — to every player, both benches, and the ref", why: "Referees can card a coach exactly as they card a player, and discipline can go as far as a permanent ban. Worth being explicit about.", topics: ["Misconduct & cards", "Basics for parents"] },
-    { band: "all", title: "Everyone plays half the game", why: "A league rule, not a nicety: every player plays at least 50% of each game unless injured, ill, or benched for discipline — and the referee has to be told beforehand in that last case.", topics: ["Small-sided rules", "Basics for parents"] },
-
-    { band: "u6", title: "How a U6 night runs", why: "30 minutes of practice, then four 5–6 minute quarters — or five 5s if both coaches agree. Parents ask every week.", topics: ["Small-sided rules", "Basics for parents"] },
-    { band: "u6", title: "4v4, no goalie, roughly two up and two back", why: "The shape we want them holding, and why there is no keeper yet.", topics: ["Small-sided rules", "Goalkeeper rules"] },
-    { band: "u6", title: "Coaches ref, and nobody keeps score", why: "Heads off the most common U6 sideline argument before the season starts.", topics: ["Basics for parents", "Referee signals"] },
-    { band: "u6", title: "A parent or guardian must be at the field", why: "Safety rule: a coach is never alone with a child. Every U6 parent needs to hear this.", topics: ["Basics for parents"] },
-    { band: "u6", title: "What we actually coach at U6", why: "Running and kicking at the same time, throw-ins, and where to stand on offense and defense.", topics: ["Small-sided rules"] },
-
-    { band: "u8", title: "6v6 with a keeper, two 20-minute halves", why: "The format, plus equal playing time being an expectation and not a suggestion.", topics: ["Small-sided rules", "Goalkeeper rules"] },
-    { band: "u8", title: "No punting, no drop kicks", why: "Keepers arrive and immediately want to punt. Show what they do instead.", topics: ["Goalkeeper rules"] },
-    { band: "u8", title: "Fouls in the box: no penalty kicks at U8", why: "Ball goes on the nearest penalty-area line, opponents eight yards back. It is an indirect kick like every U8 free kick, so two players must touch it before a goal counts.", topics: ["Fouls & free kicks", "Penalty kicks"] },
-    { band: "u8", title: "Teaching throw-ins when they keep going wrong", why: "Our approach: early season, let them redo it and play on either way. Later, a redo then the ball goes over — which is how refs at this level call it. Facing the field, both feet down, over and behind the head.", topics: ["Throw-ins"] },
-    { band: "u8", title: "Rotating keepers at U8", why: "At least two different keepers a game, a change every half, and nobody in goal for more than 20 minutes. It is a rule, not a preference, and it catches coaches out.", topics: ["Goalkeeper rules", "Small-sided rules"] },
-
-    { band: "u10", title: "The build-out line: where it is and what it does", why: "Yellow line halfway between the top of the box and midfield. It teaches offside using a line instead of the last defender.", topics: ["Small-sided rules", "Offside"] },
-    { band: "u10", title: "Offside at U10 runs off the build-out line", why: "A player is only offside beyond the build-out line, and it is the SECOND-last opponent that matters, not the last defender. Restart is an indirect kick where it happened.", topics: ["Offside", "Small-sided rules"] },
-    { band: "u10", title: "Keeper has it: everyone retreats", why: "Opponents go behind the build-out line as soon as the keeper has it in their hands, and stay there until it is thrown, rolled or kicked. Same on goal kicks. No punts or drop kicks at all.", topics: ["Goalkeeper rules", "Goal kicks & corners"] },
-    { band: "u10", title: "Referees arrive at U10 — what changes for you", why: "Stay on the sideline, stay 10 yards off the half line. Both are cardable offences even if most refs let them go.", topics: ["Referee signals", "Misconduct & cards"] },
-    { band: "u10", title: "7v7, two 25-minute halves", why: "The step up from U8: an extra outfield player and five more minutes a half.", topics: ["Small-sided rules"] },
-
-    { band: "u12", title: "True offside — the full rule", why: "No build-out line any more. Closer to the goal than both the ball and the last defender, keeper not counted.", topics: ["Offside"] },
-    { band: "u12", title: "Offside is about being involved", why: "Interfering with play, interfering with an opponent, or gaining an advantage from the position.", topics: ["Offside"] },
-    { band: "u12", title: "When a player is NOT offside", why: "Own half, level with the last defender, or behind the ball — and never direct from a goal kick, throw-in or corner.", topics: ["Offside", "Goal kicks & corners", "Throw-ins"] },
-    { band: "u12", title: "The restart after an offside call", why: "Indirect kick to the other team from where the infringement happened.", topics: ["Offside", "Fouls & free kicks"] },
-    { band: "u12", title: "9v9, two 30-minute halves", why: "The last step before 11v11, and the format the whole U12 season runs on.", topics: ["Small-sided rules"] },
-
-    { band: "u15", title: "Heading is legal from U15 — bringing it back safely", why: "The only U15 rule our sheet actually states. Players have gone nine years without it, so teach the technique before the first ball comes in.", topics: ["Basics for parents", "Fouls & free kicks"] },
-    { band: "u15", title: "The jump to 11v11", why: "Nine a side to eleven, size 4 to size 5, a 30-minute half to 35, and a full-size field. Everything gets bigger at once.", topics: ["Small-sided rules", "Field & equipment"] },
-    { band: "u15", title: "Offside at speed", why: "Same law as U12, but played faster by players who can now time a run. Worth a refresher rather than assuming it carried over.", topics: ["Offside"] },
-    { band: "u15", title: "Cards start to cost you", why: "A yellow or red at this age carries into the next match. Say what earns each before someone finds out the hard way.", topics: ["Misconduct & cards"] },
-    { band: "u15", title: "What high school soccer expects", why: "The handover to varsity: the laws they will be held to, and the standards that come with the shirt.", topics: ["Basics for parents", "Referee signals"] }
-  ];
   // The coaching library plans against the curriculum we already publish: the
   // Standard, the four-beat session, and each band's own focus and cues.
   var TRAIN_BANDS = [
@@ -223,7 +184,11 @@
       planNote: 'Planned against the curriculum we already publish — the Standard, the four-beat session, and each band’s own focus and cues. Edit or drop any line.',
       lede: "Everything your coaches need to run the Eagles Way — videos play in-app, guides &amp; plans open in a tab. " },
     laws: { cat: "laws", topics: LAW_TOPICS, ages: LAW_AGES, noun: "explainer",
-      bands: LAW_BANDS, plan: LAW_PLAN,
+      // No content plan: the league's own PDFs are the laws provision, and no
+      // explainers will be made (decided 7 Nov 2026). An empty plan also hides
+      // the "planned" counts and the all-made line, which only mean anything
+      // when there is a to-do list behind them.
+      bands: LAW_BANDS, plan: [],
       startersLabel: "Add the league's own rule PDFs",
       planNote: 'Built from Black Swamp’s published Playing Guidelines — one PDF per division — plus our own in-house U6 rules. ' +
         'Formats, timings, ball sizes, the build-out line, and <b>no headers until U15</b>. If the league reissues a guideline, change the line here too.',
@@ -1351,8 +1316,8 @@
       principle += '<p class="res-disclose">Heads up: we log which materials get opened, and by whom, ' +
         'so we know what’s actually useful and what to make more of. Nothing else is tracked.</p>';
     }
-    // Neither shelf shows a bare empty state any more: the band sections carry
-    // the content plan, which is the useful thing when you have made nothing.
+    // Neither shelf shows a bare empty state: the band sections carry the
+    // content plan (training) or the per-division rule notes (laws).
     var mine = resourcesIn(cat);
     var count = mine.length, vids = mine.filter(function (r) { return r.type === "video"; }).length;
     var activeCoaches = canEdit() ? usageByCoach().length : 0;
@@ -1372,13 +1337,14 @@
       '</div><div class="res-filters">' + typeChips + '</div>';
 
     var list = filteredResources(cat);
+    var hasPlan = lib.plan.length > 0;
     var grid = lib.bands.map(function (b) {
       var cards = resourcesInBand(list, b.key);
       var all = planFor(lib, b.key);
       var todo = all.filter(function (p) { return !planDone(lib, p); });
       return '<section class="lawband">' +
         '<div class="lawband__head"><h3 class="lawband__h">' + esc(b.title) + '</h3>' +
-          '<span class="lawband__count tnum">' + (all.length - todo.length) + '/' + all.length + ' planned</span></div>' +
+          (hasPlan ? '<span class="lawband__count tnum">' + (all.length - todo.length) + '/' + all.length + ' planned</span>' : "") + '</div>' +
         '<p class="lawband__note">' + esc(b.note) + '</p>' +
         (b.unconfirmed ? '<p class="lawband__todo">Format not confirmed — ' + esc(b.unconfirmed) + '</p>' : "") +
         (cards.length ? '<div class="res-grid">' + cards.map(resCard).join("") + '</div>' : "") +
@@ -1389,7 +1355,7 @@
               'data-lib="' + esc(cat) + '" data-i="' + lib.plan.indexOf(p) + '">Make this</button>' +
           '</li>';
         }).join("") + '</ul>' : "") +
-        (!cards.length && !todo.length ? '<p class="lawband__done">Every planned ' + esc(lib.noun) + ' for this band is made.</p>' : "") +
+        (hasPlan && !cards.length && !todo.length ? '<p class="lawband__done">Every planned ' + esc(lib.noun) + ' for this band is made.</p>' : "") +
       '</section>';
     }).join("");
     grid = '<p class="lawplan-note">' + lib.planNote +
