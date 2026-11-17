@@ -596,6 +596,8 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
   background:var(--surface-2);border-radius:var(--r-pill);padding:.15rem .55rem;flex:0 0 auto}
 .lawband__note{margin:0 0 .9rem;font-size:var(--fs-sm);color:var(--ink-2);font-weight:500;max-width:70ch}
 .lawband__done{margin:0;font-size:var(--fs-sm);color:var(--ink-3);font-weight:600}
+.lawband--spot{border-top:3px solid var(--blue-900);padding-top:1rem}
+.lawband--spot .lawband__head{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap}
 /* Marks a band whose format we were never given, so a placeholder is never
    mistaken for a league rule. */
 .lawband__todo{margin:0 0 .9rem;padding:.55rem .75rem;border:1px dashed var(--line-2);

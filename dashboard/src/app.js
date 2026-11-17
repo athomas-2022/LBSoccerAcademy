@@ -65,7 +65,7 @@
   ];
   var RES_AGES = [ { key: "grassroot", label: "K–2" }, { key: "academy", label: "3–5" }, { key: "nextxi", label: "6–8" }, { key: "all", label: "All ages" } ];
   var RES_TOPICS = ["Ball mastery", "Dribbling", "1v1 / moves", "Passing & receiving", "Possession", "First touch", "Shooting & finishing",
-    "Small-sided games", "Defending", "Goalkeeping", "Team shape", "Tactics", "Set pieces", "Warmups", "Fun & games", "Session plans", "Coaching basics"];
+    "Small-sided games", "Defending", "Goalkeeping", "Team shape", "Tactics", "Set pieces", "Warmups", "Fitness", "Fun & games", "Session plans", "Coaching basics"];
   function resType(k) { for (var i = 0; i < RES_TYPES.length; i++) if (RES_TYPES[i].key === k) return RES_TYPES[i]; return RES_TYPES[0]; }
   // The laws divide by playing division (U6/U8/U10/U12), not by the grade bands
   // the curriculum uses. Different axis, so it gets its own list.
@@ -107,6 +107,21 @@
     { key: "academy", title: "3–5 · Rising", note: "Real skill: the toolbox that beats a defender, and the first touch that buys the time to use it." },
     { key: "nextxi", title: "6–8 · Next XI", note: "The Eagles system — how we play as a team, out of the back and through the lines." }
   ];
+  // Spots: topic shelves that sit under the age groups. A resource whose FIRST
+  // topic belongs to a spot files itself there instead of under its age, so a
+  // keeper drill for 6-8 lives with the other keeper material. Later topics
+  // don't count, so a build-out game that only touches the keeper stays put.
+  var TRAIN_SPOTS = [
+    { key: "gk", title: "Goalkeepers", topics: ["Goalkeeping"], add: "Add keeper material",
+      note: "Keeper technique, keeper calls and keeper drills, for every age that plays with a goalie." },
+    { key: "fit", title: "Fitness & warmups", topics: ["Warmups", "Fitness"], add: "Add a warmup or fitness piece",
+      note: "Warmups, movement, conditioning and injury prevention. Ball in play wherever it can be." }
+  ];
+  function spotOf(r) {
+    var first = (r.topics || [])[0];
+    for (var i = 0; i < TRAIN_SPOTS.length; i++) if (TRAIN_SPOTS[i].topics.indexOf(first) > -1) return TRAIN_SPOTS[i];
+    return null;
+  }
   var TRAIN_PLAN = [
     { band: "all", title: "The Standard — the six non-negotiables on video", why: "Touches, Brave, Play, Fun, System, every kid known by name. The rules every affiliated coach carries.", topics: ["Coaching basics"] },
     { band: "all", title: "Communication and intensity — what it looks like", why: "The house rule is abstract until someone sees a session run at game speed with players talking.", topics: ["Coaching basics"] },
@@ -248,7 +263,7 @@
 
   var LIBS = {
     training: { cat: "training", topics: RES_TOPICS, ages: RES_AGES, noun: "resource",
-      bands: TRAIN_BANDS, plan: TRAIN_PLAN,
+      bands: TRAIN_BANDS, plan: TRAIN_PLAN, spots: TRAIN_SPOTS,
       startersLabel: "Load the starter library",
       planNote: 'Planned against the curriculum we already publish — the Standard, the four-beat session, and each band’s own focus and cues. Edit or drop any line.',
       lede: "Everything your coaches need to run the Eagles Way — videos play in-app, guides &amp; plans open in a tab. " },
@@ -1463,7 +1478,7 @@
     var list = filteredResources(cat);
     var hasPlan = lib.plan.length > 0;
     var grid = lib.bands.map(function (b) {
-      var cards = resourcesInBand(list, b.key);
+      var cards = resourcesInBand(list, b.key).filter(function (r) { return !(lib.spots && spotOf(r)); });
       var all = planFor(lib, b.key);
       var todo = all.filter(function (p) { return !planDone(lib, p); });
       return '<section class="lawband">' +
@@ -1482,6 +1497,17 @@
           '</li>';
         }).join("") + '</ul>' : "") +
         (hasPlan && !cards.length && !todo.length ? '<p class="lawband__done">Every planned ' + esc(lib.noun) + ' for this band is made.</p>' : "") +
+      '</section>';
+    }).join("");
+    grid += (lib.spots || []).map(function (sp) {
+      var cards = list.filter(function (r) { return spotOf(r) === sp; });
+      return '<section class="lawband lawband--spot" id="spot-' + sp.key + '">' +
+        '<div class="lawband__head"><h3 class="lawband__h">' + esc(sp.title) + '</h3>' +
+          '<button class="btn btn--ghost btn--sm owner-only" data-action="add-to-spot" data-spot="' + sp.key + '">' + esc(sp.add) + '</button></div>' +
+        '<p class="lawband__note">' + esc(sp.note) + '</p>' +
+        (cards.length ? '<div class="res-grid">' + cards.map(resCard).join("") + '</div>'
+          : '<p class="lawband__done">Nothing here yet. Anything whose first topic is ' +
+            sp.topics.map(function (t) { return '“' + esc(t) + '”'; }).join(" or ") + ' shows up here.</p>') +
       '</section>';
     }).join("");
     // Tactics pieces carry a readiness level as well as a grade band. The
@@ -2152,6 +2178,11 @@
         // finished item files itself back under the section it came from.
         openResource({ title: plan.title, ages: [plan.band], topics: (plan.topics || []).slice(),
           desc: plan.why, type: "video" }, pLib.cat);
+        break;
+      }
+      case "add-to-spot": {
+        var sp = TRAIN_SPOTS.filter(function (x) { return x.key === act.dataset.spot; })[0];
+        if (sp) openResource({ title: "", ages: ["all"], topics: [sp.topics[0]], type: "video" }, "training");
         break;
       }
       case "edit-resource": openResource(resById(id)); break;
