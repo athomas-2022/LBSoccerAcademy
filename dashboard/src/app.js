@@ -1540,15 +1540,7 @@
             sp.topics.map(function (t) { return '“' + esc(t) + '”'; }).join(" or ") + ' shows up here.</p>' : "") +
       '</section>';
     }).join("");
-    // Tactics pieces carry a readiness level as well as a grade band. The
-    // ladder explains it once, above every list those pieces appear in.
-    var ladder = cat === "training" && tab.indexOf("spot:") !== 0
-      ? '<div class="tactics-ladder"><p><b>Tactics levels.</b> One idea runs through every level: with the ball we get wide, without it we get compact. ' +
-        'Levels go by readiness, not by grade. A team moves up when it does the level below without being told.</p>' +
-        '<ul><li><b>Offense:</b> Level 1 Spread out. Level 2 Be an option, support. Level 3 Transition shape.</li>' +
-        '<li><b>Defense:</b> Level 1 Everyone plays defense. Level 2 Pressure, cover, balance. Level 3 Defensive shape and marking in depth.</li></ul></div>'
-      : "";
-    grid = ladder + '<p class="lawplan-note">' + lib.planNote +
+    grid = '<p class="lawplan-note">' + lib.planNote +
       (lib.starters && !mine.length
         ? ' <button class="btn btn--ghost btn--sm owner-only" data-action="load-starter-resources" ' +
           'data-lib="' + esc(cat) + '">' + esc(lib.startersLabel) + '</button>'
