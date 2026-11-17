@@ -130,16 +130,16 @@
     { band: "academy", title: "The chop — stop, cut, go", why: "The move that wins space when a defender is running alongside. Inside and outside of the foot.", topics: ["1v1 / moves", "Dribbling"] },
     { band: "academy", title: "The stepover — sell it with the shoulders", why: "Most kids step over the ball and go nowhere. Show the shoulder drop that makes the defender buy it.", topics: ["1v1 / moves", "Dribbling"] },
     { band: "academy", title: "Passing and receiving: inside, outside, sole — both feet", why: "Three surfaces, two feet, one partner. The receiving half matters as much as the pass.", topics: ["Passing & receiving", "First touch"] },
-    { band: "academy", title: "Pass, dribble or shoot? Decisions in small-sided games", why: "Let the game ask the question. One quick freeze at most, and the player answers it, not the coach.", topics: ["Small-sided games", "Shooting & finishing"] },
+    { band: "academy", title: "Pass, dribble or shoot? Decisions in small-sided games", why: "Let the game ask the question. One quick freeze at most, and the player answers it, not the coach.", topics: ["Small-sided games", "Shooting & finishing", "Tactics"] },
     { band: "academy", title: "The three Rising cues, said out loud", why: "“Head up — what do you see?” “First touch into space.” “Try your move — I love the brave.”", topics: ["Coaching basics"] },
 
     { band: "nextxi", title: "Rondo — keeping the ball under pressure", why: "The warmup that teaches angles, speed of play and scanning all at once.", topics: ["Passing & receiving", "Warmups"] },
-    { band: "nextxi", title: "4v4+2 building from the keeper", why: "The Next XI sample session's core. Playing out of the back on purpose, not by accident.", topics: ["Team shape", "Goalkeeping"] },
-    { band: "nextxi", title: "Playing through the lines", why: "What we mean by the Eagles system, shown on a field rather than a whiteboard.", topics: ["Team shape", "Passing & receiving"] },
+    { band: "nextxi", title: "4v4+2 building from the keeper", why: "The Next XI sample session's core. Playing out of the back on purpose, not by accident.", topics: ["Team shape", "Goalkeeping", "Tactics"] },
+    { band: "nextxi", title: "Playing through the lines", why: "What we mean by the Eagles system, shown on a field rather than a whiteboard.", topics: ["Team shape", "Passing & receiving", "Tactics"] },
     { band: "nextxi", title: "Check your shoulder — scanning before you receive", why: "The single habit that separates a 6th-grader who looks composed from one who does not.", topics: ["First touch", "Team shape"] },
-    { band: "nextxi", title: "Team shape: spacing, roles and staying connected", why: "Every position has a job with the ball and without it. Show the shape stretching and shrinking as one.", topics: ["Team shape"] },
-    { band: "nextxi", title: "Win it back fast — pressing and transition", why: "“We lost it — press together.” The first few seconds after losing the ball, played out on a small field.", topics: ["Defending", "Team shape"] },
-    { band: "nextxi", title: "Set pieces: simple kick-off, corner and goal-kick routines", why: "One routine each, named in our vocabulary, so every Next XI team runs the same thing.", topics: ["Set pieces", "Team shape"] },
+    { band: "nextxi", title: "Team shape: spacing, roles and staying connected", why: "Every position has a job with the ball and without it. Show the shape stretching and shrinking as one.", topics: ["Team shape", "Tactics"] },
+    { band: "nextxi", title: "Win it back fast — pressing and transition", why: "“We lost it — press together.” The first few seconds after losing the ball, played out on a small field.", topics: ["Defending", "Team shape", "Tactics"] },
+    { band: "nextxi", title: "Set pieces: simple kick-off, corner and goal-kick routines", why: "One routine each, named in our vocabulary, so every Next XI team runs the same thing.", topics: ["Set pieces", "Team shape", "Tactics"] },
     { band: "nextxi", title: "The three Next XI cues, said out loud", why: "“Open up — check your shoulder.” “We lost it — press together.” “Play through the lines, be patient.”", topics: ["Coaching basics"] }
   ];
 
