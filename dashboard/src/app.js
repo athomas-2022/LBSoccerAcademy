@@ -113,7 +113,7 @@
     { band: "all", title: "Communication and intensity — what it looks like", why: "The house rule is abstract until someone sees a session run at game speed with players talking.", topics: ["Coaching basics"] },
     { band: "all", title: "Setting up a small-sided game in 60 seconds", why: "Cones, teams, rotations. The difference between 40% of the session competing and 40% standing around.", topics: ["Small-sided games", "Session plans"] },
     { band: "all", title: "One coach, fourteen kids, no help", why: "The situation most of our volunteers are actually in. Show how the session still works.", topics: ["Coaching basics", "Session plans"] },
-    { band: "all", title: "Get wide, pinch: the one idea behind everything", level: "Every level", why: "Desk explainer, 60 seconds. With the ball we get wide, without it we pinch. Every tactics piece builds on this.", topics: ["Tactics", "Team shape"] },
+    { band: "all", title: "Get wide, get compact: the one idea behind everything", level: "Every level", why: "Desk explainer, 60 seconds. With the ball we get wide, without it we get compact. Every tactics piece builds on this.", topics: ["Tactics", "Team shape"] },
     { band: "all", title: "Beat 4: coaching the open scrimmage by not coaching", why: "Step back, let them own the game, and speak only to celebrate the brave. The hardest beat for a new coach, because it looks like doing nothing.", topics: ["Small-sided games", "Coaching basics"] },
 
     { band: "grassroot", title: "Beat 1: a K–2 ball-mastery warmup", why: "Everyone on a ball the moment they arrive. Show what good looks like for five-year-olds.", topics: ["Ball mastery", "Warmups"] },
@@ -147,10 +147,10 @@
     { band: "nextxi", title: "Win it back fast — pressing and transition", level: "Defense Level 2", why: "“We lost it. Press together!” The first few seconds after losing the ball, played out on a small field.", topics: ["Defending", "Team shape", "Tactics"] },
     { band: "nextxi", title: "Set pieces: simple kick-off, corner and goal-kick routines", why: "One routine each, named in our vocabulary, so every Next XI team runs the same thing.", topics: ["Set pieces", "Team shape", "Tactics"] },
     { band: "nextxi", title: "Width, depth and support: how we attack", level: "Offense Level 2", why: "The ideas behind team shape and playing through the lines, explained on a board before they are drilled on a field.", topics: ["Tactics", "Team shape"] },
-    { band: "nextxi", title: "Compact, cover and balance: how we defend", level: "Defense Level 2", why: "Pinch when we lose it, pressure and cover, tuck in on the far side, and get wide again the moment we win it.", topics: ["Tactics", "Defending"] },
+    { band: "nextxi", title: "Compact, cover and balance: how we defend", level: "Defense Level 2", why: "Get compact when we lose it, pressure and cover, tuck in on the far side, and get wide again the moment we win it.", topics: ["Tactics", "Defending"] },
     { band: "nextxi", title: "Transition shape: what we do when we win it", level: "Offense Level 3", why: "Desk explainer, about 2.5 minutes. The moment we win it, we get wide and look forward.", topics: ["Tactics", "Team shape"] },
-    { band: "nextxi", title: "Marking in depth: our defensive shape", level: "Defense Level 3", why: "Desk explainer, about 3 minutes. Pinch, mark goal-side, and cover in layers so one beaten player is not a goal.", topics: ["Tactics", "Defending", "Team shape"] },
-    { band: "nextxi", title: "Formations: how the common shapes attack and defend", level: "Level 3", why: "Desk explainer, about 90 seconds. The shapes our teams will see, and how each one gets wide and pinches.", topics: ["Tactics", "Team shape"] },
+    { band: "nextxi", title: "Marking in depth: our defensive shape", level: "Defense Level 3", why: "Desk explainer, about 3 minutes. Get compact, mark goal-side, and cover in layers so one beaten player is not a goal.", topics: ["Tactics", "Defending", "Team shape"] },
+    { band: "nextxi", title: "Formations: how the common shapes attack and defend", level: "Level 3", why: "Desk explainer, about 90 seconds. The shapes our teams will see, and how each one gets wide and gets compact.", topics: ["Tactics", "Team shape"] },
     { band: "nextxi", title: "Formation matchups: find the extra player", level: "Level 3", why: "Desk explainer, about 90 seconds. Lay two shapes over each other and find where we have one more.", topics: ["Tactics", "Team shape"] },
     { band: "nextxi", title: "The three Next XI cues, said out loud", why: "“Scan. Head on a swivel.” “We lost it. Press together!” “Possess. Keep it.”", topics: ["Coaching basics"] }
   ];
@@ -1393,7 +1393,7 @@
     // Tactics pieces carry a readiness level as well as a grade band. The
     // ladder explains it once, above every list those pieces appear in.
     var ladder = cat === "training"
-      ? '<div class="tactics-ladder"><p><b>Tactics levels.</b> One idea runs through every level: with the ball we get wide, without it we pinch. ' +
+      ? '<div class="tactics-ladder"><p><b>Tactics levels.</b> One idea runs through every level: with the ball we get wide, without it we get compact. ' +
         'Levels go by readiness, not by grade. A team moves up when it does the level below without being told.</p>' +
         '<ul><li><b>Offense:</b> Level 1 Spread out. Level 2 Be an option, support. Level 3 Transition shape.</li>' +
         '<li><b>Defense:</b> Level 1 Everyone plays defense. Level 2 Pressure, cover, balance. Level 3 Defensive shape and marking in depth.</li></ul></div>'
