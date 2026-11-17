@@ -594,7 +594,7 @@
 
   // ---- derived -----------------------------------------------------
   function pool() {
-    return state.athletes.filter(function (a) { return ui.prog === "all" || a.program === ui.prog; });
+    return state.athletes.slice();   // one academy: no Boys/Girls split
   }
   // Reads pool(), not state.athletes. When these disagreed, one Overview could
   // answer "how many are we losing?" three different ways at once — the board
@@ -791,7 +791,7 @@
   function riskRow(a) {
     return '<div class="risk-row">' +
       '<span class="risk-row__who">' + esc(a.first + " " + a.last) + '</span>' +
-      '<span class="risk-row__meta">' + LB.GRADE_LABELS[a.grade] + " · " + esc(a.program) + '</span>' +
+      '<span class="risk-row__meta">' + LB.GRADE_LABELS[a.grade] + '</span>' +
       // the two actions move as one unit so they never split across lines
       '<span class="risk-row__actions owner-only">' +
         '<button class="btn btn--sm btn--ghost" data-action="edit" data-id="' + a.id + '">Open</button>' +
@@ -867,20 +867,19 @@
     var editAttr = canEdit() ? ' data-action="edit"' : "";
     var rows = list.map(function (a) {
       return '<tr' + editAttr + ' data-id="' + a.id + '"' + (a.status === "atrisk" ? ' class="is-risk"' : "") + '>' +
-        '<td><div class="who"><span class="avatar ' + (a.program === "Girls" ? "g" : "") + '">' + esc(initials(a)) + '</span>' +
+        '<td><div class="who"><span class="avatar">' + esc(initials(a)) + '</span>' +
           '<span>' + (canEdit() ? '<button type="button" class="who__name" data-action="edit" data-id="' + a.id + '">' + esc(a.first + " " + a.last) + '</button>' : '<span class="who__name">' + esc(a.first + " " + a.last) + '</span>') +
           (a.sports && a.sports.length ? '<span class="who__sports">' + esc(a.sports.join(", ")) + '</span>' : "") +
           (a.shirt ? '<span class="who__shirt" title="Shirt size">' + esc(shortSize(a.shirt)) + '</span>' : "") + '</span></div></td>' +
         '<td class="tnum">' + LB.GRADE_LABELS[a.grade] + '</td>' +
         '<td class="tnum">' + a.gradYear + '</td>' +
-        '<td><span class="prog-tag ' + (a.program === "Girls" ? "g" : "b") + '">' + esc(a.program) + '</span></td>' +
         '<td>' + statusPill(a.status, canEdit(), a.id) + '</td>' +
         '</tr>';
     }).join("");
 
     var table = list.length
       ? '<div class="tablewrap"><table class="roster"><thead><tr>' +
-          '<th>Athlete</th><th>Grade</th><th>Class of</th><th>Program</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+          '<th>Athlete</th><th>Grade</th><th>Class of</th><th>Status</th></tr></thead><tbody>' + rows + '</tbody></table></div>'
       : '<div class="empty"><h3>No matches.</h3><p>No athletes fit these filters. Try clearing them.</p>' +
         '<div class="empty__actions"><button class="btn btn--ghost" data-action="clear-filters">Clear filters</button></div></div>';
 
@@ -968,7 +967,6 @@
       var aff = affilOf(t.affiliation);
       var chips = '<span class="team-chip team-chip--' + aff.tone + '">' + esc(aff.label) + '</span>' +
         '<span class="team-chip">' + esc(t.level || "Team") + '</span>' +
-        '<span class="team-chip">' + esc(t.program || "Coed") + '</span>' +
         (t.ageGroup ? '<span class="team-chip">' + esc(t.ageGroup) + '</span>' : "");
       var cs = teamCoaches(t);
       var coach = cs.length ? '<div class="team-coaches">' + cs.map(function (c) {
@@ -1019,9 +1017,6 @@
       '<div class="field"><label for="t-name">Team name</label><input id="t-name" value="' + esc(t.name || "") + '" placeholder="Findlay FC Red, LB Rec 3rd grade…" required></div>' +
       '<div class="field--row">' +
         '<div class="field"><label for="t-level">Level</label><select id="t-level">' + levels + '</select></div>' +
-        '<div class="field"><label>Who</label><div class="segfield">' +
-          ["Boys", "Girls", "Coed"].map(function (p) { return '<label><input type="radio" name="t-prog" value="' + p + '"' + (prog === p ? " checked" : "") + '><span>' + p + '</span></label>'; }).join("") +
-        '</div></div>' +
       '</div>' +
       '<div class="field"><label for="t-age">Age group <span style="font-weight:500;color:var(--ink-3)">(optional)</span></label><input id="t-age" value="' + esc(t.ageGroup || "") + '" placeholder="U10 · 3rd–4th grade"></div>' +
       '<div class="field--row">' +
@@ -1063,7 +1058,7 @@
           email: row.querySelector(".c-email").value.trim(),
           phone: row.querySelector(".c-phone").value.trim() };
       }).filter(function (c) { return c.name; });
-      var data = { name: name, level: $("#t-level").value, program: (document.querySelector('input[name="t-prog"]:checked') || {}).value || "Coed",
+      var data = { name: name, level: $("#t-level").value, program: t.program || "Coed",
         ageGroup: $("#t-age").value.trim(), affiliation: $("#t-affil").value, clinic: $("#t-clinic").value || "",
         coaches: coaches,
         coach: coaches.length ? coaches[0].name : "", coachEmail: coaches.length ? coaches[0].email : "", coachPhone: coaches.length ? coaches[0].phone : "",
@@ -1157,8 +1152,7 @@
     function card(e) {
       var att = sessionForEvent(e.id);
       var attN = att ? att.present.length : 0, coachN = allCoaches().length;
-      var chips = '<span class="ev-chip ev-chip--prog">' + esc(e.program || "All") + '</span>' +
-        (e.tier ? '<span class="ev-chip">' + esc(tierName(e.tier)) + '</span>' : "") +
+      var chips = (e.tier ? '<span class="ev-chip">' + esc(tierName(e.tier)) + '</span>' : "") +
         (att ? '<span class="ev-chip ev-chip--done"><svg class="ic"><use href="#ic-check"/></svg>' + attN + (coachN ? '/' + coachN : "") + ' coaches</span>' : "");
       return '<div class="ev-card">' +
         '<div class="ev-card__main">' +
@@ -1192,9 +1186,6 @@
         '<div class="field"><label for="e-end">End time</label><input id="e-end" type="time" value="' + esc(e.end || "") + '"></div>' +
       '</div>' +
       '<div class="field"><label for="e-loc">Location</label><input id="e-loc" value="' + esc(e.location || "") + '" placeholder="LB practice fields"></div>' +
-      '<div class="field"><label>Who it\'s for</label><div class="segfield">' +
-        ["All", "Boys", "Girls"].map(function (p) { return '<label><input type="radio" name="e-prog" value="' + p + '"' + (prog === p ? " checked" : "") + '><span>' + p + '</span></label>'; }).join("") +
-      '</div></div>' +
       '<div class="field"><label for="e-tier">Age group</label><select id="e-tier">' + tierOpts + '</select></div>' +
       '<div class="field"><label for="e-note">Note <span style="font-weight:500;color:var(--ink-3)">(optional)</span></label>' +
         '<textarea id="e-note" placeholder="Bring water · indoor if it rains…">' + esc(e.note || "") + '</textarea></div>' +
@@ -1213,7 +1204,7 @@
       if (!title || !date) { $(!title ? "#e-title" : "#e-date").focus(); return; }
       var data = { title: title, date: date, start: $("#e-start").value || "", end: $("#e-end").value || "",
         location: $("#e-loc").value.trim(),
-        program: (document.querySelector('input[name="e-prog"]:checked') || {}).value || "All",
+        program: e.program || "All",
         tier: $("#e-tier").value || "", note: $("#e-note").value.trim(),
         updated: new Date().toISOString(), unsynced: true };
       var rec;
@@ -1864,10 +1855,6 @@
       '</div>' +
       '<div class="field--row">' +
         '<div class="field"><label for="f-grade">Grade</label><select id="f-grade">' + gradeOptions(a.grade == null ? 3 : a.grade) + '</select></div>' +
-        '<div class="field"><label>Program</label><div class="segfield">' +
-          '<label><input type="radio" name="f-prog" value="Boys"' + (a.program !== "Girls" ? " checked" : "") + '><span>Boys</span></label>' +
-          '<label><input type="radio" name="f-prog" value="Girls"' + (a.program === "Girls" ? " checked" : "") + '><span>Girls</span></label>' +
-        '</div></div>' +
       '</div>' +
       '<div class="field--row">' +
         '<div class="field"><label for="f-sports">Sports <span style="font-weight:500;color:var(--ink-3)">(comma-separated)</span></label>' +
@@ -1901,7 +1888,7 @@
       });
       if (!ok) { $("#f-first").focus(); return; }
       var grade = parseInt($("#f-grade").value, 10);
-      var prog = (document.querySelector('input[name="f-prog"]:checked') || {}).value || "Boys";
+      var prog = a.program || "Boys";
       var status = (document.querySelector('input[name="f-status"]:checked') || {}).value || "prospect";
       var sports = $("#f-sports").value.split(",").map(function (s) { return s.trim(); }).filter(Boolean);
       var email = $("#f-email").value.trim(), phone = $("#f-phone").value.trim();
@@ -1934,10 +1921,10 @@
   //  MESSAGE FAMILIES — Remind is primary; email is the backup
   // ================================================================
   function openBroadcast() {
-    var recipients = pool();                 // respects the Boys/Girls/All filter
+    var recipients = pool();
     var withEmail = recipients.filter(function (a) { return a.email && a.email.indexOf("@") > 0; });
     var withPhone = recipients.filter(function (a) { return a.phone; });
-    var scope = ui.prog === "all" ? "families" : ui.prog + " families";
+    var scope = "families";
     var emails = withEmail.map(function (a) { return a.email; });
     var phones = withPhone.map(function (a) { return a.phone; });
 
@@ -2083,7 +2070,7 @@
     showDrawer("Connect sign-ups", '<div class="cast-primary">' +
       '<p class="cast-note">Website sign-ups flow into your <b>Google Sheet</b>, and this button pulls new ones straight into <b>Athletes</b> — no retyping.</p>' +
       '<p class="cast-note">To turn it on, deploy the Apps Script (see the parent-alerts guide), then paste your web-app <code>/exec</code> URL into <code>SIGNUPS_URL</code> at the top of <code>src/app.js</code>.</p>' +
-      '<p class="cast-hint">It maps each sign-up to an athlete (name, graduation class, Boys/Girls, other sports), marks them Active, and never imports the same kid twice.</p>' +
+      '<p class="cast-hint">It maps each sign-up to an athlete (name, graduation class, other sports), marks them Active, and never imports the same kid twice.</p>' +
       '</div><div class="drawer__foot"><button type="button" class="btn btn--primary" data-action="close-drawer">Got it</button></div>');
   }
 
@@ -2131,15 +2118,13 @@
   // ================================================================
   // Non-mutating actions a view-only coach is still allowed to trigger.
   var VIEW_ACTIONS = { "res-type": 1, "train-tab": 1, "res-age": 1, "filter-status": 1, "filter-grad": 1,
-    "clear-filters": 1, "clear-prog": 1, "play-resource": 1, "open-resource": 1, "open-terms": 1, "close-player": 1,
+    "clear-filters": 1, "play-resource": 1, "open-resource": 1, "open-terms": 1, "close-player": 1,
     "close-drawer": 1, "goto-coaches": 1, "goto": 1, "sign-out": 1,
     // Must be here. While previewing, canEdit() is false and every action not on
     // this list is refused — without it the way out of preview is itself dead.
     "exit-preview": 1 };
   document.addEventListener("click", function (e) {
     var nav = e.target.closest(".side__link"); if (nav) { setView(nav.dataset.view); return; }
-    var seg = e.target.closest("#progSeg button"); if (seg) { ui.prog = seg.dataset.prog;
-      $$("#progSeg button").forEach(function (b) { b.setAttribute("aria-pressed", String(b === seg)); }); renderView(); return; }
     var act = e.target.closest("[data-action]"); if (!act) { closePop(); return; }
     var action = act.dataset.action, id = act.dataset.id;
     // View-only coaches may browse and open the calendar/videos, but not change anything.
@@ -2159,11 +2144,6 @@
         else if (which === "usage") syncUsage(true);
         break;
       }
-      case "clear-prog":
-        ui.prog = "all";
-        $$("#progSeg button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.prog === "all")); });
-        renderView();
-        break;
       case "add-athlete": openAthlete(null); break;
       case "edit": openAthlete(state.athletes.find(function (x) { return x.id === id; })); break;
       // Teams, events, resources and access removal all confirm. Losing a kid's
