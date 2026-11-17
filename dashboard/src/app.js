@@ -109,7 +109,6 @@
   ];
   var TRAIN_PLAN = [
     { band: "all", title: "The Standard — the six non-negotiables on video", why: "Touches, Brave, Play, Fun, System, every kid known by name. The rules every affiliated coach carries.", topics: ["Coaching basics"] },
-    { band: "all", title: "One full session, all four beats", why: "Film a real practice start to finish so a new coach can see 15 / 20 / 40 / 25 rather than read it.", topics: ["Session plans"] },
     { band: "all", title: "Communication and intensity — what it looks like", why: "The house rule is abstract until someone sees a session run at game speed with players talking.", topics: ["Coaching basics"] },
     { band: "all", title: "Setting up a small-sided game in 60 seconds", why: "Cones, teams, rotations. The difference between 40% of the session competing and 40% standing around.", topics: ["Small-sided games", "Session plans"] },
     { band: "all", title: "One coach, fourteen kids, no help", why: "The situation most of our volunteers are actually in. Show how the session still works.", topics: ["Coaching basics", "Session plans"] },
