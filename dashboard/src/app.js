@@ -1684,7 +1684,13 @@
         if (!local) byId[row.id] = remote;
         else if (!local.unsynced && String(remote.updated) >= String(local.updated || "")) byId[row.id] = Object.assign(local, remote);
       });
-      state.resources = Object.keys(byId).map(function (id) { return byId[id]; });
+      // A synced piece that's no longer in the sheet was removed there, so
+      // drop this browser's cached copy too. Unsynced local pieces stay, and
+      // an empty sheet read never wipes the library.
+      var inSheet = {}; data.resources.forEach(function (row) { if (row.id) inSheet[row.id] = 1; });
+      var prune = data.resources.length > 0;
+      state.resources = Object.keys(byId).map(function (id) { return byId[id]; })
+        .filter(function (r) { return !prune || r.unsynced || inSheet[r.id]; });
       save();
       if (ui.view === "training" || ui.view === "laws") renderView();
     }).catch(function () { syncFailed("resources"); });
