@@ -1500,17 +1500,18 @@
     }
     // Training splits into subtabs: one per age group, one per spot, and All.
     // The choice lives with the shelf's other filters, so it survives a re-render.
-    var tab = lib.spots ? (f.tab || "all") : "all";
+    // All is "*", not "all": "all" is the Every age band's own key.
+    var tab = lib.spots ? (f.tab || "*") : "*";
     var subtabs = lib.spots
       ? '<div class="subtabs" role="tablist" aria-label="Age groups">' +
-        [["all", "All"]].concat(lib.bands.map(function (b) { return [b.key, b.title]; }),
+        [["*", "All"]].concat(lib.bands.map(function (b) { return [b.key, b.title]; }),
           lib.spots.map(function (sp) { return ["spot:" + sp.key, sp.title]; })).map(function (t) {
           var on = tab === t[0];
           return '<button type="button" class="subtab' + (on ? " is-on" : "") + '" role="tab" aria-selected="' + on + '" ' +
             'data-action="train-tab" data-v="' + esc(t[0]) + '">' + esc(t[1]) + '</button>';
         }).join("") + '</div>'
       : "";
-    var grid = lib.bands.filter(function (b) { return tab === "all" || tab === b.key; }).map(function (b) {
+    var grid = lib.bands.filter(function (b) { return tab === "*" || tab === b.key; }).map(function (b) {
       var cards = resourcesInBand(list, b.key).filter(function (r) { return !(lib.spots && spotOf(r)); });
       var all = planFor(lib, b.key);
       var todo = all.filter(function (p) { return !planDone(lib, p); });
@@ -1524,7 +1525,7 @@
         (hasPlan && !cards.length && !todo.length ? '<p class="lawband__done">Every planned ' + esc(lib.noun) + ' for this band is made.</p>' : "") +
       '</section>';
     }).join("");
-    grid += (lib.spots || []).filter(function (sp) { return tab === "all" || tab === "spot:" + sp.key; }).map(function (sp) {
+    grid += (lib.spots || []).filter(function (sp) { return tab === "*" || tab === "spot:" + sp.key; }).map(function (sp) {
       var cards = list.filter(function (r) { return spotOf(r) === sp; });
       var all = lib.plan.filter(function (p) { return spotOf(p) === sp; });
       var todo = all.filter(function (p) { return !planDone(lib, p); });
@@ -2221,7 +2222,7 @@
       case "resource-usage": openResourceUsage(id); break;
       case "coach-activity": openCoachActivity(); break;
       case "load-starter-resources": loadStarters(act.dataset.lib || "training"); break;
-      case "train-tab": libFilters(libCat()).tab = act.dataset.v || "all"; renderLibrary(libCat()); break;
+      case "train-tab": libFilters(libCat()).tab = act.dataset.v || "*"; renderLibrary(libCat()); break;
       case "res-type": {
         var lfT = libFilters(libCat());
         lfT.type = act.dataset.v;
