@@ -65,7 +65,7 @@
   ];
   var RES_AGES = [ { key: "grassroot", label: "K–2" }, { key: "academy", label: "3–5" }, { key: "nextxi", label: "6–8" }, { key: "all", label: "All ages" } ];
   var RES_TOPICS = ["Ball mastery", "Dribbling", "1v1 / moves", "Passing & receiving", "First touch", "Shooting & finishing",
-    "Small-sided games", "Defending", "Goalkeeping", "Team shape", "Set pieces", "Warmups", "Fun & games", "Session plans", "Coaching basics"];
+    "Small-sided games", "Defending", "Goalkeeping", "Team shape", "Tactics", "Set pieces", "Warmups", "Fun & games", "Session plans", "Coaching basics"];
   function resType(k) { for (var i = 0; i < RES_TYPES.length; i++) if (RES_TYPES[i].key === k) return RES_TYPES[i]; return RES_TYPES[0]; }
   // The laws divide by playing division (U6/U8/U10/U12), not by the grade bands
   // the curriculum uses. Different axis, so it gets its own list.
