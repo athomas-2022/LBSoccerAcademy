@@ -1449,12 +1449,6 @@
       principle += '<p class="res-terms"><button type="button" class="linkbtn" data-action="open-terms">LB Soccer: Common Terms</button> ' +
         '<span>One vocabulary for every Eagles coach and player.</span></p>';
     }
-    // Opening a resource logs the coach's name and email to the sheet. They were
-    // never told. Say it plainly, and say why, rather than hiding it.
-    if (SIGNUPS_URL && !canEdit()) {
-      principle += '<p class="res-disclose">Heads up: we log which materials get opened, and by whom, ' +
-        'so we know what’s actually useful and what to make more of. Nothing else is tracked.</p>';
-    }
     // Neither shelf shows a bare empty state: the band sections carry the
     // content plan (training) or the per-division rule notes (laws).
     var mine = resourcesIn(cat);

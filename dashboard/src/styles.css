@@ -576,9 +576,6 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
   border-radius:var(--r-md);font-size:var(--fs-sm);font-weight:500;line-height:1.55}
 .res-principle b{display:block;margin-bottom:.15rem;font-size:var(--fs-base);
   font-weight:800;letter-spacing:-.01em;color:#fff}
-.res-disclose{margin:-.6rem 0 1.1rem;padding:.55rem .75rem;border:1px solid var(--line-2);
-  border-radius:var(--r-md);background:var(--surface-2);color:var(--ink-2);
-  font-size:var(--fs-sm);font-weight:500;line-height:1.5}
 /* Owner previewing the coach view. Deliberately the loudest chrome on the page:
    being unsure which view you are looking at is worse than being shouted at. */
 .previewbar{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;
