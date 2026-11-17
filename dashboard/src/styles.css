@@ -567,6 +567,23 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
 .res-used:hover{border-color:var(--accent)}
 .res-used .ic{width:12px;height:12px}
 .res-used--none{color:var(--ink-3);background:var(--surface-2);cursor:default;font-weight:700}
+/* Phones: two compact tiles per row so a coach sees several at once. The
+   whole tile opens the piece, so the Watch/Open button, description and
+   topic chips drop away; the age tag and title carry it. */
+@media (max-width:560px){
+  .res-grid{grid-template-columns:1fr 1fr;gap:.6rem}
+  .res-card{border-radius:var(--r-md)}
+  .res-thumb{padding:.3rem}
+  .res-thumb--doc{aspect-ratio:16/9;gap:.2rem}
+  .res-typeic{width:20px;height:20px}
+  .res-play svg{width:32px;height:32px;padding:.45rem}
+  .res-dur{font-size:.6875rem;padding:.05rem .35rem}
+  .res-body{padding:.5rem .55rem .6rem;gap:.3rem}
+  .res-age{font-size:.6875rem;padding:0 .4rem}
+  .res-title{font-size:var(--fs-sm);line-height:1.2;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .res-desc,.res-topics,.res-actions .btn--primary{display:none}
+  .res-used{font-size:.6875rem}
+}
 .team-stat--btn{font:inherit;cursor:pointer;border:1px dashed var(--line-2);background:transparent}
 .team-stat--btn:hover{border-color:var(--accent);color:var(--lb-blue)}
 /* The house rule above the library. It reads as a rule, not a card — the one
