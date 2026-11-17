@@ -608,6 +608,16 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
 .lawtodo__txt b{font-size:var(--fs-base);font-weight:700;color:var(--ink)}
 .lawtodo__txt span{font-size:var(--fs-sm);color:var(--ink-3);font-weight:500}
 .lawtodo__row .btn{margin-left:auto;flex:0 0 auto}
+.lawtodo__txt .lawtodo__level{justify-self:start;padding:.05rem .45rem;border-radius:var(--r-pill);
+  background:var(--blue-50);color:var(--blue-900);font-size:var(--fs-xs);font-weight:700}
+.tactics-ladder{margin:0 0 1.2rem;padding:.75rem .9rem;border:1px solid var(--line-2);border-left:4px solid var(--blue-900);
+  border-radius:var(--r-md);background:var(--surface);color:var(--ink-2);font-size:var(--fs-sm);font-weight:500;line-height:1.5}
+.tactics-ladder p{margin:0 0 .35rem}
+.tactics-ladder b{color:var(--ink);font-weight:800}
+.tactics-ladder ul{margin:0;padding-left:1.1rem;display:grid;gap:.15rem}
+.res-terms{margin:-.4rem 0 1.1rem;font-size:var(--fs-sm);color:var(--ink-2);font-weight:500}
+.res-terms a{font-weight:800;color:var(--blue-900)}
+.res-terms span{margin-left:.35rem}
 
 /* coach activity + per-material usage drawers */
 .use-head{margin-bottom:.6rem}
@@ -667,7 +677,7 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
 .is-viewonly .owner-only{display:none!important}
 .viewonly-pill{display:inline-flex;align-items:center;gap:.4rem;font-size:var(--fs-xs);font-weight:800;
   letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);background:var(--surface-2,var(--surface));
-  border:1px solid var(--line);border-radius:999px;padding:.35rem .7rem}
+  border:1px solid var(--line);border-radius:var(--r-pill);padding:.35rem .7rem}
 /* multi-coach editor rows (team drawer) */
 .coach-row{border:1px solid var(--line);border-radius:var(--r-md);padding:.6rem;margin-bottom:.5rem;background:var(--surface-2,var(--surface))}
 .coach-row__top{display:flex;gap:.5rem;align-items:center}
@@ -764,8 +774,8 @@ button.pill:hover{filter:brightness(.96)}
 .drawer__body{padding:1.3rem;overflow-y:auto;flex:1}
 .drawer__foot{padding:1rem 1.3rem;border-top:1px solid var(--line);display:flex;gap:.6rem}
 .drawer__foot .btn{flex:1}
-/* Delete was an equal-width neighbour of Save at thumb height. It keeps its
-   colour but stops claiming the same footprint as the primary action. */
+/* Delete was an equal-width neighbor of Save at thumb height. It keeps its
+   color but stops claiming the same footprint as the primary action. */
 .drawer__foot .btn--danger{flex:0 1 auto}
 
 /* message families (broadcast) */

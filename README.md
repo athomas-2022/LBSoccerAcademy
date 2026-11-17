@@ -101,8 +101,8 @@ Then `/` for the public site and `/dashboard/` for the dashboard.
   through exactly one global, `window.LBSA`.
 - **Do not add a dependency or a build step** without discussing it — zero-build
   is what makes this hostable on Pages and openable locally.
-- CSS keeps all colour and spacing as custom properties on `:root`, uses `oklch()`
-  throughout, and honours `prefers-reduced-motion` and `pointer: coarse`.
+- CSS keeps all color and spacing as custom properties on `:root`, uses `oklch()`
+  throughout, and honors `prefers-reduced-motion` and `pointer: coarse`.
 - Several comments exist specifically to stop a deliberate decision being "tidied
   up" — they name the bug they prevent. Don't strip them.
 - Commit subjects state the user-visible consequence in the imperative, not the
@@ -111,7 +111,7 @@ Then `/` for the public site and `/dashboard/` for the dashboard.
 ## Before making the repo public
 
 - **`assets/fonts/OctinSportsRg.*` is a commercial font.** Only publish it if your
-  licence permits web embedding; otherwise remove it — the wordmark falls back to
+  license permits web embedding; otherwise remove it — the wordmark falls back to
   Montserrat, which is openly licensed.
 - **`integrations/google-apps-script.gs` must never hold real Twilio keys.** Keep
   `TWILIO_SID`, `TWILIO_TOKEN` and `TWILIO_FROM` blank here and paste them only

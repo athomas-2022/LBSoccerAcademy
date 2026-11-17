@@ -113,6 +113,7 @@
     { band: "all", title: "Communication and intensity — what it looks like", why: "The house rule is abstract until someone sees a session run at game speed with players talking.", topics: ["Coaching basics"] },
     { band: "all", title: "Setting up a small-sided game in 60 seconds", why: "Cones, teams, rotations. The difference between 40% of the session competing and 40% standing around.", topics: ["Small-sided games", "Session plans"] },
     { band: "all", title: "One coach, fourteen kids, no help", why: "The situation most of our volunteers are actually in. Show how the session still works.", topics: ["Coaching basics", "Session plans"] },
+    { band: "all", title: "Get wide, pinch: the one idea behind everything", level: "Every level", why: "Desk explainer, 60 seconds. With the ball we get wide, without it we pinch. Every tactics piece builds on this.", topics: ["Tactics", "Team shape"] },
     { band: "all", title: "Beat 4: coaching the open scrimmage by not coaching", why: "Step back, let them own the game, and speak only to celebrate the brave. The hardest beat for a new coach, because it looks like doing nothing.", topics: ["Small-sided games", "Coaching basics"] },
 
     { band: "grassroot", title: "Beat 1: a K–2 ball-mastery warmup", why: "Everyone on a ball the moment they arrive. Show what good looks like for five-year-olds.", topics: ["Ball mastery", "Warmups"] },
@@ -121,8 +122,9 @@
     { band: "grassroot", title: "The three K–2 cues, said out loud", why: "“Little touches, keep it close.” “Freeze — now go the other way.” “Great try — go again.” Coaches need to hear the tone, not just read it.", topics: ["Coaching basics"] },
     { band: "grassroot", title: "Keeping every kid on a ball", why: "No lines, no laps, no long lectures. If a kid is standing still, the drill is wrong.", topics: ["Fun & games", "Coaching basics"] },
     { band: "grassroot", title: "Everyone scores — shooting games with big goals", why: "Big goals, lots of balls, and every kid finishes. At K–2 the goal is the reward for dribbling there.", topics: ["Shooting & finishing", "Fun & games"] },
-    { band: "grassroot", title: "Which way are we going? Tactics at K–2", why: "Two ideas only: which goal is ours, and get it back. Bunching round the ball is normal at five, so no positions yet.", topics: ["Tactics", "Coaching basics"] },
-    { band: "grassroot", title: "Get it back! Every kid defends", why: "Everyone chases when we lose it, and the chase gets praised. The first seed of pressing together.", topics: ["Tactics", "Defending"] },
+    { band: "grassroot", title: "Which way are we going? Tactics at K–2", level: "Level 1 (where most K–2 teams start)", why: "Two ideas only: which goal is ours, and get it back. Bunching round the ball is normal at five, so no positions yet.", topics: ["Tactics", "Coaching basics"] },
+    { band: "grassroot", title: "Spread out: the ball moves faster than players", level: "Offense Level 1", why: "Desk explainer, 60–75 seconds. Get wide and the ball does the running. The first attacking idea, before any positions.", topics: ["Tactics", "Team shape"] },
+    { band: "grassroot", title: "Get it back! Every kid defends", level: "Defense Level 1", why: "Everyone chases when we lose it, and the chase gets praised. The first seed of pressing together.", topics: ["Tactics", "Defending"] },
 
     { band: "academy", title: "Beat 2: teaching a move in under a minute", why: "Demo, reps, mini-challenge. The teach that does not eat the session.", topics: ["1v1 / moves", "Session plans"] },
     { band: "academy", title: "Passive defender to live defender", why: "The progression that turns a drill into a skill. Most volunteers skip straight to live and lose the move.", topics: ["1v1 / moves", "Defending"] },
@@ -133,20 +135,24 @@
     { band: "academy", title: "The stepover — sell it with the shoulders", why: "Most kids step over the ball and go nowhere. Show the shoulder drop that makes the defender buy it.", topics: ["1v1 / moves", "Dribbling"] },
     { band: "academy", title: "Passing and receiving: inside, outside, sole — both feet", why: "Three surfaces, two feet, one partner. The receiving half matters as much as the pass.", topics: ["Passing & receiving", "First touch"] },
     { band: "academy", title: "Pass, dribble or shoot? Decisions in small-sided games", why: "Let the game ask the question. One quick freeze at most, and the player answers it, not the coach.", topics: ["Small-sided games", "Shooting & finishing", "Tactics"] },
-    { band: "academy", title: "Be an option: support the player on the ball", why: "Open means a straight line from the ball to you. Shown as a 2v1 and a 3v2 on a tactics board.", topics: ["Tactics", "Passing & receiving"] },
-    { band: "academy", title: "First defender, second defender", why: "One pressures, one covers. The simplest team defending there is, and the start of pressing together.", topics: ["Tactics", "Defending"] },
-    { band: "academy", title: "The three Rising cues, said out loud", why: "“Head up — what do you see?” “First touch into space.” “Try your move — I love the brave.”", topics: ["Coaching basics"] },
+    { band: "academy", title: "Be an option: support the player on the ball", level: "Offense Level 2", why: "Open means a straight line from the ball to you. Shown as a 2v1 and a 3v2 on a tactics board.", topics: ["Tactics", "Passing & receiving"] },
+    { band: "academy", title: "First defender, second defender", level: "Defense Level 2", why: "One pressures, one covers. The simplest team defending there is, and the start of pressing together.", topics: ["Tactics", "Defending"] },
+    { band: "academy", title: "The three Rising cues, said out loud", why: "“Head up — what do you see?” “First touch into space.” “Try your move. Good idea.”", topics: ["Coaching basics"] },
 
     { band: "nextxi", title: "Rondo — keeping the ball under pressure", why: "The warmup that teaches angles, speed of play and scanning all at once.", topics: ["Passing & receiving", "Warmups"] },
     { band: "nextxi", title: "4v4+2 building from the keeper", why: "The Next XI sample session's core. Playing out of the back on purpose, not by accident.", topics: ["Team shape", "Goalkeeping", "Tactics"] },
     { band: "nextxi", title: "Playing through the lines", why: "What we mean by the Eagles system, shown on a field rather than a whiteboard.", topics: ["Team shape", "Passing & receiving", "Tactics"] },
     { band: "nextxi", title: "Check your shoulder — scanning before you receive", why: "The single habit that separates a 6th-grader who looks composed from one who does not.", topics: ["First touch", "Team shape"] },
     { band: "nextxi", title: "Team shape: spacing, roles and staying connected", why: "Every position has a job with the ball and without it. Show the shape stretching and shrinking as one.", topics: ["Team shape", "Tactics"] },
-    { band: "nextxi", title: "Win it back fast — pressing and transition", why: "“We lost it — press together.” The first few seconds after losing the ball, played out on a small field.", topics: ["Defending", "Team shape", "Tactics"] },
+    { band: "nextxi", title: "Win it back fast — pressing and transition", level: "Defense Level 2", why: "“We lost it. Press together!” The first few seconds after losing the ball, played out on a small field.", topics: ["Defending", "Team shape", "Tactics"] },
     { band: "nextxi", title: "Set pieces: simple kick-off, corner and goal-kick routines", why: "One routine each, named in our vocabulary, so every Next XI team runs the same thing.", topics: ["Set pieces", "Team shape", "Tactics"] },
-    { band: "nextxi", title: "Width, depth and support: how we attack", why: "The ideas behind team shape and playing through the lines, explained on a board before they are drilled on a field.", topics: ["Tactics", "Team shape"] },
-    { band: "nextxi", title: "Compact, cover and balance: how we defend", why: "Get small when we lose it, pressure and cover, tuck in on the far side, and get big again the moment we win it.", topics: ["Tactics", "Defending"] },
-    { band: "nextxi", title: "The three Next XI cues, said out loud", why: "“Open up — check your shoulder.” “We lost it — press together.” “Play through the lines, be patient.”", topics: ["Coaching basics"] }
+    { band: "nextxi", title: "Width, depth and support: how we attack", level: "Offense Level 2", why: "The ideas behind team shape and playing through the lines, explained on a board before they are drilled on a field.", topics: ["Tactics", "Team shape"] },
+    { band: "nextxi", title: "Compact, cover and balance: how we defend", level: "Defense Level 2", why: "Pinch when we lose it, pressure and cover, tuck in on the far side, and get wide again the moment we win it.", topics: ["Tactics", "Defending"] },
+    { band: "nextxi", title: "Transition shape: what we do when we win it", level: "Offense Level 3", why: "Desk explainer, about 2.5 minutes. The moment we win it, we get wide and look forward.", topics: ["Tactics", "Team shape"] },
+    { band: "nextxi", title: "Marking in depth: our defensive shape", level: "Defense Level 3", why: "Desk explainer, about 3 minutes. Pinch, mark goal-side, and cover in layers so one beaten player is not a goal.", topics: ["Tactics", "Defending", "Team shape"] },
+    { band: "nextxi", title: "Formations: how the common shapes attack and defend", level: "Level 3", why: "Desk explainer, about 90 seconds. The shapes our teams will see, and how each one gets wide and pinches.", topics: ["Tactics", "Team shape"] },
+    { band: "nextxi", title: "Formation matchups: find the extra player", level: "Level 3", why: "Desk explainer, about 90 seconds. Lay two shapes over each other and find where we have one more.", topics: ["Tactics", "Team shape"] },
+    { band: "nextxi", title: "The three Next XI cues, said out loud", why: "“Scan. Head on a swivel.” “We lost it. Press together!” “Possess. Keep it.”", topics: ["Coaching basics"] }
   ];
 
   function planFor(lib, band) { return lib.plan.filter(function (p) { return p.band === band; }); }
@@ -225,8 +231,10 @@
     var v = vimeoId(u); if (v) return "https://player.vimeo.com/video/" + v + "?autoplay=1"; return ""; }
   function resThumb(r) { var y = ytId(r.url || ""); return y ? "https://i.ytimg.com/vi/" + y + "/hqdefault.jpg" : ""; }
   var EWAY_URL = "https://lbsocceracademy.org/#eaglesway";
+  var TERMS_URL = "https://docs.google.com/document/d/10Gk4LOVAfBvZsorXG3hcLcjOWUZELZZamJmQkavYZeg/edit";
   var STARTER_RESOURCES = [
     { title: "The Eagles Way — full curriculum", type: "guide", url: EWAY_URL, ages: ["all"], topics: ["Coaching basics", "Session plans"], duration: "", desc: "The complete K–8 coaching curriculum: the Standard, the session shape, and what to teach by age band.", note: "Starter" },
+    { title: "LB Soccer: Common Terms", type: "guide", url: TERMS_URL, ages: ["all"], topics: ["Coaching basics"], duration: "", desc: "One vocabulary for every Eagles coach and player.", note: "Starter" },
     { title: "The Standard — six non-negotiables", type: "guide", url: EWAY_URL, ages: ["all"], topics: ["Coaching basics"], duration: "", desc: "Touches · Brave · Play · Fun · System · every kid known by name — the rules every affiliated coach carries.", note: "Starter" },
     { title: "The Eagles session shape (4 beats)", type: "plan", url: EWAY_URL, ages: ["all"], topics: ["Session plans", "Warmups"], duration: "", desc: "Arrival ball-mastery → skill of the day → small-sided games → free scrimmage. The repeatable template for any age.", note: "Starter" },
     { title: "Grassroot K–2 — sample session", type: "plan", url: EWAY_URL, ages: ["grassroot"], topics: ["Dribbling", "Fun & games", "Session plans"], duration: "", desc: "Traffic & turns: dribble a maze, freeze, change direction, then swarm-of-tiny-goals 1v1s. Fun is the curriculum.", note: "Starter" },
@@ -1326,6 +1334,12 @@
       : '<p class="res-principle"><b>One answer to “is that a foul?”</b> ' +
         'Kids, parents and coaches all watch the same game and see three different rules. Put the real ' +
         'answer here once, in your own words, and everyone on an Eagles sideline is working from it.</p>';
+    // The shared vocabulary sits on the training shelf for every coach, whatever
+    // is or isn't loaded into the library itself.
+    if (cat === "training") {
+      principle += '<p class="res-terms"><a href="' + TERMS_URL + '" target="_blank" rel="noopener">LB Soccer: Common Terms</a> ' +
+        '<span>One vocabulary for every Eagles coach and player.</span></p>';
+    }
     // Opening a resource logs the coach's name and email to the sheet. They were
     // never told. Say it plainly, and say why, rather than hiding it.
     if (SIGNUPS_URL && !canEdit()) {
@@ -1366,7 +1380,9 @@
         (cards.length ? '<div class="res-grid">' + cards.map(resCard).join("") + '</div>' : "") +
         (todo.length ? '<ul class="lawtodo">' + todo.map(function (p) {
           return '<li class="lawtodo__row">' +
-            '<span class="lawtodo__txt"><b>' + esc(p.title) + '</b><span>' + esc(p.why) + '</span></span>' +
+            '<span class="lawtodo__txt"><b>' + esc(p.title) + '</b>' +
+              (p.level ? '<span class="lawtodo__level">Tactics ' + esc(p.level) + '</span>' : "") +
+              '<span>' + esc(p.why) + '</span></span>' +
             '<button class="btn btn--ghost btn--sm owner-only" data-action="make-planned" ' +
               'data-lib="' + esc(cat) + '" data-i="' + lib.plan.indexOf(p) + '">Make this</button>' +
           '</li>';
@@ -1374,7 +1390,15 @@
         (hasPlan && !cards.length && !todo.length ? '<p class="lawband__done">Every planned ' + esc(lib.noun) + ' for this band is made.</p>' : "") +
       '</section>';
     }).join("");
-    grid = '<p class="lawplan-note">' + lib.planNote +
+    // Tactics pieces carry a readiness level as well as a grade band. The
+    // ladder explains it once, above every list those pieces appear in.
+    var ladder = cat === "training"
+      ? '<div class="tactics-ladder"><p><b>Tactics levels.</b> One idea runs through every level: with the ball we get wide, without it we pinch. ' +
+        'Levels go by readiness, not by grade. A team moves up when it does the level below without being told.</p>' +
+        '<ul><li><b>Offense:</b> Level 1 Spread out. Level 2 Be an option, support. Level 3 Transition shape.</li>' +
+        '<li><b>Defense:</b> Level 1 Everyone plays defense. Level 2 Pressure, cover, balance. Level 3 Defensive shape and marking in depth.</li></ul></div>'
+      : "";
+    grid = ladder + '<p class="lawplan-note">' + lib.planNote +
       (lib.starters && !mine.length
         ? ' <button class="btn btn--ghost btn--sm owner-only" data-action="load-starter-resources" ' +
           'data-lib="' + esc(cat) + '">' + esc(lib.startersLabel) + '</button>'
