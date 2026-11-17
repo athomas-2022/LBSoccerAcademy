@@ -1502,32 +1502,44 @@
     // The choice lives with the shelf's other filters, so it survives a re-render.
     // All is "*", not "all": "all" is the Every age band's own key.
     var tab = lib.spots ? (f.tab || "*") : "*";
+    // Coaches (and the owner previewing as one) only see what's been made:
+    // a tab or section with nothing in it yet stays hidden, and so does the
+    // plan. The owner's own view shows everything.
+    var hide = !!lib.spots && !canEdit();
+    function bandMade(key) { return resourcesInBand(mine, key).some(function (r) { return !spotOf(r); }); }
+    function spotMade(sp) { return mine.some(function (r) { return spotOf(r) === sp; }); }
+    function tabShown(v) {
+      if (!hide || v === "*") return true;
+      if (v.indexOf("spot:") === 0) { var sp = lib.spots.filter(function (x) { return "spot:" + x.key === v; })[0]; return !!sp && spotMade(sp); }
+      return bandMade(v);
+    }
+    if (!tabShown(tab)) tab = "*";
     var subtabs = lib.spots
       ? '<div class="subtabs" role="tablist" aria-label="Age groups">' +
         [["*", "All"]].concat(lib.bands.map(function (b) { return [b.key, b.title]; }),
-          lib.spots.map(function (sp) { return ["spot:" + sp.key, sp.title]; })).map(function (t) {
+          lib.spots.map(function (sp) { return ["spot:" + sp.key, sp.title]; })).filter(function (t) { return tabShown(t[0]); }).map(function (t) {
           var on = tab === t[0];
           return '<button type="button" class="subtab' + (on ? " is-on" : "") + '" role="tab" aria-selected="' + on + '" ' +
             'data-action="train-tab" data-v="' + esc(t[0]) + '">' + esc(t[1]) + '</button>';
         }).join("") + '</div>'
       : "";
-    var grid = lib.bands.filter(function (b) { return tab === "*" || tab === b.key; }).map(function (b) {
+    var grid = lib.bands.filter(function (b) { return (tab === "*" || tab === b.key) && (!hide || bandMade(b.key)); }).map(function (b) {
       var cards = resourcesInBand(list, b.key).filter(function (r) { return !(lib.spots && spotOf(r)); });
-      var all = planFor(lib, b.key);
+      var all = hide ? [] : planFor(lib, b.key);
       var todo = all.filter(function (p) { return !planDone(lib, p); });
       return '<section class="lawband">' +
         '<div class="lawband__head"><h3 class="lawband__h">' + esc(b.title) + '</h3>' +
-          (hasPlan ? '<span class="lawband__count tnum">' + (all.length - todo.length) + '/' + all.length + ' planned</span>' : "") + '</div>' +
+          (hasPlan && !hide ? '<span class="lawband__count tnum">' + (all.length - todo.length) + '/' + all.length + ' planned</span>' : "") + '</div>' +
         '<p class="lawband__note">' + esc(b.note) + '</p>' +
         (b.unconfirmed ? '<p class="lawband__todo">Format not confirmed — ' + esc(b.unconfirmed) + '</p>' : "") +
         (cards.length ? '<div class="res-grid">' + cards.map(resCard).join("") + '</div>' : "") +
         (todo.length ? '<ul class="lawtodo">' + todo.map(function (p) { return todoRow(p, false); }).join("") + '</ul>' : "") +
-        (hasPlan && !cards.length && !todo.length ? '<p class="lawband__done">Every planned ' + esc(lib.noun) + ' for this band is made.</p>' : "") +
+        (hasPlan && !hide && !cards.length && !todo.length ? '<p class="lawband__done">Every planned ' + esc(lib.noun) + ' for this band is made.</p>' : "") +
       '</section>';
     }).join("");
-    grid += (lib.spots || []).filter(function (sp) { return tab === "*" || tab === "spot:" + sp.key; }).map(function (sp) {
+    grid += (lib.spots || []).filter(function (sp) { return (tab === "*" || tab === "spot:" + sp.key) && (!hide || spotMade(sp)); }).map(function (sp) {
       var cards = list.filter(function (r) { return spotOf(r) === sp; });
-      var all = lib.plan.filter(function (p) { return spotOf(p) === sp; });
+      var all = hide ? [] : lib.plan.filter(function (p) { return spotOf(p) === sp; });
       var todo = all.filter(function (p) { return !planDone(lib, p); });
       return '<section class="lawband lawband--spot" id="spot-' + sp.key + '">' +
         '<div class="lawband__head"><h3 class="lawband__h">' + esc(sp.title) + '</h3>' +
@@ -1536,11 +1548,13 @@
         '<p class="lawband__note">' + esc(sp.note) + '</p>' +
         (cards.length ? '<div class="res-grid">' + cards.map(resCard).join("") + '</div>' : "") +
         (todo.length ? '<ul class="lawtodo">' + todo.map(function (p) { return todoRow(p, true); }).join("") + '</ul>' : "") +
-        (!cards.length && !todo.length ? '<p class="lawband__done">Nothing here yet. Anything whose first topic is ' +
+        (!hide && !cards.length && !todo.length ? '<p class="lawband__done">Nothing here yet. Anything whose first topic is ' +
             sp.topics.map(function (t) { return '“' + esc(t) + '”'; }).join(" or ") + ' shows up here.</p>' : "") +
       '</section>';
     }).join("");
-    grid = '<p class="lawplan-note">' + lib.planNote +
+    grid = hide
+      ? (grid || '<p class="lawband__done">Nothing here yet. New ' + esc(lib.noun) + 's show up here as they\u2019re added.</p>')
+      : '<p class="lawplan-note">' + lib.planNote +
       (lib.starters && !mine.length
         ? ' <button class="btn btn--ghost btn--sm owner-only" data-action="load-starter-resources" ' +
           'data-lib="' + esc(cat) + '">' + esc(lib.startersLabel) + '</button>'
