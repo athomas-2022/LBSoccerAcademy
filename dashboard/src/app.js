@@ -113,9 +113,9 @@
   // don't count, so a build-out game that only touches the keeper stays put.
   var TRAIN_SPOTS = [
     { key: "gk", title: "Goalkeepers", topics: ["Goalkeeping"], add: "Add keeper material",
-      note: "Keeper technique, keeper calls and keeper drills, for every age that plays with a goalie." },
+      note: "Keepers start at U10. At 3–5 every player takes a turn in goal and learns the basics; at 6–8 a few become regular keepers. Stance and catching first, then technique, then shot stopping. Filmed with a high school keeper." },
     { key: "fit", title: "Fitness & warmups", topics: ["Warmups", "Fitness"], add: "Add a warmup or fitness piece",
-      note: "Warmups, movement, conditioning and injury prevention. Ball in play wherever it can be." }
+      note: "Every age runs the same warmup in the same order: stretch, rondos, passing, possession (small, then large), crossing and finishing, shooting. Younger teams spend less time on each step." }
   ];
   function spotOf(r) {
     var first = (r.topics || [])[0];
@@ -123,6 +123,25 @@
     return null;
   }
   var TRAIN_PLAN = [
+    // Goalkeepers. Cues come from the summer 2026 keeper sessions (GK session
+    // plan and drill library): the W, chest over the ball, the third hand.
+    { band: "academy", title: "Everyone takes a turn in goal", why: "At 3–5 every player rotates through goal and learns the basics. Short turns, everyone gets one, and it's never a punishment.", topics: ["Goalkeeping", "Coaching basics"] },
+    { band: "academy", title: "Keeper ready stance", why: "Feet set before the ball is struck, weight forward, hands ready in front, not at the sides. Stopped and balanced on contact.", topics: ["Goalkeeping"] },
+    { band: "academy", title: "Catching: the W, the cradle and the scoop", why: "High: the W, bring it to the chest. Mid: cradle, forearms first. Low: hands behind the ball, knee down. Chest over the ball, secure it before anything else.", topics: ["Goalkeeping"] },
+    { band: "academy", title: "Catching drill: boxes, then receive", why: "Touch each cone of a small box, then catch a served ball. Feet set the moment it's struck, no catching off balance.", topics: ["Goalkeeping"] },
+    { band: "nextxi", title: "Keeper warmup series", why: "The routine keepers run every training: figure 8s, body rolls, shuffles, crossbar touches, jump dives, sprint and backpedal, react and hands.", topics: ["Goalkeeping", "Warmups"] },
+    { band: "nextxi", title: "Keeper footwork: cones and set feet", why: "Shuffle, don't cross the feet on the set. Every save starts from set feet.", topics: ["Goalkeeping"] },
+    { band: "nextxi", title: "Diving and getting back up", why: "Ground hand is the third hand, attack the ball, land on the side and sweep the bottom hand. Swing the top leg and pop up. Low dives before high, on a mat indoors.", topics: ["Goalkeeping"] },
+    { band: "nextxi", title: "High balls: attack the high point", why: "Take it at the highest point, knee up for protection, bring it to the chest, land on two feet.", topics: ["Goalkeeping"] },
+    { band: "nextxi", title: "Shot stopping: high, mid and low", why: "One station, shots at every height. Low: hands behind, knee down. Mid: cradle. High: high point, to the chest.", topics: ["Goalkeeping"] },
+    { band: "nextxi", title: "Double saves: the second effort", why: "Two shooters. Save the first, get up fast, set, and save the second.", topics: ["Goalkeeping"] },
+    // The LB warmup. Same order at every age; only the time per step changes.
+    { band: "all", title: "Warmup step 1: dynamic stretching", why: "Moving stretches across the floor: leg swings, high knees, lunges, skips. No standing holds before play.", topics: ["Warmups", "Fitness"] },
+    { band: "all", title: "Warmup step 2: rondos", why: "Keep-away to wake up the first touch. Two touches, find the split pass.", topics: ["Warmups", "Possession"] },
+    { band: "all", title: "Warmup step 3: the passing drill", why: "Passing in pairs and lines at game speed. Check to the space, first touch into space, pass.", topics: ["Warmups", "Passing & receiving"] },
+    { band: "all", title: "Warmup step 4: possession, small then large", why: "Start in a tight grid, then open it up. Keep it, get wide, find the extra player.", topics: ["Warmups", "Possession"] },
+    { band: "all", title: "Warmup step 5: crossing and finishing", why: "Serve from wide, attack near post and far post. Finish with the feet; no headers until U15.", topics: ["Warmups", "Shooting & finishing"] },
+    { band: "all", title: "Warmup step 6: shooting", why: "End on shots so the keepers are warm and every player leaves the warmup having scored.", topics: ["Warmups", "Shooting & finishing"] },
     { band: "all", title: "The Standard — the six non-negotiables on video", why: "Touches, Brave, Play, Fun, System, every kid known by name. The rules every affiliated coach carries.", topics: ["Coaching basics"] },
     { band: "all", title: "Communication and intensity — what it looks like", why: "The house rule is abstract until someone sees a session run at game speed with players talking.", topics: ["Coaching basics"] },
     { band: "all", title: "Setting up a small-sided game in 60 seconds", why: "Cones, teams, rotations. The difference between 40% of the session competing and 40% standing around.", topics: ["Small-sided games", "Session plans"] },
@@ -226,7 +245,7 @@
     { band: "nextxi", title: "Defending corners: zones plus markers", why: "Some players guard space, some guard people, and everyone knows which.", topics: ["Set pieces", "Defending"] }
   ];
 
-  function planFor(lib, band) { return lib.plan.filter(function (p) { return p.band === band; }); }
+  function planFor(lib, band) { return lib.plan.filter(function (p) { return p.band === band && !(lib.spots && spotOf(p)); }); }
   // Matched on title, which is what the "Make this" button pre-fills. Rename an
   // item and its to-do reappears — deliberate, so the list stays honest.
   function planDone(lib, p) {
@@ -1471,6 +1490,17 @@
 
     var list = filteredResources(cat);
     var hasPlan = lib.plan.length > 0;
+    function todoRow(p, showAge) {
+      var age = showAge ? (lib.bands.filter(function (b) { return b.key === p.band; })[0] || {}).title : "";
+      return '<li class="lawtodo__row">' +
+        '<span class="lawtodo__txt"><b>' + esc(p.title) + '</b>' +
+          (p.level ? '<span class="lawtodo__level">Tactics ' + esc(p.level) + '</span>' : "") +
+          (age ? '<span class="lawtodo__level">' + esc(age) + '</span>' : "") +
+          '<span>' + esc(p.why) + '</span></span>' +
+        '<button class="btn btn--ghost btn--sm owner-only" data-action="make-planned" ' +
+          'data-lib="' + esc(cat) + '" data-i="' + lib.plan.indexOf(p) + '">Make this</button>' +
+      '</li>';
+    }
     // Training splits into subtabs: one per age group, one per spot, and All.
     // The choice lives with the shelf's other filters, so it survives a re-render.
     var tab = lib.spots ? (f.tab || "all") : "all";
@@ -1493,27 +1523,23 @@
         '<p class="lawband__note">' + esc(b.note) + '</p>' +
         (b.unconfirmed ? '<p class="lawband__todo">Format not confirmed — ' + esc(b.unconfirmed) + '</p>' : "") +
         (cards.length ? '<div class="res-grid">' + cards.map(resCard).join("") + '</div>' : "") +
-        (todo.length ? '<ul class="lawtodo">' + todo.map(function (p) {
-          return '<li class="lawtodo__row">' +
-            '<span class="lawtodo__txt"><b>' + esc(p.title) + '</b>' +
-              (p.level ? '<span class="lawtodo__level">Tactics ' + esc(p.level) + '</span>' : "") +
-              '<span>' + esc(p.why) + '</span></span>' +
-            '<button class="btn btn--ghost btn--sm owner-only" data-action="make-planned" ' +
-              'data-lib="' + esc(cat) + '" data-i="' + lib.plan.indexOf(p) + '">Make this</button>' +
-          '</li>';
-        }).join("") + '</ul>' : "") +
+        (todo.length ? '<ul class="lawtodo">' + todo.map(function (p) { return todoRow(p, false); }).join("") + '</ul>' : "") +
         (hasPlan && !cards.length && !todo.length ? '<p class="lawband__done">Every planned ' + esc(lib.noun) + ' for this band is made.</p>' : "") +
       '</section>';
     }).join("");
     grid += (lib.spots || []).filter(function (sp) { return tab === "all" || tab === "spot:" + sp.key; }).map(function (sp) {
       var cards = list.filter(function (r) { return spotOf(r) === sp; });
+      var all = lib.plan.filter(function (p) { return spotOf(p) === sp; });
+      var todo = all.filter(function (p) { return !planDone(lib, p); });
       return '<section class="lawband lawband--spot" id="spot-' + sp.key + '">' +
         '<div class="lawband__head"><h3 class="lawband__h">' + esc(sp.title) + '</h3>' +
+          (all.length ? '<span class="lawband__count tnum">' + (all.length - todo.length) + '/' + all.length + ' planned</span>' : "") +
           '<button class="btn btn--ghost btn--sm owner-only" data-action="add-to-spot" data-spot="' + sp.key + '">' + esc(sp.add) + '</button></div>' +
         '<p class="lawband__note">' + esc(sp.note) + '</p>' +
-        (cards.length ? '<div class="res-grid">' + cards.map(resCard).join("") + '</div>'
-          : '<p class="lawband__done">Nothing here yet. Anything whose first topic is ' +
-            sp.topics.map(function (t) { return '“' + esc(t) + '”'; }).join(" or ") + ' shows up here.</p>') +
+        (cards.length ? '<div class="res-grid">' + cards.map(resCard).join("") + '</div>' : "") +
+        (todo.length ? '<ul class="lawtodo">' + todo.map(function (p) { return todoRow(p, true); }).join("") + '</ul>' : "") +
+        (!cards.length && !todo.length ? '<p class="lawband__done">Nothing here yet. Anything whose first topic is ' +
+            sp.topics.map(function (t) { return '“' + esc(t) + '”'; }).join(" or ") + ' shows up here.</p>' : "") +
       '</section>';
     }).join("");
     // Tactics pieces carry a readiness level as well as a grade band. The
