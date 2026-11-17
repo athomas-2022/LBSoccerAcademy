@@ -1384,7 +1384,7 @@
     // The shared vocabulary sits on the training shelf for every coach, whatever
     // is or isn't loaded into the library itself.
     if (cat === "training") {
-      principle += '<p class="res-terms"><a href="' + TERMS_URL + '" target="_blank" rel="noopener">LB Soccer: Common Terms</a> ' +
+      principle += '<p class="res-terms"><button type="button" class="linkbtn" data-action="open-terms">LB Soccer: Common Terms</button> ' +
         '<span>One vocabulary for every Eagles coach and player.</span></p>';
     }
     // Opening a resource logs the coach's name and email to the sheet. They were
@@ -1646,6 +1646,26 @@
       g.items = Object.keys(g.res).map(function (r) { return g.res[r]; }).sort(function (a, b) { return b.ts - a.ts; });
       g.count = g.items.length; return g;
     }).sort(function (a, b) { return b.last - a.last; });
+  }
+  // The Common Terms guide, shown in the drawer. The first column is the term;
+  // any further columns print under it with their header as the label, so the
+  // guide reads cleanly at drawer width whatever shape each table has.
+  function openTerms() {
+    var T = window.LB_TERMS;
+    if (!T) { window.open(TERMS_URL, "_blank", "noopener"); return; }
+    var html = '<p class="terms-intro">' + esc(T.intro) + '</p>' + T.sections.map(function (sec) {
+      return '<section class="terms-sec"><h3 class="terms-h">' + esc(sec.h) + '</h3>' +
+        (sec.note ? '<p class="terms-note">' + esc(sec.note) + '</p>' : "") +
+        '<dl class="terms-list">' + sec.rows.map(function (r) {
+          return '<div class="terms-row"><dt>' + esc(r[0]) + '</dt>' + r.slice(1).map(function (c, i) {
+            if (!c) return "";
+            return i === 0 && sec.head.length < 4 && sec.h !== "The tactics levels"
+              ? '<dd>' + esc(c) + '</dd>'
+              : '<dd><span class="terms-lbl">' + esc(sec.head[i + 1]) + ':</span> ' + esc(c) + '</dd>';
+          }).join("") + '</div>';
+        }).join("") + '</dl></section>';
+    }).join("");
+    showDrawer("LB Soccer: Common Terms", html);
   }
   function openResourceUsage(id) {
     var r = resById(id); if (!r) return;
@@ -2002,7 +2022,7 @@
   // ================================================================
   // Non-mutating actions a view-only coach is still allowed to trigger.
   var VIEW_ACTIONS = { "res-type": 1, "res-age": 1, "filter-status": 1, "filter-grad": 1,
-    "clear-filters": 1, "clear-prog": 1, "play-resource": 1, "open-resource": 1, "close-player": 1,
+    "clear-filters": 1, "clear-prog": 1, "play-resource": 1, "open-resource": 1, "open-terms": 1, "close-player": 1,
     "close-drawer": 1, "goto-coaches": 1, "goto": 1, "sign-out": 1,
     // Must be here. While previewing, canEdit() is false and every action not on
     // this list is refused — without it the way out of preview is itself dead.
@@ -2075,7 +2095,11 @@
       case "edit-resource": openResource(resById(id)); break;
       case "delete-resource": deleteResource(id); break;
       case "play-resource": logUsage(resById(id), "watch"); openPlayer(resById(id)); break;
-      case "open-resource": var rr = resById(id); if (rr && rr.url) { window.open(rr.url, "_blank", "noopener"); logUsage(rr, "open"); } break;
+      case "open-terms": openTerms(); break;
+      case "open-resource": var rr = resById(id);
+        // The terms doc is private to its owner; coaches read the copy built in here.
+        if (rr && rr.url === TERMS_URL && window.LB_TERMS) { openTerms(); logUsage(rr, "open"); break; }
+        if (rr && rr.url) { window.open(rr.url, "_blank", "noopener"); logUsage(rr, "open"); } break;
       case "resource-usage": openResourceUsage(id); break;
       case "coach-activity": openCoachActivity(); break;
       case "load-starter-resources": loadStarters(act.dataset.lib || "training"); break;

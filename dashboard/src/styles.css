@@ -617,6 +617,16 @@ table.roster{width:100%;border-collapse:collapse;min-width:640px}
 .tactics-ladder ul{margin:0;padding-left:1.1rem;display:grid;gap:.15rem}
 .res-terms{margin:-.4rem 0 1.1rem;font-size:var(--fs-sm);color:var(--ink-2);font-weight:500}
 .res-terms a{font-weight:800;color:var(--blue-900)}
+.res-terms .linkbtn{font:inherit;font-weight:800;color:var(--blue-900);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer}
+.terms-intro{margin:0 0 1rem;color:var(--ink-2)}
+.terms-sec{margin:0 0 1.4rem}
+.terms-h{margin:0 0 .35rem;font-size:1rem;font-weight:800;color:var(--blue-900)}
+.terms-note{margin:0 0 .5rem;font-size:var(--fs-sm);color:var(--ink-2)}
+.terms-list{margin:0;display:grid;gap:.6rem}
+.terms-row{padding:.55rem .7rem;border-radius:8px;background:var(--surface-2,rgba(0,61,165,.05))}
+.terms-row dt{font-weight:800}
+.terms-row dd{margin:.15rem 0 0;font-size:var(--fs-sm)}
+.terms-lbl{font-weight:700;color:var(--ink-2)}
 .res-terms span{margin-left:.35rem}
 
 /* coach activity + per-material usage drawers */
