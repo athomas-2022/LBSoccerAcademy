@@ -358,26 +358,67 @@
   }
   function relock(msg) { if (!AUTH.enabled) return; AUTH.ready = false; showGate(); renderSignIn(); if (msg) gateMsg(msg); }
 
+  // Staying signed in. Google's sign-in token lasts an hour, so on its own it
+  // means signing in again every hour and on every new tab. Instead:
+  //  - the token is kept in localStorage, so it survives closing the tab;
+  //  - Google's automatic sign-in (auto_select) hands a returning, approved
+  //    user a fresh token with no click when the stored one has run out;
+  //  - a few minutes before it runs out, a fresh one is fetched quietly.
+  // The server still checks every token against the approved list, and
+  // "Sign out" clears the token and turns automatic sign-in off.
+  var TOKEN_KEY = "lbsa.idtoken", OUT_KEY = "lbsa.signedout", gsiReady = false, refreshTimer = null;
+  function storedToken() { try { return localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY); } catch (e) { return null; } }
+  function keepToken(t) { try { localStorage.setItem(TOKEN_KEY, t); localStorage.removeItem(OUT_KEY); sessionStorage.removeItem(TOKEN_KEY); } catch (e) {} }
+  function dropToken() { try { localStorage.removeItem(TOKEN_KEY); sessionStorage.removeItem(TOKEN_KEY); } catch (e) {} }
+  function signedOutOnPurpose() { try { return localStorage.getItem(OUT_KEY) === "1"; } catch (e) { return false; } }
+  function tokenMsLeft(t) { var p = decodeJwt(t); return p && p.exp ? p.exp * 1000 - Date.now() : 0; }
+  function initGsi() {
+    if (gsiReady) return true;
+    if (!(window.google && google.accounts && google.accounts.id)) return false;
+    google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: onCredential, auto_select: true,
+      cancel_on_tap_outside: false, use_fedcm_for_prompt: true, itp_support: true });
+    gsiReady = true; return true;
+  }
+  // Ask Google for a fresh token without a click. Skipped after a deliberate
+  // sign-out, so signing out actually sticks.
+  function quietSignIn() {
+    if (signedOutOnPurpose()) return;
+    if (!initGsi()) { setTimeout(quietSignIn, 400); return; }
+    try { google.accounts.id.prompt(); } catch (e) {}
+  }
+  function scheduleRefresh() {
+    clearTimeout(refreshTimer);
+    var left = tokenMsLeft(AUTH.token); if (!left) return;
+    refreshTimer = setTimeout(quietSignIn, Math.max(left - 5 * 60000, 30000));
+  }
+  // A laptop that slept past the refresh comes back with a stale token.
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible" && AUTH.ready && AUTH.token && tokenMsLeft(AUTH.token) < 5 * 60000) quietSignIn();
+  });
+
   function initAuth() {
     if (!AUTH.enabled) { hideGate(); AUTH.ready = true; runBootSyncs(); return; }  // gate not configured yet
     showGate(); gateMsg("Checking sign-in…");
-    var stored = null; try { stored = sessionStorage.getItem("lbsa.idtoken"); } catch (e) {}
+    var stored = storedToken();
     if (stored) { var p = decodeJwt(stored);
-      if (p && p.exp * 1000 > Date.now() + 60000) { AUTH.token = stored; AUTH.email = p.email || ""; AUTH.name = p.name || p.email || ""; verifyAccess(); return; } }
+      if (p && p.exp * 1000 > Date.now() + 60000) { AUTH.token = stored; AUTH.email = p.email || ""; AUTH.name = p.name || p.email || ""; verifyAccess(); return; }
+      dropToken(); }
     renderSignIn();
   }
   function renderSignIn() {
     $("#authPending").hidden = true; $("#authBtn").hidden = false;
     var host = $("#authBtn"); host.innerHTML = "";
-    if (!(window.google && google.accounts && google.accounts.id)) { gateMsg("Loading Google sign-in…"); setTimeout(renderSignIn, 400); return; }
-    google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: onCredential, auto_select: false });
+    if (!initGsi()) { gateMsg("Loading Google sign-in…"); setTimeout(renderSignIn, 400); return; }
     google.accounts.id.renderButton(host, { theme: "filled_blue", size: "large", text: "signin_with", shape: "pill", width: 260 });
     gateMsg("Sign in with an approved Google account.");
+    quietSignIn();   // returning users usually get straight back in, no click
   }
   function onCredential(resp) {
     var t = resp && resp.credential; if (!t) return;
     var p = decodeJwt(t); AUTH.token = t; AUTH.email = (p && p.email) || ""; AUTH.name = (p && p.name) || AUTH.email;
-    try { sessionStorage.setItem("lbsa.idtoken", t); } catch (e) {}
+    keepToken(t);
+    // Already in (a quiet refresh): just carry on with the new token, no repaint.
+    if (AUTH.ready) { scheduleRefresh(); return; }
     gateMsg("Checking access…"); verifyAccess();
   }
   function verifyAccess() {
@@ -392,14 +433,15 @@
         // form at this point. Repaint now that we know who this is, or the owner
         // is told they can't edit their own dashboard on every single visit.
         renderTopbar(); renderView();
-        runBootSyncs();
+        runBootSyncs(); scheduleRefresh();
       }
       else if (data && data.error === "pending") { showPending(data.email); }
-      else { try { sessionStorage.removeItem("lbsa.idtoken"); } catch (e) {} AUTH.token = ""; renderSignIn(); gateMsg("Sign-in expired or invalid — please sign in again."); }
+      else { dropToken(); AUTH.token = ""; renderSignIn(); gateMsg("Sign-in expired or invalid — please sign in again."); }
     }).catch(function () { gateMsg("Couldn't reach the server — check your connection and retry."); setTimeout(function () { if (!AUTH.ready) renderSignIn(); }, 2500); });
   }
   function signOut() {
-    try { sessionStorage.removeItem("lbsa.idtoken"); } catch (e) {}
+    dropToken(); clearTimeout(refreshTimer);
+    try { localStorage.setItem(OUT_KEY, "1"); } catch (e) {}
     AUTH.token = ""; AUTH.email = ""; AUTH.owner = false; AUTH.ready = false;
     try { google.accounts.id.disableAutoSelect(); } catch (e) {}
     renderIdentity(); showGate(); renderSignIn();
