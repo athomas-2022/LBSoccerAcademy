@@ -132,11 +132,6 @@ window.LB_TERMS = {
      "Sorting out who marks whom."
     ],
     [
-     "Rubber band",
-     "How close you stay to your mark. Ball near your player: tight. Ball far away: drop off and tuck in, but never so far you can't get back.",
-     "Marking away from the ball."
-    ],
-    [
      "Swoosh",
      "The shape of the back line: the strong-side back up pressuring, the center backs behind in cover, the weak-side back tucked in.",
      "The ball is wide and the back line is setting its shape."
