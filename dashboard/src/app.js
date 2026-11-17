@@ -1477,7 +1477,19 @@
 
     var list = filteredResources(cat);
     var hasPlan = lib.plan.length > 0;
-    var grid = lib.bands.map(function (b) {
+    // Training splits into subtabs: one per age group, one per spot, and All.
+    // The choice lives with the shelf's other filters, so it survives a re-render.
+    var tab = lib.spots ? (f.tab || "all") : "all";
+    var subtabs = lib.spots
+      ? '<div class="subtabs" role="tablist" aria-label="Age groups">' +
+        [["all", "All"]].concat(lib.bands.map(function (b) { return [b.key, b.title]; }),
+          lib.spots.map(function (sp) { return ["spot:" + sp.key, sp.title]; })).map(function (t) {
+          var on = tab === t[0];
+          return '<button type="button" class="subtab' + (on ? " is-on" : "") + '" role="tab" aria-selected="' + on + '" ' +
+            'data-action="train-tab" data-v="' + esc(t[0]) + '">' + esc(t[1]) + '</button>';
+        }).join("") + '</div>'
+      : "";
+    var grid = lib.bands.filter(function (b) { return tab === "all" || tab === b.key; }).map(function (b) {
       var cards = resourcesInBand(list, b.key).filter(function (r) { return !(lib.spots && spotOf(r)); });
       var all = planFor(lib, b.key);
       var todo = all.filter(function (p) { return !planDone(lib, p); });
@@ -1499,7 +1511,7 @@
         (hasPlan && !cards.length && !todo.length ? '<p class="lawband__done">Every planned ' + esc(lib.noun) + ' for this band is made.</p>' : "") +
       '</section>';
     }).join("");
-    grid += (lib.spots || []).map(function (sp) {
+    grid += (lib.spots || []).filter(function (sp) { return tab === "all" || tab === "spot:" + sp.key; }).map(function (sp) {
       var cards = list.filter(function (r) { return spotOf(r) === sp; });
       return '<section class="lawband lawband--spot" id="spot-' + sp.key + '">' +
         '<div class="lawband__head"><h3 class="lawband__h">' + esc(sp.title) + '</h3>' +
@@ -1512,7 +1524,7 @@
     }).join("");
     // Tactics pieces carry a readiness level as well as a grade band. The
     // ladder explains it once, above every list those pieces appear in.
-    var ladder = cat === "training"
+    var ladder = cat === "training" && tab.indexOf("spot:") !== 0
       ? '<div class="tactics-ladder"><p><b>Tactics levels.</b> One idea runs through every level: with the ball we get wide, without it we get compact. ' +
         'Levels go by readiness, not by grade. A team moves up when it does the level below without being told.</p>' +
         '<ul><li><b>Offense:</b> Level 1 Spread out. Level 2 Be an option, support. Level 3 Transition shape.</li>' +
@@ -1524,7 +1536,7 @@
           'data-lib="' + esc(cat) + '">' + esc(lib.startersLabel) + '</button>'
         : "") + '</p>' + grid;
 
-    host.innerHTML = syncBanner("resources", "library") + principle + summary + toolbar + grid;
+    host.innerHTML = syncBanner("resources", "library") + principle + summary + toolbar + subtabs + grid;
     var s = host.querySelector("#resSearch");
     if (s) s.addEventListener("input", function () { f.q = this.value; var pos = this.selectionStart;
       renderLibrary(cat); var s2 = host.querySelector("#resSearch"); if (s2) { s2.focus(); try { s2.setSelectionRange(pos, pos); } catch (e) {} } });
@@ -2109,7 +2121,7 @@
   //  EVENTS (delegation)
   // ================================================================
   // Non-mutating actions a view-only coach is still allowed to trigger.
-  var VIEW_ACTIONS = { "res-type": 1, "res-age": 1, "filter-status": 1, "filter-grad": 1,
+  var VIEW_ACTIONS = { "res-type": 1, "train-tab": 1, "res-age": 1, "filter-status": 1, "filter-grad": 1,
     "clear-filters": 1, "clear-prog": 1, "play-resource": 1, "open-resource": 1, "open-terms": 1, "close-player": 1,
     "close-drawer": 1, "goto-coaches": 1, "goto": 1, "sign-out": 1,
     // Must be here. While previewing, canEdit() is false and every action not on
@@ -2197,6 +2209,7 @@
       case "resource-usage": openResourceUsage(id); break;
       case "coach-activity": openCoachActivity(); break;
       case "load-starter-resources": loadStarters(act.dataset.lib || "training"); break;
+      case "train-tab": libFilters(libCat()).tab = act.dataset.v || "all"; renderLibrary(libCat()); break;
       case "res-type": {
         var lfT = libFilters(libCat());
         lfT.type = act.dataset.v;
