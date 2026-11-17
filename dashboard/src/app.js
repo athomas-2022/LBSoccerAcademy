@@ -121,6 +121,8 @@
     { band: "grassroot", title: "The three K–2 cues, said out loud", why: "“Little touches, keep it close.” “Freeze — now go the other way.” “Great try — go again.” Coaches need to hear the tone, not just read it.", topics: ["Coaching basics"] },
     { band: "grassroot", title: "Keeping every kid on a ball", why: "No lines, no laps, no long lectures. If a kid is standing still, the drill is wrong.", topics: ["Fun & games", "Coaching basics"] },
     { band: "grassroot", title: "Everyone scores — shooting games with big goals", why: "Big goals, lots of balls, and every kid finishes. At K–2 the goal is the reward for dribbling there.", topics: ["Shooting & finishing", "Fun & games"] },
+    { band: "grassroot", title: "Which way are we going? Tactics at K–2", why: "Two ideas only: which goal is ours, and get it back. Bunching round the ball is normal at five, so no positions yet.", topics: ["Tactics", "Coaching basics"] },
+    { band: "grassroot", title: "Get it back! Every kid defends", why: "Everyone chases when we lose it, and the chase gets praised. The first seed of pressing together.", topics: ["Tactics", "Defending"] },
 
     { band: "academy", title: "Beat 2: teaching a move in under a minute", why: "Demo, reps, mini-challenge. The teach that does not eat the session.", topics: ["1v1 / moves", "Session plans"] },
     { band: "academy", title: "Passive defender to live defender", why: "The progression that turns a drill into a skill. Most volunteers skip straight to live and lose the move.", topics: ["1v1 / moves", "Defending"] },
@@ -131,6 +133,8 @@
     { band: "academy", title: "The stepover — sell it with the shoulders", why: "Most kids step over the ball and go nowhere. Show the shoulder drop that makes the defender buy it.", topics: ["1v1 / moves", "Dribbling"] },
     { band: "academy", title: "Passing and receiving: inside, outside, sole — both feet", why: "Three surfaces, two feet, one partner. The receiving half matters as much as the pass.", topics: ["Passing & receiving", "First touch"] },
     { band: "academy", title: "Pass, dribble or shoot? Decisions in small-sided games", why: "Let the game ask the question. One quick freeze at most, and the player answers it, not the coach.", topics: ["Small-sided games", "Shooting & finishing", "Tactics"] },
+    { band: "academy", title: "Be an option: support the player on the ball", why: "Open means a straight line from the ball to you. Shown as a 2v1 and a 3v2 on a tactics board.", topics: ["Tactics", "Passing & receiving"] },
+    { band: "academy", title: "First defender, second defender", why: "One pressures, one covers. The simplest team defending there is, and the start of pressing together.", topics: ["Tactics", "Defending"] },
     { band: "academy", title: "The three Rising cues, said out loud", why: "“Head up — what do you see?” “First touch into space.” “Try your move — I love the brave.”", topics: ["Coaching basics"] },
 
     { band: "nextxi", title: "Rondo — keeping the ball under pressure", why: "The warmup that teaches angles, speed of play and scanning all at once.", topics: ["Passing & receiving", "Warmups"] },
@@ -140,6 +144,8 @@
     { band: "nextxi", title: "Team shape: spacing, roles and staying connected", why: "Every position has a job with the ball and without it. Show the shape stretching and shrinking as one.", topics: ["Team shape", "Tactics"] },
     { band: "nextxi", title: "Win it back fast — pressing and transition", why: "“We lost it — press together.” The first few seconds after losing the ball, played out on a small field.", topics: ["Defending", "Team shape", "Tactics"] },
     { band: "nextxi", title: "Set pieces: simple kick-off, corner and goal-kick routines", why: "One routine each, named in our vocabulary, so every Next XI team runs the same thing.", topics: ["Set pieces", "Team shape", "Tactics"] },
+    { band: "nextxi", title: "Width, depth and support: how we attack", why: "The ideas behind team shape and playing through the lines, explained on a board before they are drilled on a field.", topics: ["Tactics", "Team shape"] },
+    { band: "nextxi", title: "Compact, cover and balance: how we defend", why: "Get small when we lose it, pressure and cover, tuck in on the far side, and get big again the moment we win it.", topics: ["Tactics", "Defending"] },
     { band: "nextxi", title: "The three Next XI cues, said out loud", why: "“Open up — check your shoulder.” “We lost it — press together.” “Play through the lines, be patient.”", topics: ["Coaching basics"] }
   ];
 
