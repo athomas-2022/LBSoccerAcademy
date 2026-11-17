@@ -1545,7 +1545,7 @@
           'data-lib="' + esc(cat) + '">' + esc(lib.startersLabel) + '</button>'
         : "") + '</p>' + grid;
 
-    host.innerHTML = syncBanner("resources", "library") + principle + summary + toolbar + subtabs + grid;
+    host.innerHTML = syncBanner("resources", "library") + principle + summary + subtabs + toolbar + grid;
     var s = host.querySelector("#resSearch");
     if (s) s.addEventListener("input", function () { f.q = this.value; var pos = this.selectionStart;
       renderLibrary(cat); var s2 = host.querySelector("#resSearch"); if (s2) { s2.focus(); try { s2.setSelectionRange(pos, pos); } catch (e) {} } });
