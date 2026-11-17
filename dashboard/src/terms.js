@@ -67,7 +67,7 @@ window.LB_TERMS = {
     ],
     [
      "Bounce pass",
-     "Pass into a teammate's feet and get it straight back, one touch.",
+     "Pass into a teammate's feet and get it straight back.",
      "A defender steps to the first pass and leaves space."
     ],
     [
