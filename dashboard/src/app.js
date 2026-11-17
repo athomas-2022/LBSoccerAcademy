@@ -276,7 +276,12 @@
   function vimeoId(u) { var m = String(u || "").match(/vimeo\.com\/(?:video\/)?(\d+)/); return m ? m[1] : ""; }
   function resEmbed(u) { var y = ytId(u); if (y) return "https://www.youtube-nocookie.com/embed/" + y + "?rel=0&autoplay=1";
     var v = vimeoId(u); if (v) return "https://player.vimeo.com/video/" + v + "?autoplay=1"; return ""; }
-  function resThumb(r) { var y = ytId(r.url || ""); return y ? "https://i.ytimg.com/vi/" + y + "/hqdefault.jpg" : ""; }
+  // Clips we host ourselves (assets/videos/...) are plain MP4s with a poster
+  // JPG of the same name beside them.
+  function isMp4(u) { return /\.mp4(?:[?#]|$)/i.test(String(u || "")); }
+  function resThumb(r) { var u = r.url || "", y = ytId(u);
+    if (y) return "https://i.ytimg.com/vi/" + y + "/hqdefault.jpg";
+    return isMp4(u) ? u.replace(/\.mp4(?=[?#]|$)/i, ".jpg") : ""; }
   var EWAY_URL = "https://lbsocceracademy.org/#eaglesway";
   var TERMS_URL = "https://docs.google.com/document/d/10Gk4LOVAfBvZsorXG3hcLcjOWUZELZZamJmQkavYZeg/edit";
   var STARTER_RESOURCES = [
@@ -1530,14 +1535,16 @@
   // ---- video / resource player ----
   function openPlayer(r) {
     if (!r) return;
-    var emb = resEmbed(r.url || "");
+    var emb = resEmbed(r.url || ""), mp4 = isMp4(r.url);
     // Not embeddable -> hand it to a new tab. Say so: window.open with noopener
     // returns null by spec even on success, so a blocked pop-up is undetectable
     // and the old silent fall-through looked exactly like a dead button.
-    if (!emb) { if (r.url) { window.open(r.url, "_blank", "noopener"); toast("Opening in a new tab…"); } return; }
+    if (!emb && !mp4) { if (r.url) { window.open(r.url, "_blank", "noopener"); toast("Opening in a new tab…"); } return; }
     $("#playerTitle").textContent = r.title || "Video";
     $("#playerExt").href = r.url || "#";
-    $("#playerFrame").innerHTML = '<iframe src="' + esc(emb) + '" title="' + esc(r.title || "Video") + '" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>';
+    $("#playerFrame").innerHTML = mp4
+      ? '<video src="' + esc(r.url) + '" poster="' + esc(resThumb(r)) + '" title="' + esc(r.title || "Video") + '" controls autoplay playsinline preload="metadata"></video>'
+      : '<iframe src="' + esc(emb) + '" title="' + esc(r.title || "Video") + '" frameborder="0" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>';
     playerLastFocus = document.activeElement;
     var p = $("#player"); p.hidden = false; setModal("player", true);
     // Focus moves now, not on the next frame — it has nothing to do with the
