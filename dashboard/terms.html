@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LB Soccer: Common Terms</title>
+<meta name="theme-color" content="#003DA5" />
+<link rel="icon" href="../assets/logos/clipboard-favicon.svg" />
+<style>
+  @font-face{font-family:Montserrat;src:url(../assets/fonts/Montserrat-Regular.woff2) format("woff2");font-weight:400;font-display:swap}
+  @font-face{font-family:Montserrat;src:url(../assets/fonts/Montserrat-SemiBold.woff2) format("woff2");font-weight:600;font-display:swap}
+  @font-face{font-family:Montserrat;src:url(../assets/fonts/Montserrat-ExtraBold.woff2) format("woff2");font-weight:800;font-display:swap}
+  :root{--blue:#003DA5;--navy:#0A2540;--red:#C8102E;--ink:#16233D;--ink-2:#48566E;--line:#E2E8F2;--tint:#F1F5FC}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Montserrat,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:#fff;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .mast{position:sticky;top:0;z-index:2;background:var(--blue);color:#fff;padding:.85rem 1.1rem}
+  .mast .in{max-width:44rem;margin:0 auto;display:flex;align-items:center;gap:.8rem}
+  .mast img{width:2.4rem;height:2.4rem;flex:0 0 auto}
+  .mast h1{margin:0;font-size:1.15rem;font-weight:800;line-height:1.2}
+  .mast a{margin-left:auto;flex:0 0 auto;color:#fff;font-size:.8rem;font-weight:700;text-decoration:none;border:1px solid rgba(255,255,255,.55);border-radius:999px;padding:.35rem .75rem}
+  .mast a:hover{background:rgba(255,255,255,.12)}
+  main{max-width:44rem;margin:0 auto;padding:1rem 1.1rem 3rem}
+  .intro{margin:.2rem 0 1rem;color:var(--ink-2)}
+  nav{display:flex;flex-wrap:wrap;gap:.4rem;margin:0 0 1.4rem}
+  nav a{font-size:.78rem;font-weight:600;color:var(--blue);background:var(--tint);border-radius:999px;padding:.3rem .65rem;text-decoration:none}
+  section{margin:0 0 1.6rem;scroll-margin-top:4.5rem}
+  h2{margin:0 0 .4rem;font-size:1.02rem;font-weight:800;color:var(--navy);padding-bottom:.3rem;border-bottom:2px solid var(--line)}
+  .note{margin:0 0 .6rem;font-size:.88rem;color:var(--ink-2)}
+  dl{margin:0;display:grid;gap:.5rem}
+  .row{padding:.55rem .75rem;border-radius:8px;background:var(--tint)}
+  dt{font-weight:800;color:var(--navy)}
+  dd{margin:.15rem 0 0;font-size:.9rem}
+  .lbl{font-weight:700;color:var(--ink-2)}
+  .empty{color:var(--ink-2)}
+  @media print{.mast{position:static}.mast a,nav{display:none}.row{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="mast"><div class="in">
+  <img src="../assets/logos/Crest-180.png" alt="" />
+  <h1>LB Soccer: Common Terms</h1>
+  <a href="../docs/common-terms-card.pdf" target="_blank" rel="noopener">Print card</a>
+</div></header>
+<main id="terms"><p class="empty">Loading the guide…</p></main>
+<script src="src/terms.js"></script>
+<script>
+// The Common Terms guide on its own page, so the dashboard can open it in a
+// separate tab or window. Same data and layout rules as the dashboard drawer:
+// column 1 is the term, further columns print under it, labeled by header.
+(function () {
+  "use strict";
+  var T = window.LB_TERMS, host = document.getElementById("terms");
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function slug(s) { return "t-" + String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""); }
+  if (!T) { host.innerHTML = '<p class="empty">The guide didn\'t load. Refresh the page to try again.</p>'; return; }
+  var nav = "<nav>" + T.sections.map(function (s) {
+    return '<a href="#' + slug(s.h) + '">' + esc(s.h) + "</a>";
+  }).join("") + "</nav>";
+  host.innerHTML = '<p class="intro">' + esc(T.intro) + "</p>" + nav + T.sections.map(function (sec) {
+    return '<section id="' + slug(sec.h) + '"><h2>' + esc(sec.h) + "</h2>" +
+      (sec.note ? '<p class="note">' + esc(sec.note) + "</p>" : "") +
+      "<dl>" + sec.rows.map(function (r) {
+        return '<div class="row"><dt>' + esc(r[0]) + "</dt>" + r.slice(1).map(function (c, i) {
+          if (!c) return "";
+          return i === 0 && sec.head.length < 4 && sec.h !== "The tactics levels"
+            ? "<dd>" + esc(c) + "</dd>"
+            : '<dd><span class="lbl">' + esc(sec.head[i + 1]) + ":</span> " + esc(c) + "</dd>";
+        }).join("") + "</div>";
+      }).join("") + "</dl></section>";
+  }).join("");
+})();
+</script>
+</body>
+</html>

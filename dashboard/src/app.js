@@ -1647,10 +1647,23 @@
       g.count = g.items.length; return g;
     }).sort(function (a, b) { return b.last - a.last; });
   }
-  // The Common Terms guide, shown in the drawer. The first column is the term;
-  // any further columns print under it with their header as the label, so the
-  // guide reads cleanly at drawer width whatever shape each table has.
+  // The Common Terms guide opens on its own page (terms.html): in a separate
+  // window on a computer, so it can sit beside the dashboard, and in a new tab
+  // on a phone or tablet, where popup windows just become tabs anyway.
   function openTerms() {
+    var url = "terms.html";
+    var desktop = !!(window.matchMedia &&
+      window.matchMedia("(hover: hover) and (pointer: fine) and (min-width: 900px)").matches);
+    var w = desktop
+      ? window.open(url, "lb-terms", "popup,width=640,height=" + Math.max(500, Math.min(920, (screen.availHeight || 900) - 60)))
+      : window.open(url, "_blank");
+    if (w) { try { w.focus(); } catch (e) {} return; }
+    openTermsDrawer(); // popup blocked: fall back to the drawer
+  }
+  // The same guide in the drawer. The first column is the term; any further
+  // columns print under it with their header as the label, so it reads cleanly
+  // at drawer width whatever shape each table has.
+  function openTermsDrawer() {
     var T = window.LB_TERMS;
     if (!T) { window.open(TERMS_URL, "_blank", "noopener"); return; }
     var html = '<p class="terms-intro">' + esc(T.intro) + '</p>' + T.sections.map(function (sec) {
