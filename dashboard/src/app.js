@@ -180,6 +180,12 @@
     { band: "nextxi", title: "6v3 rondo with a split pass", why: "A bigger rondo against three defenders who press together. Points for passing between them.", topics: ["Possession", "Passing & receiving"] },
     { band: "nextxi", title: "Switch it: possess and change sides", why: "Draw them to one side, then switch the ball to the other.", topics: ["Possession", "Team shape", "Tactics"] },
     { band: "nextxi", title: "3v3 plus 3: transition rondo", why: "Three teams of three. Lose it and you defend; win it and you keep it right away.", topics: ["Possession", "Defending", "Tactics"] },
+    // The high school team's own drills (added 17 Nov 2026), filmed in Shoot 5.
+    { band: "nextxi", title: "Over the river: three-zone keep-away", why: "The high school team's drill. Keep it in your zone, then pass it over the river to the team at the far end.", topics: ["Possession", "Passing & receiving", "Team shape"] },
+    { band: "academy", title: "Two-zone keep-away: eight passes", why: "The high school team's drill. Eight passes in a row is a point while defenders come over from the other zone.", topics: ["Possession", "Passing & receiving", "Defending"] },
+    { band: "academy", title: "Bank it: first to 21", why: "The high school team's drill. Every pass is a point, but you only keep them once you call \"Bank!\"", topics: ["Possession", "Passing & receiving", "Fun & games"] },
+    { band: "nextxi", title: "Three teams: two keep it, one defends", why: "The high school team's version: two teams keep it together and the defending team changes on the whistle.", topics: ["Possession", "Passing & receiving", "Defending"] },
+    { band: "nextxi", title: "Switch the attack: wide pugs", why: "The high school team's drill. Each team attacks two small goals on its own wing, so the ball has to move to that side.", topics: ["Possession", "Team shape", "Tactics"] },
     { band: "grassroot", title: "3v3 to tiny goals", why: "The K–2 game: three a side, two tiny goals at each end, no goalies, lots of goals.", topics: ["Small-sided games", "Dribbling"] },
     { band: "grassroot", title: "4v4 with two balls at once", why: "Two balls in one game. Twice the touches, and nobody stands still.", topics: ["Small-sided games", "Fun & games"] },
     { band: "academy", title: "3v3 four-goal game", why: "Two goals to attack, two to defend. Teaches heads up and finding the open side.", topics: ["Small-sided games", "1v1 / moves"] },
@@ -212,6 +218,9 @@
     { band: "nextxi", title: "Build-out shapes from goal kicks", why: "Three goal-kick shapes with one name each, so every Next XI team builds the same way.", topics: ["Team shape", "Goalkeeping", "Set pieces"] },
     { band: "nextxi", title: "Compact block against a passing team", why: "Defend in a tight shape and make them play around you, not through you.", topics: ["Defending", "Team shape", "Tactics"] },
     { band: "nextxi", title: "Transition shape: the first five seconds", why: "The moment the ball changes teams, the shape changes. Rehearse it until it's automatic.", topics: ["Team shape", "Tactics", "Defending"] },
+    // The high school team's own drills (added 17 Nov 2026), filmed in Shoot 5.
+    { band: "nextxi", title: "Four zones: step together", why: "The high school team's drill. Get it to your team in the other zone; the defenders work on pressure, cover and balance.", topics: ["Team shape", "Defending", "Passing & receiving"] },
+    { band: "nextxi", title: "Three teams: don't give up the split", why: "The high school team's drill. Two teams keep it, and every split pass counts against the defenders. Most points loses.", topics: ["Defending", "Team shape", "Possession"] },
     { band: "nextxi", title: "Corner routine: low to the near post", why: "A driven ball on the ground to the near post. No headers needed, so it works at every age.", topics: ["Set pieces", "Shooting & finishing"] },
     { band: "nextxi", title: "Short corner, two players", why: "Two players at the flag change the angle before the cross.", topics: ["Set pieces", "Passing & receiving"] },
     { band: "nextxi", title: "Defending corners: zones plus markers", why: "Some players guard space, some guard people, and everyone knows which.", topics: ["Set pieces", "Defending"] }
