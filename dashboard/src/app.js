@@ -64,7 +64,7 @@
     { key: "link",  label: "Link", icon: "ic-link" }
   ];
   var RES_AGES = [ { key: "grassroot", label: "K–2" }, { key: "academy", label: "3–5" }, { key: "nextxi", label: "6–8" }, { key: "all", label: "All ages" } ];
-  var RES_TOPICS = ["Ball mastery", "Dribbling", "1v1 / moves", "Passing & receiving", "First touch", "Shooting & finishing",
+  var RES_TOPICS = ["Ball mastery", "Dribbling", "1v1 / moves", "Passing & receiving", "Possession", "First touch", "Shooting & finishing",
     "Small-sided games", "Defending", "Goalkeeping", "Team shape", "Tactics", "Set pieces", "Warmups", "Fun & games", "Session plans", "Coaching basics"];
   function resType(k) { for (var i = 0; i < RES_TYPES.length; i++) if (RES_TYPES[i].key === k) return RES_TYPES[i]; return RES_TYPES[0]; }
   // The laws divide by playing division (U6/U8/U10/U12), not by the grade bands
@@ -152,7 +152,55 @@
     { band: "nextxi", title: "Marking in depth: our defensive shape", level: "Defense Level 3", why: "Desk explainer, about 3 minutes. Get compact, mark goal-side, and cover in layers so one beaten player is not a goal.", topics: ["Tactics", "Defending", "Team shape"] },
     { band: "nextxi", title: "Formations: how the common shapes attack and defend", level: "Level 3", why: "Desk explainer, about 90 seconds. The shapes our teams will see, and how each one gets wide and gets compact.", topics: ["Tactics", "Team shape"] },
     { band: "nextxi", title: "Formation matchups: find the extra player", level: "Level 3", why: "Desk explainer, about 90 seconds. Lay two shapes over each other and find where we have one more.", topics: ["Tactics", "Team shape"] },
-    { band: "nextxi", title: "The three Next XI cues, said out loud", why: "“Scan. Head on a swivel.” “We lost it. Press together!” “Possess. Keep it.”", topics: ["Coaching basics"] }
+    { band: "nextxi", title: "The three Next XI cues, said out loud", why: "“Scan. Head on a swivel.” “We lost it. Press together!” “Possess. Keep it.”", topics: ["Coaching basics"] },
+
+    // Drill library (added 17 Nov 2026): filmed in Shoots 4 and 5, grouped in the
+    // scripts doc by possession, small-sided, large-sided and shape, plus corners.
+    { band: "grassroot", title: "Keep it from the shark", why: "Everyone dribbles while one or two sharks try to steal. Keep the ball close and keep it moving.", topics: ["Possession", "Dribbling", "Fun & games"] },
+    { band: "grassroot", title: "Pirate treasure: protect your ball", why: "Shielding for five-year-olds: put your body between the defender and the ball.", topics: ["Possession", "1v1 / moves"] },
+    { band: "academy", title: "3v1 rondo in a square", why: "The first rondo: three keep it from one, and everyone learns where to stand.", topics: ["Possession", "Passing & receiving"] },
+    { band: "academy", title: "4v2 keep-away to a target", why: "Possession with a purpose: keep it, then look forward to the target.", topics: ["Possession", "Passing & receiving", "Small-sided games"] },
+    { band: "academy", title: "Pass and move: triangles", why: "Pass, then move to a new spot. The habit behind every support angle.", topics: ["Possession", "Passing & receiving", "First touch"] },
+    { band: "academy", title: "5v2 rondo, two touches", why: "The rondo that can start every practice from 4th grade up. Scan before the ball arrives.", topics: ["Possession", "Passing & receiving", "Warmups"] },
+    { band: "nextxi", title: "5v5 plus 3 neutrals", why: "The team with the ball always has three extra. Get wide and use them.", topics: ["Possession", "Passing & receiving", "Team shape"] },
+    { band: "nextxi", title: "6v3 rondo with a split pass", why: "A bigger rondo against three defenders who press together. Points for passing between them.", topics: ["Possession", "Passing & receiving"] },
+    { band: "nextxi", title: "Switch it: possess and change sides", why: "Draw them to one side, then switch the ball to the other.", topics: ["Possession", "Team shape", "Tactics"] },
+    { band: "nextxi", title: "3v3 plus 3: transition rondo", why: "Three teams of three. Lose it and you defend; win it and you keep it right away.", topics: ["Possession", "Defending", "Tactics"] },
+    { band: "grassroot", title: "3v3 to tiny goals", why: "The K–2 game: three a side, two tiny goals at each end, no goalies, lots of goals.", topics: ["Small-sided games", "Dribbling"] },
+    { band: "grassroot", title: "4v4 with two balls at once", why: "Two balls in one game. Twice the touches, and nobody stands still.", topics: ["Small-sided games", "Fun & games"] },
+    { band: "academy", title: "3v3 four-goal game", why: "Two goals to attack, two to defend. Teaches heads up and finding the open side.", topics: ["Small-sided games", "1v1 / moves"] },
+    { band: "academy", title: "4v4 with end zones", why: "Score by dribbling into the end zone, so somebody has to take a player on.", topics: ["Small-sided games", "Dribbling", "1v1 / moves"] },
+    { band: "academy", title: "2v1 to goal", why: "Two attackers, one defender. When to pass and when to go.", topics: ["Small-sided games", "Passing & receiving", "Shooting & finishing"] },
+    { band: "academy", title: "3v2 counter to goal", why: "A fast break: three attackers, two defenders, ten seconds to score.", topics: ["Small-sided games", "Shooting & finishing", "Tactics"] },
+    { band: "nextxi", title: "4v4 plus keepers, score within two touches", why: "Finishing under pressure: get it, set it, shoot.", topics: ["Small-sided games", "Shooting & finishing"] },
+    { band: "nextxi", title: "5v5 build-out line game", why: "Playing out of the back with a build-out line, the way U10 plays it.", topics: ["Small-sided games", "Team shape", "Goalkeeping"] },
+    { band: "nextxi", title: "3v3: win it back in five seconds", why: "Lose the ball and you have five seconds to win it back. A pressing habit.", topics: ["Small-sided games", "Defending", "Tactics"] },
+    { band: "nextxi", title: "1v1 into 2v2 waves", why: "It starts 1v1, then a second player joins each side. The 1v1 turns into support and cover.", topics: ["Small-sided games", "1v1 / moves", "Defending"] },
+    { band: "nextxi", title: "4v4 plus 2 bounce players", why: "Two end-line players play for whoever has it. Play forward, get it back, go.", topics: ["Small-sided games", "Passing & receiving", "Possession"] },
+    { band: "nextxi", title: "4v3 to goal: use the extra player", why: "One extra attacker. Find who's free and get it there fast.", topics: ["Small-sided games", "Tactics", "Shooting & finishing"] },
+    { band: "academy", title: "7v7 with the build-out line", why: "The U10 game format, played our way: the keeper starts it and everyone gets wide.", topics: ["Tactics", "Team shape", "Goalkeeping"] },
+    { band: "academy", title: "7v7: three passes before a shot", why: "A rule that makes players keep it and support before anyone shoots.", topics: ["Tactics", "Passing & receiving"] },
+    { band: "nextxi", title: "9v9 across three zones", why: "The field split into thirds. Learn the job in each one.", topics: ["Tactics", "Team shape"] },
+    { band: "nextxi", title: "8v8 playing through the thirds", why: "A goal counts double if the ball went through every third on the ground.", topics: ["Tactics", "Team shape", "Passing & receiving"] },
+    { band: "nextxi", title: "9v9 transition: win it, go", why: "Win the ball and score within ten seconds for a double goal. Makes transition a habit.", topics: ["Tactics", "Team shape", "Defending"] },
+    { band: "nextxi", title: "Pressing trigger: the back pass", why: "When they pass backward, we press together. One shared trigger.", topics: ["Defending", "Tactics", "Team shape"] },
+    { band: "nextxi", title: "Overload: attack with the extra player", why: "One defender sits out after each turnover, so the attack plays one up. Find the extra player.", topics: ["Tactics", "Team shape"] },
+    { band: "nextxi", title: "11v11 walk-through, then live", why: "Walk the shape with the ball and without it, then play it at speed.", topics: ["Tactics", "Team shape"] },
+    { band: "nextxi", title: "9v9: defend a lead, then chase a goal", why: "Same game, two situations: up a goal, then down one. Learn to play the score.", topics: ["Tactics", "Team shape"] },
+    { band: "grassroot", title: "Spread out: the four-corners game", why: "Four corners, one ball. Run to an empty corner to get it. Offense Level 1 as a game.", topics: ["Team shape", "Tactics", "Fun & games"] },
+    { band: "grassroot", title: "Everyone back: the get-it-back race", why: "When the coach calls \"Get it back!\", everyone races to defend. Defense Level 1 as a game.", topics: ["Defending", "Tactics", "Fun & games"] },
+    { band: "academy", title: "Support angles: 3v1 shape", why: "Where to stand so the pass is always on. Triangles, not lines.", topics: ["Team shape", "Passing & receiving", "Tactics"] },
+    { band: "academy", title: "Pressure and cover in pairs: 2v2 shadow", why: "Two defenders: one pressures, one covers, and they swap when the ball moves.", topics: ["Defending", "Team shape", "Tactics"] },
+    { band: "academy", title: "Get wide, get compact: the shape-shift game", why: "Coach calls \"Ours!\" or \"Theirs!\" and the team spreads out or squeezes in.", topics: ["Team shape", "Tactics", "Fun & games"] },
+    { band: "nextxi", title: "Shadow play: get wide, get compact with no opponents", why: "The whole team moves the ball and its shape with no defenders. Learn the shape before you test it.", topics: ["Team shape", "Tactics"] },
+    { band: "nextxi", title: "Back four slide", why: "Four defenders move together as the ball moves across the field.", topics: ["Defending", "Team shape"] },
+    { band: "nextxi", title: "Rest defense: who stays when we attack", why: "When we attack, two or three stay back to stop the counter.", topics: ["Defending", "Team shape", "Tactics"] },
+    { band: "nextxi", title: "Build-out shapes from goal kicks", why: "Three goal-kick shapes with one name each, so every Next XI team builds the same way.", topics: ["Team shape", "Goalkeeping", "Set pieces"] },
+    { band: "nextxi", title: "Compact block against a passing team", why: "Defend in a tight shape and make them play around you, not through you.", topics: ["Defending", "Team shape", "Tactics"] },
+    { band: "nextxi", title: "Transition shape: the first five seconds", why: "The moment the ball changes teams, the shape changes. Rehearse it until it's automatic.", topics: ["Team shape", "Tactics", "Defending"] },
+    { band: "nextxi", title: "Corner routine: low to the near post", why: "A driven ball on the ground to the near post. No headers needed, so it works at every age.", topics: ["Set pieces", "Shooting & finishing"] },
+    { band: "nextxi", title: "Short corner, two players", why: "Two players at the flag change the angle before the cross.", topics: ["Set pieces", "Passing & receiving"] },
+    { band: "nextxi", title: "Defending corners: zones plus markers", why: "Some players guard space, some guard people, and everyone knows which.", topics: ["Set pieces", "Defending"] }
   ];
 
   function planFor(lib, band) { return lib.plan.filter(function (p) { return p.band === band; }); }
