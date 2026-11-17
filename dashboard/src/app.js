@@ -144,10 +144,7 @@
     { band: "all", title: "Warmup step 6: shooting", why: "End on shots so the keepers are warm and every player leaves the warmup having scored.", topics: ["Warmups", "Shooting & finishing"] },
     { band: "all", title: "The Standard — the six non-negotiables on video", why: "Touches, Brave, Play, Fun, System, every kid known by name. The rules every affiliated coach carries.", topics: ["Coaching basics"] },
     { band: "all", title: "Communication and intensity — what it looks like", why: "The house rule is abstract until someone sees a session run at game speed with players talking.", topics: ["Coaching basics"] },
-    { band: "all", title: "Setting up a small-sided game in 60 seconds", why: "Cones, teams, rotations. The difference between 40% of the session competing and 40% standing around.", topics: ["Small-sided games", "Session plans"] },
-    { band: "all", title: "One coach, fourteen kids, no help", why: "The situation most of our volunteers are actually in. Show how the session still works.", topics: ["Coaching basics", "Session plans"] },
     { band: "all", title: "Get wide, get compact: the one idea behind everything", level: "Every level", why: "Desk explainer, 60 seconds. With the ball we get wide, without it we get compact. Every tactics piece builds on this.", topics: ["Tactics", "Team shape"] },
-    { band: "all", title: "Beat 4: coaching the open scrimmage by not coaching", why: "Step back, let them own the game, and speak only to celebrate the brave. The hardest beat for a new coach, because it looks like doing nothing.", topics: ["Small-sided games", "Coaching basics"] },
 
     { band: "grassroot", title: "Beat 1: a K–2 ball-mastery warmup", why: "Everyone on a ball the moment they arrive. Show what good looks like for five-year-olds.", topics: ["Ball mastery", "Warmups"] },
     { band: "grassroot", title: "Traffic and turns — the dribbling maze", why: "The Grassroot sample session's opener. Easy to set up, impossible to stand still in.", topics: ["Dribbling", "Fun & games"] },
