@@ -2098,7 +2098,8 @@
       case "open-terms": openTerms(); break;
       case "open-resource": var rr = resById(id);
         // The terms doc is private to its owner; coaches read the copy built in here.
-        if (rr && rr.url === TERMS_URL && window.LB_TERMS) { openTerms(); logUsage(rr, "open"); break; }
+        // Matched by title too, so a card someone added by hand opens the same guide.
+        if (rr && window.LB_TERMS && (rr.url === TERMS_URL || /common terms/i.test(rr.title || ""))) { openTerms(); logUsage(rr, "open"); break; }
         if (rr && rr.url) { window.open(rr.url, "_blank", "noopener"); logUsage(rr, "open"); } break;
       case "resource-usage": openResourceUsage(id); break;
       case "coach-activity": openCoachActivity(); break;
