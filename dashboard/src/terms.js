@@ -79,11 +79,6 @@ window.LB_TERMS = {
      "Forward, square, forward",
      "Forward, then sideways to a teammate, then forward again from the new angle.",
      "The straight pass through is blocked."
-    ],
-    [
-     "Half space",
-     "The channel between the wing and the middle of the field.",
-     "Looking for a place to receive between defenders."
     ]
    ]
   },
@@ -179,6 +174,22 @@ window.LB_TERMS = {
     [
      "Square",
      "I am level with you. Pass sideways."
+    ],
+    [
+     "“Keeper!”",
+     "The keeper is coming for the ball. Everyone else, get out of the way."
+    ],
+    [
+     "“Away!”",
+     "Clear it big and far, out of danger. No short pass."
+    ],
+    [
+     "“Step!”",
+     "Back line, step up together toward the ball."
+    ],
+    [
+     "“Drop!”",
+     "Back line, drop off together toward our goal."
     ]
    ]
   },
@@ -272,6 +283,60 @@ window.LB_TERMS = {
    ]
   },
   {
+   "h": "Positions",
+   "note": "We call every position by its name, except the center mids at 6–8, who go by number: the 6, the 8 and the 10. At K–5 they are just mids.",
+   "head": [
+    "Position",
+    "What they do"
+   ],
+   "rows": [
+    [
+     "Keeper",
+     "Guards the goal and organizes the back line. The only player who can use their hands, and only inside the box."
+    ],
+    [
+     "Backs",
+     "Our defenders, the line nearest our goal."
+    ],
+    [
+     "Outside back",
+     "A back on the left or right. Defends the wide attacker, and joins the attack down the sideline when we get wide."
+    ],
+    [
+     "Center back",
+     "A back in the middle. Defends the space in front of goal, and is usually the cover when the outside back pressures."
+    ],
+    [
+     "Mids",
+     "Our midfielders, linking the backs to the forwards. At K–5 this is the only name we use."
+    ],
+    [
+     "The 6",
+     "Holding mid, 6–8. Sits in front of the backs, wins the ball back and starts our attacks."
+    ],
+    [
+     "The 8",
+     "Box-to-box mid, 6–8. Helps defend and joins the attack, and covers the most ground."
+    ],
+    [
+     "The 10",
+     "Attacking mid, 6–8. Plays behind the striker, between the lines, and makes the final pass."
+    ],
+    [
+     "Forwards",
+     "Our attackers, the line nearest their goal."
+    ],
+    [
+     "Winger",
+     "A forward on the left or right. Stays wide to give us width, and takes players on."
+    ],
+    [
+     "Striker",
+     "The forward in the middle, highest up the field. Holds the ball up and finishes."
+    ]
+   ]
+  },
+  {
    "h": "Moments in the game",
    "note": "",
    "head": [
@@ -319,6 +384,42 @@ window.LB_TERMS = {
      "Play the score",
      "Up a goal: get compact and keep it. Down a goal: get wide and go forward.",
      "Late in a close game."
+    ]
+   ]
+  },
+  {
+   "h": "Restarts",
+   "note": "",
+   "head": [
+    "Restart",
+    "How we do it",
+    "What to remember"
+   ],
+   "rows": [
+    [
+     "Throw-in",
+     "Both feet on the ground, on or behind the line. Two hands, and the ball comes from behind your head.",
+     "Throw it to a teammate's feet or down the line, then move so they can give it back."
+    ],
+    [
+     "Goal kick",
+     "Short to a back and build out with passes. At U10, the other team stays behind the build-out line until the pass is received.",
+     "Build, don't just boot it."
+    ],
+    [
+     "Kick-off",
+     "Tap it back to a mid (the 6 at 6–8), who plays it out wide.",
+     "Get wide straight away."
+    ],
+    [
+     "Free kick",
+     "Direct: you can score straight from it. Indirect: it has to touch another player before it goes in, and the referee keeps an arm up until it does.",
+     "Take it quickly if they aren't set."
+    ],
+    [
+     "The wall",
+     "When we defend a free kick near our goal, players stand side by side between the ball and the goal, as far back as your division's Black Swamp guidelines say. The keeper sets it.",
+     "Stand tall, stay still, and don't turn your back on the ball."
     ]
    ]
   },
