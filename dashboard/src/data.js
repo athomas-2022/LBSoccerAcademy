@@ -30,9 +30,9 @@ var PHASES = [
   { n: 3,  days: "61–90",   title: "Lock the Soccer Community", goal: "Turn the soccer world into your funnel; set the launch date.",
     tasks: ["Rec league partnership", "SET THE LAUNCH DATE in writing", "Connect youth/MS + club coaches"] },
   { n: 4,  days: "91–120",  title: "Stand Up Funding",        goal: "Get the money vehicle live and land first sponsors.",
-    tasks: ["Finalize booster / 501(c)(3)", "Build sponsor list; run the drive", "Approach gear brands for in-kind"] },
+    tasks: ["Finalize booster / 501(c)(3)", "Build sponsor list; run the drive", "Approach local businesses for in-kind"] },
   { n: 5,  days: "121–150", title: "Build the Machine",       goal: "Turn plans into infrastructure.",
-    tasks: ["Finalize the session plan (schedule, tiers, roster cap)", "Launch gear drive & set up the gear closet", "Build registration + Every Kid Plays flyer"] },
+    tasks: ["Finalize the session plan (schedule, tiers, roster cap)", "Load the Eagles Way library into the dashboard", "Build registration + Every Kid Plays flyer"] },
   { n: 6,  days: "151–180", title: "Fill the Funnel",         goal: "Get kids signed up; select the high school coaches.",
     tasks: ["OPEN REGISTRATION; push everywhere", "Post coach application + select coaches", "Host a spring Youth Night"] },
   { n: 7,  days: "181–210", title: "Final Prep & Train",      goal: "Everything ready; train coaches to the Standard.",
@@ -51,10 +51,10 @@ var PHASES = [
 
 var SPONSOR_TIERS = [
   { key: "champion",  name: "Champion",  min: 1000, does: "Keeps a whole group playing all year" },
-  { key: "eagle",     name: "Eagle",     min: 500,  does: "Stocks the gear closet for a season" },
+  { key: "eagle",     name: "Eagle",     min: 500,  does: "Funds a season of coach clinics" },
   { key: "supporter", name: "Supporter", min: 250,  does: "Keeps a kid playing all season" },
-  { key: "friend",    name: "Friend",    min: 100,  does: "Outfits a kid head-to-toe" },
-  { key: "inkind",    name: "In-kind",   min: 0,    does: "Goods & services — cleats, printing, water" }
+  { key: "friend",    name: "Friend",    min: 100,  does: "Covers a kid's jersey" },
+  { key: "inkind",    name: "In-kind",   min: 0,    does: "Goods & services — balls, printing, water" }
 ];
 function tierForAmount(amt) {
   for (var i = 0; i < SPONSOR_TIERS.length; i++) { if (amt >= SPONSOR_TIERS[i].min && SPONSOR_TIERS[i].min > 0) return SPONSOR_TIERS[i]; }

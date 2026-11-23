@@ -168,7 +168,7 @@ Intentional, athletic, quick. Ease-out (quart/expo), no bounce, no elastic.
 **Public site** — `public/`, brand register, phone-first. Drenched blue. Narrative fold order
 (from the prior build, still the frame): hero → why it's free → the 4-rung pathway →
 the coaching **Standard** (Touches · Brave · Play · Youngest · System — the *coaching* standard,
-not character values) → sponsor tiers → gear closet → FAQ → register. Boys **and** girls
+not character values) → sponsor tiers → FAQ → register. Boys **and** girls
 present throughout. Form is backend-ready via a `FORM_ENDPOINT` (empty = mailto fallback to
 athomas@Liberty-Benton.org). Ship real imagery (Eagle soccer / youth action) — colored
 blocks where a hero photo belongs is a bug.

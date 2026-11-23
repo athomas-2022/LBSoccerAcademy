@@ -34,8 +34,7 @@ best coaches with the youngest kids, protect free play, build one clear pathway 
 it at the district level.
 
 - **Public site** exists to convert a glance into a signed-up kid or a committed sponsor. It
-  carries the "Every Kid Plays" promise (free to play, free gear closet, nobody turned
-  away) and makes being an Eagle the thing to be in town.
+  carries the "Every Kid Plays" promise (free to play, nobody turned away) and makes being an Eagle the thing to be in town.
 - **Dashboard** exists to run the machine: capture & retention discipline, the Four Numbers
   (capture rate · retention rate · active players · sponsor dollars), the phase plan, sponsors.
 
