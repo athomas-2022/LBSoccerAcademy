@@ -145,6 +145,10 @@
     { band: "all", title: "The Standard — the six non-negotiables on video", why: "Touches, Brave, Play, Fun, System, every kid known by name. The rules every affiliated coach carries.", topics: ["Coaching basics"] },
     { band: "all", title: "Communication and intensity — what it looks like", why: "The house rule is abstract until someone sees a session run at game speed with players talking.", topics: ["Coaching basics"] },
 
+    // Age-group overviews (added 24 Nov 2026): on camera in Shoot 1, one per band.
+    { band: "grassroot", title: "Grassroot overview — coaching K–2", why: "What this age is about in two minutes: fun is the curriculum, what good looks like, the four things to teach and the three cues.", topics: ["Coaching basics"] },
+    { band: "academy", title: "Rising overview — coaching 3–5", why: "Where players are made: the moves, passing and first touch to teach, the three cues, and why we praise the brave.", topics: ["Coaching basics"] },
+    { band: "nextxi", title: "Next XI overview — coaching 6–8", why: "Learning the system: shape, playing out of the back, pressing and one shared language, so varsity feels like home.", topics: ["Coaching basics"] },
     { band: "grassroot", title: "Beat 1: a K–2 ball-mastery warmup", why: "Everyone on a ball the moment they arrive. Show what good looks like for five-year-olds.", topics: ["Ball mastery", "Warmups"] },
     { band: "grassroot", title: "Keeping every kid on a ball", why: "No lines, no laps, no long lectures. If a kid is standing still, the drill is wrong.", topics: ["Fun & games", "Coaching basics"] },
     { band: "grassroot", title: "Everyone scores — shooting games with big goals", why: "Big goals, lots of balls, and every kid finishes. At K–2 the goal is the reward for dribbling there.", topics: ["Shooting & finishing", "Fun & games"] },
